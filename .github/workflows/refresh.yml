@@ -1,0 +1,45 @@
+name: Refresh theme map
+on:
+  schedule:
+    - cron: '0 2 1 * *'      # 02:00 UTC on the 1st of each month
+  workflow_dispatch:          # and on demand from the Actions tab
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install openpyxl
+      - name: Rebuild taxonomy, classify, analyse, score demand
+        run: |
+          python scripts/build_taxonomy.py
+          python scripts/classify.py
+          python scripts/analyse.py
+          python scripts/demand_index.py
+          python scripts/build_data.py
+          python scripts/build_site.py
+      - name: Guardrail - fail if any school's product count moved more than 10%
+        run: python scripts/check_drift.py
+      - name: Commit refreshed data
+        run: |
+          git config user.name "theme-map-bot"
+          git config user.email "actions@github.com"
+          git add -A
+          git diff --staged --quiet || git commit -m "Monthly refresh $(date -u +%Y-%m-%d)"
+          git push
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: site}
+  deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
