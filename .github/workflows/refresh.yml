@@ -5,7 +5,7 @@ on:
   workflow_dispatch:          # and on demand from the Actions tab
   push:                       # and whenever the monthly Claude refresh commits catalogue fixes
     branches: [main]
-    paths: ['data/**']
+    paths: ['data/**', 'scripts/**', 'site/dashboard.tpl.html', '.github/workflows/**']
 permissions:
   contents: write
   pages: write
