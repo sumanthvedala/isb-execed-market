@@ -57,6 +57,20 @@ header.top{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--p
 .lnk{appearance:none;border:0;background:none;color:var(--accent);cursor:pointer;font-size:12.5px;
   text-decoration:underline;text-underline-offset:3px;padding:2px 0}
 .fcount{font-size:12px;color:var(--ink-3)}
+/* instant results under the search box */
+.sdrop{max-width:1140px;margin:0 auto 10px;width:calc(100% - 40px);background:var(--card);border:1px solid var(--rule);
+  border-radius:10px;box-shadow:var(--shadow);max-height:min(70vh,560px);overflow-y:auto}
+.sdrop .sh3{padding:8px 14px;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;background:var(--rule-2);border-bottom:1px solid var(--rule)}
+.sdrop .sr{appearance:none;border:0;border-bottom:1px solid var(--rule-2);background:none;width:100%;text-align:left;
+  cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) 70px 70px;gap:10px;padding:8px 14px;align-items:center}
+.sdrop .sr:hover,.sdrop .sr:focus-visible{background:var(--accent-soft)}
+.sdrop .sr .pn{font-size:13px;font-weight:500;line-height:1.3}
+.sdrop .sr .pm{font-size:11px;color:var(--ink-3)}
+.sdrop .sr .c{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sdrop .all{display:block;width:100%;appearance:none;border:0;background:none;padding:10px 14px;text-align:left;
+  color:var(--accent);font-weight:600;cursor:pointer;font-size:13px}
+.sdrop .none{padding:14px;color:var(--ink-3);font-size:13px}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* ---- sections ---- */
@@ -264,6 +278,7 @@ details.notes li{margin:6px 0;max-width:80ch}
     <span class="fcount" id="fcount"></span>
   </div>
   <button type="button" class="ftoggle" id="ftoggle" aria-expanded="false">Filters</button>
+  <div class="sdrop" id="sdrop" hidden></div>
 </header>
 
 <div class="wrap">
@@ -365,15 +380,27 @@ function progOK(p,o={}){
   if(F.lv&&LV(p.lv)!==F.lv) return false;
   if(F.fee){ if(F.fee==="none"){ if(p.inr!=null) return false; } else if(!inRange(p.inr,F.fee)) return false; }
   if(F.len&&!inRange(p.w,F.len)) return false;
-  if(F.q){ const q=F.q.toLowerCase();
-    if(!(p.n.toLowerCase().includes(q)||(t.n||"").toLowerCase().includes(q)||(t.st||"").toLowerCase().includes(q)
-      ||SC[p.sc].l.toLowerCase().includes(q)||(p.pt||"").toLowerCase().includes(q))) return false; }
+  if(F.q&&!hit(progHay(p),F.q)) return false;
   return true;
+}
+// every word of the query must appear somewhere in the programme's text,
+// so "digital marketing iim" finds IIM digital-marketing programmes
+const words=q=>q.toLowerCase().split(/[\s,]+/).filter(Boolean);
+// people search by abbreviation; programme titles spell the role out
+const ALIAS={cfo:"chief financial",ceo:"chief executive",cmo:"chief marketing",cto:"chief technology",
+  coo:"chief operat",chro:"chief human",cso:"chief strategy",cdo:"chief digital",cio:"chief information",
+  caio:"chief ai",hr:"human resource",ai:"artificial intelligence",pe:"private equity",vc:"venture capital",
+  esg:"sustainab",gm:"general management",mgmt:"management",programme:"program"};
+const has=(hay,w)=>hay.includes(w)||(ALIAS[w]&&hay.includes(ALIAS[w]));
+const hit=(hay,q)=>words(q).every(w=>has(hay,w));
+function progHay(p){
+  if(p._h) return p._h; const t=T[p.t]||{}, s=SC[p.sc];
+  return p._h=[p.n,t.n,t.st,t.th,s.l,s.n,p.pt,p.cat,p.kt,p.f].join(" ").toLowerCase();
 }
 function topicOK(t){
   if(F.th&&t.th!==F.th) return false;
   if(F.ai&&t.ai==="Stable") return false;
-  if(F.q){const q=F.q.toLowerCase(); if(!(t.n.toLowerCase().includes(q)||t.st.toLowerCase().includes(q))) return false;}
+  if(F.q&&!hit([t.n,t.st,t.th].join(" ").toLowerCase(),F.q)) return false;
   return true;
 }
 function readHash(){
@@ -401,7 +428,47 @@ let tmr;
 $("ftoggle").addEventListener("click",e=>{const h=document.querySelector("header.top");
   h.classList.toggle("fopen"); e.target.setAttribute("aria-expanded",h.classList.contains("fopen"));});
 $("fai").addEventListener("change",e=>{F.ai=e.target.checked;update();});
-$("fq").addEventListener("input",e=>{clearTimeout(tmr);tmr=setTimeout(()=>{F.q=e.target.value.trim();update();},180);});
+$("fq").addEventListener("input",e=>{clearTimeout(tmr);tmr=setTimeout(()=>{F.q=e.target.value.trim();update();showDrop();},150);});
+$("fq").addEventListener("focus",()=>{if(F.q)showDrop();});
+$("fq").addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault();clearTimeout(tmr);F.q=e.target.value.trim();update();hideDrop();
+    document.getElementById("programmes").scrollIntoView({behavior:"smooth"});}
+  if(e.key==="Escape")hideDrop();
+  if(e.key==="ArrowDown"){const f=$("sdrop").querySelector("button");if(f){e.preventDefault();f.focus();}}
+});
+let dropList=[];
+function hideDrop(){$("sdrop").hidden=true;}
+function showDrop(){
+  const box=$("sdrop");
+  if(!F.q){hideDrop();return;}
+  const progs=D.progs.filter(p=>progOK(p));
+  // ISB first, then by how early the words appear in the programme name
+  const ws=words(F.q), nameHits=p=>ws.filter(w=>has(p.n.toLowerCase(),w)).length;
+  const rank=p=>(p.sc==="isb"?0:1)*1000-nameHits(p)*100+p.n.length/100;
+  dropList=progs.slice().sort((a,b)=>rank(a)-rank(b)).slice(0,10);
+  const tops=D.topics.filter(topicOK).slice(0,5);
+  box.innerHTML=(tops.length?`<div class="sh3">Topics · ${D.topics.filter(topicOK).length}</div>`+tops.map(t=>
+      `<button type="button" class="sr" data-topic="${t.id}"><span><div class="pn">${esc(t.n)}</div><div class="pm">${esc(t.th)} › ${esc(t.st)}</div></span>
+       <span class="c">${t.call?CALL[t.call].l:""}</span><span class="c">${t.peers} peers</span></button>`).join(""):"")+
+    (progs.length?`<div class="sh3">Programmes · ${progs.length}</div>`+dropList.map((p,i)=>
+      `<button type="button" class="sr" data-di="${i}"><span><div class="pn">${esc(p.n)}</div><div class="pm"><span class="sch ${p.sc==="isb"?"isb":""}">${esc(SC[p.sc].l)}</span> · ${esc(T[p.t].n)}</div></span>
+       <span class="c">${esc(p.f.replace(" Online",""))}</span><span class="c">${inr(p.inr)}</span></button>`).join("")+
+      `<button type="button" class="all" id="sall">Show all ${progs.length} programmes in the table ↓</button>`
+    :`<div class="none">No programme matches “${esc(F.q)}”${Object.keys(F).some(k=>k!=="q"&&F[k])?" under the current filters. Try Reset.":"."}</div>`);
+  box.hidden=false;
+}
+$("sdrop").addEventListener("click",e=>{
+  const d=e.target.closest("[data-di]"); if(d){hideDrop();openProg(dropList[+d.dataset.di]);return;}
+  const t=e.target.closest("[data-topic]"); if(t){e.stopPropagation();hideDrop();openTopic(t.dataset.topic);return;}
+  if(e.target.id==="sall"){hideDrop();document.getElementById("programmes").scrollIntoView({behavior:"smooth"});}
+});
+$("sdrop").addEventListener("keydown",e=>{
+  const b=[...$("sdrop").querySelectorAll("button")], i=b.indexOf(document.activeElement);
+  if(e.key==="ArrowDown"&&i<b.length-1){e.preventDefault();b[i+1].focus();}
+  if(e.key==="ArrowUp"){e.preventDefault();(i>0?b[i-1]:$("fq")).focus();}
+  if(e.key==="Escape"){hideDrop();$("fq").focus();}
+});
+document.addEventListener("click",e=>{if(!e.target.closest("#sdrop")&&e.target.id!=="fq")hideDrop();});
 $("freset").addEventListener("click",()=>{for(const k in F)F[k]=k==="ai"?false:"";update();});
 
 /* ---------------- headline tiles (whole market, ignore filters) ---------------- */
