@@ -54,7 +54,7 @@ doc = f"""<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="description" content="ISB Executive Education theme, sub-theme and topic map against ten peer schools.">
+<meta name="description" content="ISB Executive Education portfolio against 15 peer schools and 4 platforms: where to lead, follow, defend, deepen or diversify.">
 {RESET}
 {head_part.strip()}
 </head>

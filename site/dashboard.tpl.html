@@ -1,900 +1,666 @@
-<title>Exec Ed Theme Map</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<title>Exec Ed Market Map</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
   --paper:#FBF9F8; --card:#FFFFFF; --ink:#1B1618; --ink-2:#4A4045; --ink-3:#6E6266;
-  --rule:#E3DCDA; --rule-2:#F1ECEB; --accent:#7E1B2E; --accent-soft:#F6EBED;
-  --lead:#1C6249; --lead-bg:#E6F0EB; --follow:#234F76; --follow-bg:#E7EDF3;
-  --defend:#8E5B0E; --defend-bg:#F8EFDD; --review:#6E6266; --review-bg:#F0EDEC;
-  --zero:#C0392B; --zero-bg:#FBE9E7;
-  --shadow:0 1px 2px rgba(27,22,24,.05), 0 10px 28px -20px rgba(27,22,24,.22);
+  --rule:#E3DCDA; --rule-2:#F3EFEE; --accent:#7E1B2E; --accent-soft:#F6EBED;
+  --heat:#2a78d6; --zero:#B42318; --zero-bg:#FBE9E7;
+  /* call colours: validated as a set (dataviz validator, adjacent order below) */
+  --c-lead:#008300; --c-diversify:#2a78d6; --c-follow:#eda100; --c-deepen:#4a3aa7; --c-defend:#eb6834;
+  --c-watch:#8A8083;
+  --shadow:0 1px 2px rgba(27,22,24,.05), 0 12px 32px -22px rgba(27,22,24,.28);
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
   --paper:#141011; --card:#1C1719; --ink:#F2ECEA; --ink-2:#C6BAB8; --ink-3:#978C8D;
   --rule:#312829; --rule-2:#241E20; --accent:#E2879A; --accent-soft:#2F2025;
-  --lead:#6FC6A0; --lead-bg:#152E24; --follow:#93B8DC; --follow-bg:#152431;
-  --defend:#DCA84A; --defend-bg:#2E2413; --review:#978C8D; --review-bg:#241F20;
-  --zero:#E8867A; --zero-bg:#33201E;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.7);
+  --heat:#3987e5; --zero:#E8867A; --zero-bg:#33201E;
+  --c-lead:#008300; --c-diversify:#3987e5; --c-follow:#c98500; --c-deepen:#9085e9; --c-defend:#d95926;
+  --c-watch:#978C8D; --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -22px rgba(0,0,0,.7);
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
   --paper:#141011; --card:#1C1719; --ink:#F2ECEA; --ink-2:#C6BAB8; --ink-3:#978C8D;
   --rule:#312829; --rule-2:#241E20; --accent:#E2879A; --accent-soft:#2F2025;
-  --lead:#6FC6A0; --lead-bg:#152E24; --follow:#93B8DC; --follow-bg:#152431;
-  --defend:#DCA84A; --defend-bg:#2E2413; --review:#978C8D; --review-bg:#241F20;
-  --zero:#E8867A; --zero-bg:#33201E;
-  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 28px -20px rgba(0,0,0,.7);
+  --heat:#3987e5; --zero:#E8867A; --zero-bg:#33201E;
+  --c-lead:#008300; --c-diversify:#3987e5; --c-follow:#c98500; --c-deepen:#9085e9; --c-defend:#d95926;
+  --c-watch:#978C8D; --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -22px rgba(0,0,0,.7);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1140px;margin:0 auto;padding-inline:20px;padding-block:0 72px}
-h1,h2,h3{font-family:Spectral,Georgia,"Times New Roman",serif;text-wrap:balance;margin:0}
-.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+  font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Spectral,Georgia,serif;margin:0;text-wrap:balance}
+button{font:inherit;color:inherit}
 .num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
 
-header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
-  background:color-mix(in srgb,var(--paper) 88%,transparent);
+/* ---- header + filters ---- */
+header.top{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--paper) 92%,transparent);
   backdrop-filter:blur(10px);border-bottom:1px solid var(--rule)}
-header.top .bar{max-width:1140px;margin:0 auto;padding:11px 20px;display:flex;
-  align-items:baseline;gap:14px;flex-wrap:wrap}
-header.top .nm{font-family:Spectral,serif;font-weight:600;font-size:15px;letter-spacing:.01em}
-header.top .dt{font-size:11.5px;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase}
-header.top .sp{flex:1}
+.bar{max-width:1180px;margin:0 auto;padding:10px 20px 0;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.bar .nm{font-family:Spectral,serif;font-weight:600;font-size:16px}
+.bar nav{display:flex;gap:14px;font-size:13px}
+.bar nav a{color:var(--ink-2);text-decoration:none;border-bottom:2px solid transparent;padding-bottom:2px}
+.bar nav a:hover{color:var(--accent);border-color:var(--accent)}
+.bar .dt{margin-left:auto;font-size:11.5px;color:var(--ink-3);letter-spacing:.04em}
+.filters{max-width:1180px;margin:0 auto;padding:9px 20px 11px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters input[type=search]{flex:1 1 240px;min-width:0;padding:7px 11px;border:1px solid var(--rule);
+  border-radius:7px;background:var(--card);color:var(--ink);font:inherit;font-size:13.5px}
+.filters select{padding:6px 8px;border:1px solid var(--rule);border-radius:7px;background:var(--card);
+  color:var(--ink);font:inherit;font-size:12.5px;max-width:170px}
+.filters select.on,.filters input.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.tog{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-2);cursor:pointer;
+  border:1px solid var(--rule);border-radius:7px;padding:6px 9px;background:var(--card)}
+.tog input{accent-color:var(--accent);margin:0}
+.lnk{appearance:none;border:0;background:none;color:var(--accent);cursor:pointer;font-size:12.5px;
+  text-decoration:underline;text-underline-offset:3px;padding:2px 0}
+.fcount{font-size:12px;color:var(--ink-3)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.hero{padding-block:44px 30px;border-bottom:1px solid var(--rule)}
-.eyebrow{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);
-  font-weight:600;margin-bottom:14px}
-.hero h1{font-size:clamp(28px,4.4vw,43px);font-weight:600;line-height:1.12;letter-spacing:-.015em;max-width:24ch}
-.hero p{margin:16px 0 0;max-width:66ch;color:var(--ink-2);font-size:16px}
+/* ---- sections ---- */
+section{padding:34px 0 8px;scroll-margin-top:118px}
+.sh{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+.sh h2{font-size:23px;font-weight:600;letter-spacing:-.01em}
+.sh .q{font-size:12px;color:var(--ink-3)}
+.lede{color:var(--ink-2);max-width:78ch;margin:0 0 16px;font-size:14px}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow)}
 
-section{padding-block:40px;border-bottom:1px solid var(--rule)}
-section:last-of-type{border-bottom:0}
-.sh{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-.sh h2{font-size:22px;font-weight:600;letter-spacing:-.01em}
-.sh .tag{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
-  border:1px solid var(--rule);border-radius:99px;padding:2px 9px}
-.lede{color:var(--ink-2);max-width:70ch;margin:0 0 22px;font-size:14.5px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin:6px 0 22px}
+.tile{background:var(--card);padding:15px 17px}
+.tile .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.tile .v{font-family:Spectral,serif;font-size:30px;font-weight:600;line-height:1.1;margin-top:6px}
+.tile .v small{font-size:14px;color:var(--ink-3);font-weight:500}
+.tile .s{font-size:12.5px;color:var(--ink-3);margin-top:4px}
 
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:1px;
-  background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
-.tile{background:var(--card);padding:17px 18px 15px}
-.tile .k{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
-  font-weight:600;margin-bottom:9px;line-height:1.3}
-.tile .v{font-family:Spectral,serif;font-size:32px;font-weight:600;line-height:1;
-  letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.tile .v small{font-size:15px;font-weight:500;color:var(--ink-3);letter-spacing:0}
-.tile .s{font-size:12.5px;color:var(--ink-3);margin-top:8px;line-height:1.45}
-.tile.warn .v{color:var(--zero)}
+/* ---- call board ---- */
+.board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+@media (max-width:1020px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.board{grid-template-columns:1fr}}
+.col{background:var(--card);border:1px solid var(--rule);border-radius:10px;overflow:hidden;
+  border-top:4px solid var(--cc);display:flex;flex-direction:column}
+.col .hd{padding:11px 13px 9px;border-bottom:1px solid var(--rule-2)}
+.col .hd h3{font-family:"IBM Plex Sans",sans-serif;font-size:14px;font-weight:600;display:flex;
+  justify-content:space-between;align-items:baseline}
+.col .hd h3 span{font-size:12px;color:var(--ink-3);font-weight:500}
+.col .hd p{margin:3px 0 0;font-size:11.5px;color:var(--ink-3);line-height:1.4}
+.tc{appearance:none;border:0;background:none;text-align:left;cursor:pointer;padding:9px 13px;
+  border-bottom:1px solid var(--rule-2);display:block;width:100%}
+.tc:last-child{border-bottom:0}
+.tc:hover{background:var(--rule-2)}
+.tc .tn{font-size:13px;font-weight:500;line-height:1.3}
+.tc .tm{display:flex;gap:8px;align-items:center;margin-top:5px;font-size:11px;color:var(--ink-3)}
+.dbar{width:44px;height:5px;border-radius:3px;background:var(--rule);position:relative;flex:none}
+.dbar i{position:absolute;inset:0 auto 0 0;border-radius:3px;background:var(--ink-2)}
+.col .empty{padding:14px 13px;font-size:12px;color:var(--ink-3)}
+.more{margin-top:12px;border:1px solid var(--rule);border-radius:10px;background:var(--card)}
+.more summary{cursor:pointer;padding:10px 14px;font-size:13px;color:var(--ink-2)}
+.more summary b{color:var(--ink)}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 14px}
+.chip{appearance:none;border:1px solid var(--rule);background:var(--paper);border-radius:99px;
+  padding:3px 10px;font-size:12px;cursor:pointer;color:var(--ink-2)}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.ai{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;color:var(--ink-3);
+  border:1px solid var(--rule);border-radius:3px;padding:0 4px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.05em;
+  text-transform:uppercase;color:var(--ink-2)}
+.badge::before{content:"";width:9px;height:9px;border-radius:2px;background:var(--cc)}
 
+/* ---- charts ---- */
+.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:16px}
+@media (max-width:900px){.grid2{grid-template-columns:1fr}}
+@media (max-width:560px){.wrow{grid-template-columns:118px 1fr 40px;gap:8px}.wrow .lb{font-size:11.5px}}
+.panel{padding:16px 18px}
+.panel h3{font-family:"IBM Plex Sans",sans-serif;font-size:14.5px;font-weight:600}
+.panel .sub{font-size:12px;color:var(--ink-3);margin:2px 0 12px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3);margin-bottom:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:5px;vertical-align:-1px}
+.wrow{display:grid;grid-template-columns:minmax(120px,190px) 1fr 58px;gap:10px;align-items:center;
+  padding:5px 0;cursor:pointer;border-radius:4px}
+.wrow:hover{background:var(--rule-2)}
+.wrow .lb{font-size:12.5px;line-height:1.25}
+.track{position:relative;height:18px}
+.track .ln{position:absolute;top:8px;height:2px;background:var(--rule)}
+.track .dot{position:absolute;top:4px;width:10px;height:10px;border-radius:99px;margin-left:-5px;
+  box-shadow:0 0 0 2px var(--card)}
+.track .base{position:absolute;inset:8px 0 auto 0;height:2px;background:var(--rule-2)}
+.gapv{font-size:12px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.hrow{display:grid;grid-template-columns:minmax(80px,120px) 1fr 44px;gap:10px;align-items:center;padding:4px 0;font-size:12.5px}
+.hbar{height:14px;border-radius:0 4px 4px 0;background:var(--ink-3);opacity:.55;min-width:2px}
+.hrow.isb .hbar{background:var(--accent);opacity:1}
+.hrow.isb .lb{color:var(--accent);font-weight:600}
+.hrow .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.newlist{display:flex;flex-direction:column}
+.nrow{appearance:none;border:0;background:none;text-align:left;display:grid;grid-template-columns:1fr 34px;
+  gap:10px;padding:6px 0;border-bottom:1px solid var(--rule-2);cursor:pointer;font-size:12.5px}
+.nrow:hover{color:var(--accent)}
+.nrow .v{text-align:right;font-variant-numeric:tabular-nums}
+
+/* ---- coverage heatmap ---- */
 .scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:10px;background:var(--card)}
-table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
-th,td{padding:8px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--rule-2)}
-thead th{position:sticky;top:0;background:var(--card);z-index:2;font-size:10.5px;
-  letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);font-weight:600;
-  border-bottom:1px solid var(--rule)}
-tbody tr:last-child td{border-bottom:0}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:12.5px}
+th,td{padding:6px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--rule-2)}
+thead th{position:sticky;top:0;background:var(--card);font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-3);font-weight:600;border-bottom:1px solid var(--rule);z-index:2}
 th.l,td.l{text-align:left}
-td.theme{font-weight:500;position:sticky;left:0;background:var(--card);z-index:1;
-  min-width:212px;white-space:normal;line-height:1.3;border-right:1px solid var(--rule)}
-thead th.theme{left:0;z-index:3;border-right:1px solid var(--rule)}
-td.isbcol,th.isbcol{background:var(--accent-soft);font-weight:600;
-  border-left:2px solid var(--accent);border-right:1px solid var(--rule)}
-thead th.isbcol{background:var(--accent-soft);color:var(--accent)}
-.cell{display:inline-flex;min-width:26px;height:22px;align-items:center;justify-content:center;
-  border-radius:4px;font-variant-numeric:tabular-nums;font-size:12.5px}
-.z{color:var(--zero);background:var(--zero-bg);font-weight:600}
-.dem{display:inline-block;width:38px;height:5px;border-radius:3px;background:var(--rule);
-  position:relative;vertical-align:middle}
-.dem i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
-
-.groups{display:flex;flex-direction:column;gap:26px}
-.grp{border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--card);
-  box-shadow:var(--shadow)}
-.grp>.hd{padding:14px 18px;display:flex;align-items:center;gap:11px;flex-wrap:wrap;
-  border-bottom:1px solid var(--rule)}
-.grp>.hd .dot{width:9px;height:9px;border-radius:99px;flex:none}
-.grp>.hd h3{font-size:16px;font-weight:600}
-.grp>.hd .n{font-size:11.5px;color:var(--ink-3);letter-spacing:.05em;margin-left:auto;
-  text-transform:uppercase;font-weight:600}
-.grp>.hd p{margin:0;flex-basis:100%;font-size:13px;color:var(--ink-2);max-width:74ch}
-.grp.lead>.hd{background:var(--lead-bg)} .grp.lead .dot{background:var(--lead)}
-.grp.follow>.hd{background:var(--follow-bg)} .grp.follow .dot{background:var(--follow)}
-.grp.defend>.hd{background:var(--defend-bg)} .grp.defend .dot{background:var(--defend)}
-.grp.review>.hd{background:var(--review-bg)} .grp.review .dot{background:var(--review)}
-.row{display:grid;grid-template-columns:1fr 78px 78px 116px;gap:14px;align-items:center;
-  padding:11px 18px;border-bottom:1px solid var(--rule-2)}
-.row:last-child{border-bottom:0}
-.row .tp{font-weight:500;line-height:1.35}
-.row .mt{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;gap:7px;flex-wrap:wrap;
-  align-items:center}
-.row .col{text-align:right;font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
-.row .col b{display:block;font-size:10px;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--ink-3);font-weight:600}
-.chip{font-size:10px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;
-  border-radius:3px;padding:1px 5px;border:1px solid var(--rule)}
-.chip.new{color:var(--lead);border-color:var(--lead)}
-.chip.tr{color:var(--defend);border-color:var(--defend)}
-.chip.flag{color:var(--ink-3)}
-
-.controls{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin:0 0 14px}
-.seg{display:inline-flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;background:var(--card)}
-.seg button{appearance:none;border:0;background:transparent;color:var(--ink-2);cursor:pointer;
-  font:inherit;font-size:12.5px;padding:6px 13px;letter-spacing:.01em}
-.seg button+button{border-left:1px solid var(--rule)}
-.seg button.on{background:var(--accent);color:#fff;font-weight:600}
-.seg button:focus-visible,.lnk:focus-visible,.trow:focus-visible{outline:2px solid var(--accent);
-  outline-offset:2px}
-.lnk{appearance:none;border:0;background:transparent;color:var(--accent);cursor:pointer;font:inherit;
-  font-size:12.5px;text-decoration:underline;text-underline-offset:3px;padding:2px 0}
-.hint{font-size:12px;color:var(--ink-3);max-width:44ch;line-height:1.4}
-.legend{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:12px;font-size:11.5px;
-  color:var(--ink-3)}
-.legend .sw{display:inline-block;width:22px;height:11px;border-radius:2px;border:1px solid var(--rule)}
-tr.trow{cursor:pointer}
-tr.srow.drill{cursor:pointer}
-tr.srow.drill:hover td{background:var(--accent-soft)}
-.row.drillrow{cursor:pointer}
-.row.drillrow:hover{background:var(--accent-soft)}
-.row.drillrow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-tr.trow td.theme{font-weight:600}
-tr.trow:hover td:not(.isbcol){background:var(--rule-2)}
-td.theme .tw{display:inline-flex;align-items:baseline;gap:7px}
-.caret{display:inline-block;width:9px;flex:none;color:var(--ink-3);font-size:9px;line-height:1.6;
-  transition:transform .15s ease}
+td.nm{position:sticky;left:0;background:var(--card);z-index:1;min-width:230px;white-space:normal;
+  border-right:1px solid var(--rule);line-height:1.3}
+thead th.nm{left:0;z-index:3}
+tr.th td.nm{font-weight:600;cursor:pointer}
+tr.st td{background:var(--rule-2)} tr.st td.nm{padding-left:24px;color:var(--ink-2);cursor:pointer;background:var(--rule-2)}
+tr.st:hover td.nm{color:var(--accent)}
+.caret{display:inline-block;width:10px;color:var(--ink-3);font-size:9px;transition:transform .15s}
 tr.open .caret{transform:rotate(90deg)}
-tr.srow td{background:var(--rule-2)}
-tr.srow td.theme{background:var(--rule-2);font-weight:400;padding-left:26px;font-size:12.5px;
-  color:var(--ink-2)}
-tr.srow td.isbcol{background:var(--accent-soft)}
-/* ---- explorer ---- */
-.crumbs{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:0 0 16px;font-size:12.5px;
-  min-height:22px}
-.crumbs button{appearance:none;border:0;background:transparent;color:var(--accent);cursor:pointer;
-  font:inherit;padding:2px 0;text-decoration:underline;text-underline-offset:3px}
-.crumbs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.crumbs .sep{color:var(--ink-3)}
-.crumbs .cur{color:var(--ink-2);font-weight:600}
-.expl{min-height:230px}
-.pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:1px;
-  background:var(--rule);border:1px solid var(--rule);border-radius:10px;overflow:hidden}
-.pick button{appearance:none;border:0;background:var(--card);cursor:pointer;font:inherit;
-  text-align:left;padding:13px 15px;display:flex;flex-direction:column;gap:7px;color:var(--ink)}
-.pick button:hover{background:var(--accent-soft)}
-.pick button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.pick .ttl{font-weight:500;line-height:1.35;font-size:13.5px}
-.pick .isbl{display:flex;flex-direction:column;gap:2px;font-size:11.5px;line-height:1.35;
-  color:var(--accent);border-left:2px solid var(--accent);padding-left:7px}
-.pick .isbl em{font-style:normal;color:var(--ink-3)}
-.pick .sub{font-size:11.5px;color:var(--ink-3);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
-.bars{display:flex;gap:2px;align-items:flex-end;height:20px}
-.bars span{flex:1;min-width:4px;background:var(--rule);border-radius:1px;position:relative}
-.bars span i{position:absolute;inset:auto 0 0 0;background:var(--accent);border-radius:1px}
-.bars span.isb i{background:var(--accent)} .bars span.isb{outline:1px solid var(--accent)}
-.plist{border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--card)}
-.plist .ph{display:grid;grid-template-columns:1fr 92px 108px 96px;gap:12px;padding:9px 16px;
-  background:var(--rule-2);font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;
-  color:var(--ink-3);font-weight:600;border-bottom:1px solid var(--rule)}
-.pr{display:grid;grid-template-columns:1fr 92px 108px 96px;gap:12px;padding:11px 16px;
-  border-bottom:1px solid var(--rule-2);align-items:center;cursor:pointer;background:transparent;
-  border-left:0;border-right:0;border-top:0;font:inherit;text-align:left;width:100%;color:var(--ink)}
-.pr:last-child{border-bottom:0}
-.pr:hover{background:var(--accent-soft)}
-.pr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.pr .pn{font-weight:500;line-height:1.35;font-size:13.5px}
-.pr .pm{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
-.pr .pc{font-size:12.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.school{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
-  letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
-.school.isb{color:var(--accent)}
-.detail{border:1px solid var(--rule);border-radius:10px;background:var(--card);padding:20px 22px;
-  box-shadow:var(--shadow)}
-.detail h3{font-size:19px;font-weight:600;line-height:1.25;margin-bottom:5px}
-.detail .dsub{font-size:12.5px;color:var(--ink-3);margin-bottom:18px;display:flex;gap:9px;flex-wrap:wrap}
-.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:15px 24px;margin-bottom:6px}
-.dl>div{border-top:1px solid var(--rule);padding-top:9px}
-.dl dt{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
-  font-weight:600;margin-bottom:4px}
-.dl dd{margin:0;font-size:13.5px;line-height:1.45}
-.dl dd.none{color:var(--ink-3);font-style:italic}
-.detail .kt{margin-top:18px;border-top:1px solid var(--rule);padding-top:12px}
-.detail .kt .lbl{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);
-  font-weight:600;margin-bottom:7px}
-.tagrow{display:flex;gap:6px;flex-wrap:wrap}
-.tagrow span{font-size:11.5px;background:var(--rule-2);border:1px solid var(--rule);
-  border-radius:4px;padding:2px 7px;color:var(--ink-2)}
-.detail a.ext{font-size:12.5px;color:var(--accent)}
-.empty{border:1px dashed var(--rule);border-radius:10px;padding:26px 20px;color:var(--ink-3);
-  font-size:13.5px;text-align:center}
-.callbadge{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:600;
-  border-radius:3px;padding:2px 7px}
-.cb-lead{background:var(--lead-bg);color:var(--lead)} .cb-follow{background:var(--follow-bg);color:var(--follow)}
-.cb-defend{background:var(--defend-bg);color:var(--defend)} .cb-review{background:var(--review-bg);color:var(--review)}
-@media (max-width:640px){
-  .plist .ph{display:none}
-  .pr{grid-template-columns:1fr;row-gap:4px}
-}
-#q{flex:1 1 320px;min-width:0;font:inherit;font-size:13.5px;padding:8px 12px;
-  border:1px solid var(--rule);border-radius:7px;background:var(--card);color:var(--ink)}
-#q:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.pmark{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-soft);
-  border:1px solid var(--accent);border-radius:3px;padding:0 4px;margin-left:5px;vertical-align:1px}
-.sres{border:1px solid var(--rule);border-radius:10px;background:var(--card);overflow:hidden}
-.sres+.sres{margin-top:18px}
-.sres .sh2{padding:8px 16px;background:var(--rule-2);font-size:10.5px;letter-spacing:.07em;
-  text-transform:uppercase;color:var(--ink-3);font-weight:600;border-bottom:1px solid var(--rule)}
-.dlist{border:1px solid var(--rule);border-radius:10px;background:var(--card);overflow:hidden}
-.drow{display:grid;grid-template-columns:1fr 132px 92px 84px;gap:14px;align-items:center;
-  padding:11px 16px;border-bottom:1px solid var(--rule-2);cursor:pointer;background:transparent;
-  border-left:0;border-right:0;border-top:0;font:inherit;text-align:left;width:100%;color:var(--ink)}
-.drow:last-child{border-bottom:0}
-.drow:hover{background:var(--accent-soft)}
-.drow:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.drow .dt2{font-weight:500;font-size:13.5px;line-height:1.35}
-.drow .dm{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.bar{position:relative;height:20px;background:var(--rule-2);border-radius:3px;overflow:hidden}
-.bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);opacity:.82}
-.bar b{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;
-  padding-right:6px;font-size:11.5px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
-.dots{display:flex;gap:3px;align-items:center}
-.dots span{width:9px;height:9px;border-radius:99px;background:var(--rule);flex:none}
-.dots span.on{background:var(--lead)}
-.gapn{font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2);text-align:right}
-.drow .why{grid-column:1/-1;font-size:12.5px;color:var(--ink-2);line-height:1.5;
-  border-left:2px solid var(--accent);padding-left:11px;margin-top:2px}
-@media (max-width:640px){.drow{grid-template-columns:1fr 84px}.drow .dots,.drow .gapn{display:none}}
-figure{margin:0}
-.plot{width:100%;height:auto;display:block;border:1px solid var(--rule);border-radius:10px;
-  background:var(--card)}
-figcaption{font-size:12.5px;color:var(--ink-3);margin-top:10px;max-width:74ch}
+.cell{display:inline-flex;min-width:28px;height:21px;align-items:center;justify-content:center;border-radius:4px;
+  font-variant-numeric:tabular-nums}
+.cell.z{color:var(--ink-3)}
+td.isbc .cell.z{color:var(--zero);background:var(--zero-bg);font-weight:600}
+td.isbc,th.isbc{border-left:2px solid var(--accent);background:var(--accent-soft)}
+thead th.isbc{color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;background:var(--card)}
+.seg button{appearance:none;border:0;background:none;cursor:pointer;font-size:12.5px;padding:5px 12px;color:var(--ink-2)}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button.on{background:var(--accent);color:#fff}
+.ctrl{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px;color:var(--ink-3)}
 
-.limits{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:18px}
-.lim{border-left:3px solid var(--accent);padding:2px 0 2px 15px}
-.lim h3{font-size:14.5px;font-weight:600;margin-bottom:6px;font-family:"IBM Plex Sans",sans-serif}
-.lim p{margin:0;font-size:13.5px;color:var(--ink-2)}
-footer{padding-block:28px;color:var(--ink-3);font-size:12.5px;max-width:74ch}
-@media (max-width:640px){
-  .row{grid-template-columns:1fr 62px;row-gap:6px}
-  .row .col.hidem{display:none}
-  .hero{padding-block:32px 24px}
+/* ---- programme table ---- */
+.ptable{border:1px solid var(--rule);border-radius:10px;background:var(--card);overflow:hidden}
+.pr,.ph{display:grid;grid-template-columns:minmax(0,1fr) 84px 96px 70px 84px 88px 52px;gap:10px;
+  padding:9px 14px;align-items:center}
+.ph{background:var(--rule-2);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);
+  font-weight:600;border-bottom:1px solid var(--rule)}
+.ph button{appearance:none;border:0;background:none;cursor:pointer;padding:0;font:inherit;letter-spacing:inherit;
+  text-transform:inherit;color:inherit;text-align:left}
+.ph button.on{color:var(--accent)}
+.pr{appearance:none;border:0;border-bottom:1px solid var(--rule-2);background:none;width:100%;text-align:left;cursor:pointer}
+.pr:hover{background:var(--accent-soft)}
+.pr .pn{font-size:13px;font-weight:500;line-height:1.3}
+.pr .pm{font-size:11px;color:var(--ink-3);margin-top:2px}
+.pr .c{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sch{font-size:11px;font-weight:600;letter-spacing:.03em;color:var(--ink-2)}
+.sch.isb{color:var(--accent)}
+.feat{display:flex;gap:3px}
+.feat span{font-size:9.5px;font-weight:700;border:1px solid var(--rule);border-radius:3px;padding:0 3px;color:var(--ink-3)}
+.pfoot{display:flex;gap:14px;align-items:center;padding:10px 14px;font-size:12.5px;color:var(--ink-3)}
+@media (max-width:760px){
+  .ph{display:none}
+  .pr{grid-template-columns:1fr auto;row-gap:2px}
+  .pr .c.hm{display:none}
 }
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- drawer ---- */
+.scrim{position:fixed;inset:0;background:rgba(20,16,17,.32);z-index:40;opacity:0;pointer-events:none;transition:opacity .15s}
+.scrim.on{opacity:1;pointer-events:auto}
+aside.drawer{position:fixed;top:0;right:0;bottom:0;width:min(600px,100%);background:var(--paper);z-index:41;
+  transform:translateX(102%);transition:transform .2s ease;overflow-y:auto;border-left:1px solid var(--rule);
+  box-shadow:-20px 0 40px -30px rgba(0,0,0,.4)}
+aside.drawer.on{transform:none}
+.dhd{position:sticky;top:0;background:var(--paper);padding:16px 20px 12px;border-bottom:1px solid var(--rule);z-index:2}
+.dhd .x{position:absolute;right:14px;top:12px;appearance:none;border:1px solid var(--rule);background:var(--card);
+  border-radius:6px;cursor:pointer;padding:3px 9px;font-size:13px}
+.dhd h3{font-size:20px;font-weight:600;line-height:1.25;padding-right:48px}
+.dhd .dsub{font-size:12px;color:var(--ink-3);margin-top:5px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dbody{padding:16px 20px 40px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--rule);
+  border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:16px}
+.stats div{background:var(--card);padding:10px 12px}
+.stats b{display:block;font-family:Spectral,serif;font-size:21px;font-weight:600;line-height:1.1}
+.stats span{font-size:11px;color:var(--ink-3)}
+.blk{margin-top:18px}
+.blk .lbl{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600;margin-bottom:6px}
+.blk p{margin:0;font-size:13px;color:var(--ink-2)}
+.why{border-left:3px solid var(--cc);padding:2px 0 2px 11px;font-size:13.5px;color:var(--ink-2);margin:0}
+.mini{border:1px solid var(--rule);border-radius:8px;background:var(--card);overflow:hidden}
+.mini .pr{grid-template-columns:minmax(0,1fr) 70px 84px 64px}
+.dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px 18px}
+.dl div{border-top:1px solid var(--rule);padding-top:7px}
+.dl dt{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.dl dd{margin:2px 0 0;font-size:13px}
+.dl dd.none{color:var(--ink-3);font-style:italic}
+.tags{display:flex;flex-wrap:wrap;gap:5px}
+.tags span{font-size:11.5px;background:var(--rule-2);border:1px solid var(--rule);border-radius:4px;padding:1px 7px}
+.note{font-size:12px;color:var(--ink-3);margin-top:8px}
+a.ext{color:var(--accent);font-size:13px}
+.empty{border:1px dashed var(--rule);border-radius:10px;padding:18px;color:var(--ink-3);font-size:13px;text-align:center}
+details.notes{margin-top:34px;border-top:1px solid var(--rule);padding-top:14px;font-size:13px;color:var(--ink-2)}
+details.notes summary{cursor:pointer;font-weight:600;color:var(--ink)}
+details.notes li{margin:6px 0;max-width:80ch}
+/* phones: search stays, the rest folds behind one button */
+.ftoggle{display:none}
+@media (max-width:760px){
+  .bar .dt{display:none}
+  .filters{position:relative}
+  header.top:not(.fopen) .filters>:not(#fq):not(.fcount){display:none}
+  .filters select{flex:1 1 45%;max-width:none}
+  .ftoggle{display:block;position:absolute;right:20px;top:10px;appearance:none;border:1px solid var(--rule);
+    background:var(--card);border-radius:7px;padding:3px 10px;font-size:12.5px;cursor:pointer}
+  .ftoggle.on{border-color:var(--accent);color:var(--accent)}
+  section{scroll-margin-top:100px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
-<header class="top"><div class="bar">
-  <span class="nm">Exec Ed Theme Map</span>
-  <span class="sp"></span>
-  <span class="dt">11 schools &middot; 928 products &middot; 26 Sep 2026</span>
-</div></header>
+<header class="top">
+  <div class="bar">
+    <span class="nm">Exec Ed Market Map</span>
+    <nav><a href="#decide">Decide</a><a href="#peers">Peer moves</a><a href="#coverage">Coverage</a><a href="#programmes">Programmes</a></nav>
+    <span class="dt" id="asof"></span>
+  </div>
+  <div class="filters" role="search">
+    <input type="search" id="fq" placeholder="Search programmes, topics, schools…" aria-label="Search">
+    <select id="fth" aria-label="Theme"></select>
+    <select id="fgrp" aria-label="Compare ISB with">
+      <option value="">vs all peers</option><option value="India">vs Indian schools</option>
+      <option value="Global">vs global schools</option><option value="Platform">vs platforms</option></select>
+    <select id="fsc" aria-label="School"></select>
+    <select id="ff" aria-label="Format"></select>
+    <select id="flv" aria-label="Level"></select>
+    <select id="ffee" aria-label="Fee"></select>
+    <select id="flen" aria-label="Length"></select>
+    <label class="tog"><input type="checkbox" id="fai"> AI-era topics</label>
+    <button type="button" class="lnk" id="freset">Reset</button>
+    <span class="fcount" id="fcount"></span>
+  </div>
+  <button type="button" class="ftoggle" id="ftoggle" aria-expanded="false">Filters</button>
+</header>
 
 <div class="wrap">
 
-<div class="hero">
-  <div class="eyebrow">ISB Executive Education &middot; portfolio direction FY27&ndash;FY28</div>
-  <h1>Where ISB stands against ten peers, theme by theme</h1>
-  <p>Every open-enrolment product from ISB, five Indian and five global schools, tagged to one
-  taxonomy of 15 themes and 223 topics, then set against published demand evidence. This sets
-  direction and breadth. Format, duration and curriculum are deliberately out of scope.</p>
-</div>
-
-<section>
-  <div class="sh"><h2>Four numbers that frame the decision</h2></div>
+<section id="decide">
+  <div class="sh"><h2>Where ISB should move</h2><span class="q">each topic gets one call from three facts: does ISB sell it, how many peers sell it, how strong the demand evidence is</span></div>
   <div class="tiles" id="tiles"></div>
+  <div class="board" id="board"></div>
+  <details class="more" id="moreCalls"></details>
 </section>
 
-<section>
-  <div class="sh"><h2>Theme and sub-theme heatmap</h2><span class="tag">15 themes &middot; 46 sub-themes</span></div>
-  <p class="lede">Every school's portfolio across the taxonomy. Theme rows expand into their
-  sub-themes. The ISB column is pinned, and cells where a school sells nothing are marked rather
-  than left blank, because absence is the finding. <strong>ISB sells nothing in 21 of the 46 sub-themes, and genuinely covers none of 19 of them.</strong></p>
-  <div class="controls">
-    <div class="seg" role="group" aria-label="Cell measure">
-      <button type="button" id="mCount" class="on" aria-pressed="true">Product count</button>
-      <button type="button" id="mShare" aria-pressed="false">Share of portfolio</button>
+<section id="peers">
+  <div class="sh"><h2>Where competitors are putting their portfolio</h2></div>
+  <p class="lede">Each theme's share of ISB's catalogue against its share of the peers' catalogue: a grey dot far to
+  the right of the maroon one is a theme peers weight more heavily than ISB does. Beside it, what peers flag as
+  launched in 2025-26, and each school's share of products in AI-era topics.</p>
+  <div class="grid2">
+    <div class="card panel"><h3>Portfolio weight by theme</h3>
+      <div class="sub" id="wsub"></div>
+      <div class="legend"><span><i style="background:var(--accent)"></i>ISB</span><span><i style="background:var(--ink-3)"></i>Peers</span><span>Gap = peers minus ISB, percentage points</span></div>
+      <div id="weights"></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card panel"><h3>New launches flagged 2025-26</h3>
+        <div class="sub" id="nsub"></div><div class="newlist" id="newl"></div></div>
+      <div class="card panel"><h3>Share of catalogue in AI-era topics</h3>
+        <div class="sub">Topics new since AI or reshaped by it. Schools with fewer than 15 products are left out.</div>
+        <div id="aibars"></div></div>
     </div>
-    <button type="button" id="expandAll" class="lnk">Expand all sub-themes</button>
-    <span class="hint" id="measureHint">Raw counts favour large portfolios. Switch to share to compare
-    emphasis rather than size.</span>
   </div>
-  <div class="scroll"><table id="matrix"></table></div>
-  <div class="legend" id="legend"></div>
+  <div id="changes" style="margin-top:16px"></div>
 </section>
 
-<section id="explorer">
-  <div class="sh"><h2>Explore the catalogue</h2><span class="tag">928 products, four levels deep</span></div>
-  <p class="lede">Pick a sub-theme to see its topics and who runs them, then a topic to see the
-  programmes, then a programme for its metadata. Every count in this study resolves to named
-  products here, so anything that looks wrong can be traced to the row that caused it.</p>
-  <div class="controls">
-    <input type="search" id="q" placeholder="Search 223 topics and 928 products…"
-      autocomplete="off" aria-label="Search topics and programmes">
-    <span class="hint"><strong>(P)</strong> marks a partner-delivered programme sold under the
-    school’s brand. ISB: 25 direct, 16 partner.</span>
-  </div>
-  <nav class="crumbs" id="crumbs"></nav>
-  <div class="expl" id="expl"></div>
+<section id="coverage">
+  <div class="sh"><h2>Who sells what</h2></div>
+  <p class="lede">Products by theme and sub-theme. Red zeros are where nobody in that group sells anything. Click a
+  theme to open its sub-themes, and a sub-theme for its topics, calls and ISB's programmes.</p>
+  <div class="ctrl"><div class="seg"><button type="button" id="cvG" class="on">By group</button><button type="button" id="cvS">By school</button></div>
+    <button type="button" class="lnk" id="cvAll">Expand all</button></div>
+  <div class="scroll"><table id="heat"></table></div>
 </section>
 
-<section>
-  <div class="sh"><h2>The calls</h2><span class="tag">56 topics with a verdict</span></div>
-  <p class="lede">Derived by rule from three inputs: does ISB sell it, how many competitor products
-  cover it (counting topics taught inside a wider programme, so a module still counts as covered),
-  and how much independent demand evidence exists. Rows are ordered by demand strength inside each
-  group.</p>
-  <div class="groups" id="groups"></div>
+<section id="programmes">
+  <div class="sh"><h2>Programmes</h2><span class="q" id="pcount"></span></div>
+  <p class="lede">Every programme matching the filters. Click one for its details and the closest peer programmes.
+  Fees are shown in INR at fixed planning rates so they can be compared.</p>
+  <div class="ptable" id="ptable"></div>
 </section>
 
-<section>
-  <div class="sh"><h2>Demand evidence, scored</h2><span class="tag">259 signals &middot; 173 sources</span></div>
-  <p class="lede">One number per topic, 0 to 100, built only from what has actually been published:
-  how many independent sources, how many geographies, how strong the strongest signal type is, whether
-  an obligation carries a date inside 2027-2031, and whether the evidence concerns senior people.
-  <strong>The outlook column beside it is my judgment, not evidence</strong> — kept separate on purpose,
-  so a view does not borrow the authority of a source. A dated legal obligation scores higher than a
-  survey of intentions, and a job-posting count higher than either.</p>
-  <div class="controls">
-    <div class="seg" role="group" aria-label="Demand sort">
-      <button type="button" id="dIdx" class="on" aria-pressed="true">By evidence</button>
-      <button type="button" id="dOut" aria-pressed="false">By 2027-31 outlook</button>
-      <button type="button" id="dGap" aria-pressed="false">By gap to ISB</button>
-    </div>
-    <span class="hint">Click any row to see the programmes behind it.</span>
-  </div>
-  <div class="dlist" id="dlist"></div>
-</section>
-
-<section>
-  <div class="sh"><h2>Demand against supply</h2><span class="tag">170 topics</span></div>
-  <figure>
-    <svg class="plot" id="plot" viewBox="0 0 900 470" role="img"
-      aria-label="Scatter plot of demand evidence against competitor supply for 170 topics"></svg>
-    <figcaption>Each point is a topic. Up means more independent demand evidence; right means more
-    competitor products already cover it. Filled maroon points are topics ISB sells today. The
-    top-left quadrant is where demand is evidenced and supply is thin: the lead positions.</figcaption>
-  </figure>
-</section>
-
-<section>
-  <div class="sh"><h2>What this cannot tell you</h2></div>
-  <div class="limits">
-    <div class="lim"><h3>ISB is verified, peers are not</h3><p>All 41 ISB products were read off live
-    pages on 26 Sep 2026 and classified by hand. The ten peer catalogues were captured in bulk and
-    keyword-tagged, so peer counts carry more error than ISB's. Treat peer numbers as indicative.</p></div>
-    <div class="lim"><h3>No ISB revenue or enrolment</h3><p>Nothing here knows which programmes earn
-    money or which cohorts fill. Until enrolment and feedback are joined in, "where ISB is strong"
-    rests on what ISB sells, not on what sells.</p></div>
-    <div class="lim"><h3>Demand sources speak in skills</h3><p>WEF, LinkedIn and Lightcast phrase
-    demand as skills, not business functions. Finance shows one demand source and Marketing two.
-    That is the vocabulary of the sources, not weak demand for finance or marketing.</p></div>
-    <div class="lim"><h3>Some counts are residual buckets</h3><p>Products whose public page gives
-    only a title were tagged by broad keyword match, piling them into a few catch-all topics. Those
-    rows are marked. A high count there means many generically titled products.</p></div>
-    <div class="lim"><h3>Fees are incomplete</h3><p>INSEAD publishes no fees anywhere. LBS, IMD and
-    IIML publish no curriculum text on listing pages. Product counts are reliable; price and
-    curriculum comparison is not yet complete.</p></div>
-  </div>
-</section>
-
-<footer>Sources: the eleven schools' own catalogues, captured 24&ndash;25 September 2026; 147 sourced
-demand signals; school financial disclosures and NIRF executive-education earnings. Full data,
-per-programme tagging and the refresh pipeline are in the accompanying workbook.</footer>
+<details class="notes"><summary>How to read this, and what it cannot tell you</summary><ul id="notes"></ul></details>
 </div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="dtitle"></aside>
 
 <script>
 const D = __DATA__;
-const SCHOOLS=[["isb","ISB"],["iima","IIM-A"],["iimb","IIM-B"],["iimc","IIM-C"],["iimk","IIM-K"],
-  ["iiml","IIM-L"],["hbs","HBS"],["imd","IMD"],["insead","INSEAD"],["lbs","LBS"],["wharton","Wharton"]];
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SC=Object.fromEntries(D.schools.map(s=>[s.s,s]));
+const T=Object.fromEntries(D.topics.map(t=>[t.id,t]));
+const CALL={
+  LEAD:{l:"Lead",cc:"var(--c-lead)",d:"ISB absent. Demand is evidenced and few peers sell it. First-mover ground."},
+  DIVERSIFY:{l:"Diversify",cc:"var(--c-diversify)",d:"ISB absent here but sells in the same sub-theme. Proven market, short step."},
+  FOLLOW:{l:"Follow",cc:"var(--c-follow)",d:"ISB absent. Many peers sell it and demand is evidenced. Enter with a sharper angle."},
+  DEEPEN:{l:"Deepen",cc:"var(--c-deepen)",d:"ISB present, demand strong, few peers. Room to own it: add depth or a ladder."},
+  DEFEND:{l:"Defend",cc:"var(--c-defend)",d:"ISB present in a hot, crowded space. Protect share: refresh, price, differentiate."},
+  WATCH:{l:"Watch",cc:"var(--c-watch)",d:"Peers crowd in but demand evidence is thin."},
+  REVIEW:{l:"Review",cc:"var(--c-watch)",d:"ISB present with little demand or peer evidence. Needs enrolment data before any decision."}};
+const BOARD=["LEAD","DIVERSIFY","FOLLOW","DEEPEN","DEFEND"];
+const LV=l=>l==="Senior"?"C-suite/Senior":l;
+const FEE=[["","Any fee"],["0-100000","Under ₹1 L"],["100000-250000","₹1–2.5 L"],["250000-500000","₹2.5–5 L"],
+  ["500000-1000000","₹5–10 L"],["1000000-1e12","₹10 L +"],["none","Fee not published"]];
+const LEN=[["","Any length"],["0-1","Up to 1 week"],["1-4.3","1 week – 1 month"],["4.3-13","1–3 months"],
+  ["13-26","3–6 months"],["26-1e9","6 months +"]];
+const inr=v=>v==null?"—":v>=1e7?"₹"+(v/1e7).toFixed(2)+" Cr":"₹"+(v/1e5).toFixed(v<1e6?2:1)+" L";
+const wk=w=>w==null?"—":w<1?Math.round(w*5)+" days":w<9?(+w.toFixed(1))+" wk":Math.round(w/4.33)+" mo";
+const median=a=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;};
 
-/* ---- tiles ---- */
-(function(){
-  const zero=D.themes.filter(t=>t.isb===0);
-  const isbAi=D.ai.find(a=>a.s==="isb"), rank=D.ai.findIndex(a=>a.s==="isb")+1;
-  const gov=D.themes.find(t=>t.t.indexOf("Governance")===0)||{isb:0,ind:0,glo:0};
-  const ops=D.themes.find(t=>t.t.indexOf("Operations")===0)||{isbShare:0,gloShare:0};
-  const tiles=[
-    {k:"ISB portfolio",v:"41",u:"products",
-     s:"25 on execed.isb.edu plus 16 partner-delivered, marked (P). Verified against live pages on 26 Sep 2026.",warn:false},
-    {k:"Themes where ISB sells nothing",v:String(zero.length),u:"of 15",
-     s:zero.map(t=>t.t.split(/[,&]/)[0].trim()).join(" \u00b7 ")+". Peers hold "+zero.reduce((a,t)=>a+t.ind+t.glo,0)+" products across them.",warn:true},
-    {k:"AI-era share of portfolio",v:isbAi.pct.toFixed(1)+"%",u:"rank "+rank+" of 11",
-     s:"Ahead of every peer except IMD. The gap is in the narrow AI topics, not in AI overall.",warn:false},
-    {k:"Board governance products",v:String(gov.isb),u:"vs "+(gov.ind+gov.glo)+" at peers",
-     s:"IMD runs a stacked board ladder. Across all six Indian schools there are "+(gov.ind+gov.isb)+".",warn:true}
-  ];
-  document.getElementById("tiles").innerHTML=tiles.map(t=>
-    `<div class="tile${t.warn?" warn":""}"><div class="k">${t.k}</div>
-     <div class="v">${t.v} <small>${t.u}</small></div><div class="s">${t.s}</div></div>`).join("");
-})();
+/* ---------------- filters + URL state ---------------- */
+const F={q:"",th:"",grp:"",sc:"",f:"",lv:"",fee:"",len:"",ai:false};
+const $=id=>document.getElementById(id);
+function opts(sel,list){sel.innerHTML=list.map(([v,l])=>`<option value="${esc(v)}">${esc(l)}</option>`).join("");}
+opts($("fth"),[["","All themes"],...D.themes.map(t=>[t,t])]);
+opts($("fsc"),[["","All schools"],...["ISB","India","Global","Platform"].flatMap(g=>
+  D.schools.filter(s=>s.g===g).map(s=>[s.s,(g==="Platform"?"Platform · ":"")+s.l]))]);
+opts($("ff"),[["","Any format"],...["Campus","Blended","Live Online","Self-paced Online"].map(x=>[x,x])]);
+opts($("flv"),[["","Any level"],...["C-suite/Senior","Board","Mid-career","Functional specialist","Early/Emerging","Mixed"].map(x=>[x,x])]);
+opts($("ffee"),FEE); opts($("flen"),LEN);
+const inRange=(v,r)=>{const [a,b]=r.split("-").map(Number);return v!=null&&v>=a&&v<b;};
 
-/* ---- theme / sub-theme heatmap ---- */
-(function(){
-  const tbl=document.getElementById("matrix");
-  const maxDem=Math.max(...D.themes.map(t=>t.dem),...D.subs.map(s=>s.dem))||1;
-  let mode="count";           // "count" | "share"
-  const openThemes=new Set();
-
-  // value + colour scale. Counts scale against the largest cell at that row level;
-  // shares scale against the largest share, so a small portfolio is not washed out.
-  const maxCountT=Math.max(...D.themes.flatMap(t=>SCHOOLS.map(([s])=>t.by[s])));
-  const maxCountS=Math.max(...D.subs.flatMap(r=>SCHOOLS.map(([s])=>r.by[s])));
-  const share=(v,s)=>D.totals[s]?100*v/D.totals[s]:0;
-  const maxShareT=Math.max(...D.themes.flatMap(t=>SCHOOLS.map(([s])=>share(t.by[s],s))));
-  const maxShareS=Math.max(...D.subs.flatMap(r=>SCHOOLS.map(([s])=>share(r.by[s],s))));
-
-  function cell(v,s,level){
-    const isShare=mode==="share";
-    const val=isShare?share(v,s):v;
-    const mx=isShare?(level==="t"?maxShareT:maxShareS):(level==="t"?maxCountT:maxCountS);
-    const txt=v===0?"0":(isShare?val.toFixed(1):String(v));
-    const a=v===0?0:.12+.70*Math.sqrt(val/mx);
-    const style=v===0?"":`background:color-mix(in srgb,var(--accent) ${Math.round(a*100)}%,transparent)`;
-    const title=`${v} product${v===1?"":"s"}${isShare?` · ${val.toFixed(1)}% of portfolio`:""}`;
-    return `<td class="${s==="isb"?"isbcol":""}"><span class="cell ${v===0?"z":""}"
-      style="${style}" title="${title}">${txt}</span></td>`;
+function progOK(p,o={}){
+  const t=T[p.t]||{};
+  if(F.th&&t.th!==F.th) return false;
+  if(F.ai&&t.ai==="Stable") return false;
+  if(!o.anySchool){
+    if(F.sc&&p.sc!==F.sc&&p.sc!=="isb") return false;
+    if(F.grp&&p.sc!=="isb"&&SC[p.sc].g!==F.grp) return false;
   }
-  const demCell=d=>`<td class="l"><span class="dem"><i style="width:${Math.round(100*d/maxDem)}%"></i></span>
-    <span class="mono" style="font-size:11.5px;color:var(--ink-3)"> ${d}</span></td>`;
+  if(F.f&&p.f!==F.f) return false;
+  if(F.lv&&LV(p.lv)!==F.lv) return false;
+  if(F.fee){ if(F.fee==="none"){ if(p.inr!=null) return false; } else if(!inRange(p.inr,F.fee)) return false; }
+  if(F.len&&!inRange(p.w,F.len)) return false;
+  if(F.q){ const q=F.q.toLowerCase();
+    if(!(p.n.toLowerCase().includes(q)||(t.n||"").toLowerCase().includes(q)||(t.st||"").toLowerCase().includes(q)
+      ||SC[p.sc].l.toLowerCase().includes(q)||(p.pt||"").toLowerCase().includes(q))) return false; }
+  return true;
+}
+function topicOK(t){
+  if(F.th&&t.th!==F.th) return false;
+  if(F.ai&&t.ai==="Stable") return false;
+  if(F.q){const q=F.q.toLowerCase(); if(!(t.n.toLowerCase().includes(q)||t.st.toLowerCase().includes(q))) return false;}
+  return true;
+}
+function readHash(){
+  const h=new URLSearchParams(location.hash.slice(1));
+  for(const k in F) F[k]= k==="ai" ? h.get(k)==="1" : (h.get(k)||"");
+  return h;
+}
+function writeHash(extra){
+  const h=new URLSearchParams();
+  for(const k in F) if(F[k]) h.set(k,k==="ai"?"1":F[k]);
+  if(extra) for(const k in extra) h.set(k,extra[k]);
+  history.replaceState(null,"",h.toString()?"#"+h:location.pathname);
+}
+function syncControls(){
+  $("fq").value=F.q; $("fth").value=F.th; $("fgrp").value=F.grp; $("fsc").value=F.sc; $("ff").value=F.f;
+  $("flv").value=F.lv; $("ffee").value=F.fee; $("flen").value=F.len; $("fai").checked=F.ai;
+  [["fq","q"],["fth","th"],["fgrp","grp"],["fsc","sc"],["ff","f"],["flv","lv"],["ffee","fee"],["flen","len"]]
+    .forEach(([id,k])=>$(id).classList.toggle("on",!!F[k]));
+  const n=["th","grp","sc","f","lv","fee","len","ai"].filter(k=>F[k]).length;
+  $("ftoggle").textContent=n?`Filters (${n})`:"Filters"; $("ftoggle").classList.toggle("on",n>0);
+}
+let tmr;
+[["fth","th"],["fgrp","grp"],["fsc","sc"],["ff","f"],["flv","lv"],["ffee","fee"],["flen","len"]].forEach(([id,k])=>
+  $(id).addEventListener("change",e=>{F[k]=e.target.value;if(k==="sc"&&F.sc)F.grp="";if(k==="grp"&&F.grp)F.sc="";update();}));
+$("ftoggle").addEventListener("click",e=>{const h=document.querySelector("header.top");
+  h.classList.toggle("fopen"); e.target.setAttribute("aria-expanded",h.classList.contains("fopen"));});
+$("fai").addEventListener("change",e=>{F.ai=e.target.checked;update();});
+$("fq").addEventListener("input",e=>{clearTimeout(tmr);tmr=setTimeout(()=>{F.q=e.target.value.trim();update();},180);});
+$("freset").addEventListener("click",()=>{for(const k in F)F[k]=k==="ai"?false:"";update();});
 
-  function render(){
-    const head=`<thead><tr><th class="l theme">Theme / sub-theme</th>`+
-      SCHOOLS.map(([s,l])=>`<th class="${s==="isb"?"isbcol":""}">${l}</th>`).join("")+
-      `<th class="l">Demand sources</th></tr></thead>`;
-    const rows=[];
-    D.themes.forEach((t,i)=>{
-      const subs=D.subs.filter(x=>x.t===t.t);
-      const open=openThemes.has(t.t);
-      rows.push(`<tr class="trow${open?" open":""}" data-theme="${esc(t.t)}" tabindex="0"
-        role="button" aria-expanded="${open}">
-        <td class="l theme"><span class="tw"><span class="caret">${subs.length?"▶":""}</span>
-        <span>${esc(t.t)}</span></span></td>`+
-        SCHOOLS.map(([s])=>cell(t.by[s],s,"t")).join("")+demCell(t.dem)+`</tr>`);
-      if(open) subs.forEach(r=>{
-        rows.push(`<tr class="srow drill" data-theme="${esc(t.t)}" data-sub="${esc(r.st)}"
-          tabindex="0" role="button" title="Open in the explorer">
-          <td class="l theme">${esc(r.st)} <span style="color:var(--accent);font-size:10.5px">\u2197</span></td>`+
-          SCHOOLS.map(([s])=>cell(r.by[s],s,"s")).join("")+demCell(r.dem)+`</tr>`);
-      });
-    });
-    // portfolio total row
-    rows.push(`<tr><td class="l theme"><strong>Portfolio total</strong></td>`+
-      SCHOOLS.map(([s])=>`<td class="${s==="isb"?"isbcol":""} num"><strong>${D.totals[s]}</strong></td>`).join("")+
-      `<td></td></tr>`);
-    tbl.innerHTML=head+`<tbody>${rows.join("")}</tbody>`;
-    tbl.querySelectorAll("tr.drill").forEach(tr=>{
-      const open=e=>{e.stopPropagation();EX.openSub(tr.dataset.theme,tr.dataset.sub);};
-      tr.addEventListener("click",open);
-      tr.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open(e);}});
-    });
-    tbl.querySelectorAll("tr.trow").forEach(tr=>{
-      const toggle=()=>{
-        const k=tr.dataset.theme;
-        openThemes.has(k)?openThemes.delete(k):openThemes.add(k);
-        render();
-      };
-      tr.addEventListener("click",toggle);
-      tr.addEventListener("keydown",e=>{
-        if(e.key==="Enter"||e.key===" "){e.preventDefault();toggle();}
-      });
-    });
-  }
+/* ---------------- headline tiles (whole market, ignore filters) ---------------- */
+function tiles(){
+  const isb=D.progs.filter(p=>p.sc==="isb");
+  const sizes=D.schools.filter(s=>s.g!=="ISB"&&s.g!=="Platform").map(s=>D.progs.filter(p=>p.sc===s.s).length);
+  const zero=D.themes.filter(th=>!isb.some(p=>T[p.t].th===th));
+  const act=D.topics.filter(t=>t.call==="LEAD"||t.call==="DIVERSIFY").length;
+  const aiShare=list=>list.length?100*list.filter(p=>T[p.t].ai!=="Stable").length/list.length:0;
+  const peerAi=median(D.schools.filter(s=>s.g!=="ISB").map(s=>D.progs.filter(p=>p.sc===s.s))
+    .filter(l=>l.length>=15).map(aiShare));
+  const t=[
+    ["ISB products",isb.length,`median school peer ${median(sizes)}`,`${isb.filter(p=>p.pt).length} of them partner-delivered`],
+    ["Themes where ISB sells nothing",zero.length,`of ${D.themes.length}`,zero.map(z=>z.split(/[,&]/)[0].trim()).join(" · ")],
+    ["Topics to act on now",act,"lead or diversify",`${D.topics.filter(t=>t.call==="FOLLOW").length} more to follow`],
+    ["AI-era share of catalogue",aiShare(isb).toFixed(0)+"%",`peer median ${peerAi.toFixed(0)}%`,"topics new since AI or reshaped by it"]];
+  $("tiles").innerHTML=t.map(([k,v,u,s])=>`<div class="tile"><div class="k">${k}</div>
+    <div class="v num">${v} <small>${u}</small></div><div class="s">${esc(s)}</div></div>`).join("");
+}
 
-  document.getElementById("legend").innerHTML=
-    `<span>Fewer</span>`+
-    [.12,.28,.44,.60,.82].map(a=>`<span class="sw"
-      style="background:color-mix(in srgb,var(--accent) ${Math.round(a*100)}%,transparent)"></span>`).join("")+
-    `<span>More</span><span style="margin-left:10px"><span class="cell z"
-      style="min-width:20px;height:18px;font-size:11px">0</span> no product in that theme</span>`;
-
-  const bC=document.getElementById("mCount"), bS=document.getElementById("mShare"),
-        hint=document.getElementById("measureHint");
-  function setMode(m){
-    mode=m;
-    bC.classList.toggle("on",m==="count"); bC.setAttribute("aria-pressed",m==="count");
-    bS.classList.toggle("on",m==="share"); bS.setAttribute("aria-pressed",m==="share");
-    hint.textContent = m==="count"
-      ? "Raw counts favour large portfolios. Switch to share to compare emphasis rather than size."
-      : "Each cell is that theme's % of that school's own portfolio. Columns sum to 100%.";
-    render();
-  }
-  bC.addEventListener("click",()=>setMode("count"));
-  bS.addEventListener("click",()=>setMode("share"));
-  document.getElementById("expandAll").addEventListener("click",e=>{
-    if(openThemes.size===D.themes.length){openThemes.clear();e.target.textContent="Expand all sub-themes";}
-    else{D.themes.forEach(t=>openThemes.add(t.t));e.target.textContent="Collapse all sub-themes";}
-    render();
-  });
-  // open the two themes the study turns on, so the first frame shows sub-theme depth
-  openThemes.add("AI, Data & Digital");
-  render();
-})();
-
-/* ---- explorer: theme > sub-theme > topic > programme ---- */
-const EX=(function(){
-  const crumbs=document.getElementById("crumbs"), pane=document.getElementById("expl");
-  const SL=Object.fromEntries(SCHOOLS);
-  let st={level:"theme",theme:null,sub:null,topic:null,prog:null};
-  const byTopic=t=>D.progs.filter(p=>p.t===t);
-  // a topic's products include those that cover it as a secondary topic
-  const coverTopic=t=>D.progs.filter(p=>p.t===t||p.sec===t);
-  const subTopics=(th,st_)=>((D.tree[th]||{})[st_]||[]);
-  const subProgs=(th,st_)=>{const ids=new Set(subTopics(th,st_).map(x=>x.id));
-    return D.progs.filter(p=>ids.has(p.t));};
-  // ISB's own products in a sub-theme: primary topic first, then those that
-  // only touch it through a secondary topic
-  const isbInSub=(th,st_)=>{const ids=new Set(subTopics(th,st_).map(x=>x.id));
-    const own=D.progs.filter(p=>p.sc==="isb"&&ids.has(p.t));
-    const comp=D.progs.filter(p=>p.sc==="isb"&&!ids.has(p.t)&&ids.has(p.sec));
-    const byName=(a,b)=>a.n.localeCompare(b.n);
-    return own.sort(byName).concat(comp.sort(byName));};
-
-  function callBadge(tid){
-    const c=D.calls[tid]; if(!c) return "";
-    const cls=c.startsWith("LEAD")?"cb-lead":c.startsWith("FOLLOW")?"cb-follow":
-      c.startsWith("DEFEND")?"cb-defend":"cb-review";
-    const short=c.split(" - ")[0].replace("FOLLOW (weak demand evidence)","Follow, demand unproven");
-    return `<span class="callbadge ${cls}">${esc(short.toLowerCase())}</span>`;
-  }
-  function schoolBars(counts){
-    const mx=Math.max(...SCHOOLS.map(([s])=>counts[s]||0),1);
-    return `<span class="bars">`+SCHOOLS.map(([s,l])=>{
-      const v=counts[s]||0;
-      return `<span class="${s==="isb"?"isb":""}" title="${l}: ${v}"><i style="height:${v?Math.max(12,100*v/mx):0}%"></i></span>`;
-    }).join("")+`</span>`;
-  }
-  function countsFor(list){
-    const c={}; list.forEach(p=>c[p.sc]=(c[p.sc]||0)+1); return c;
-  }
-  function setCrumbs(){
-    const parts=[["All themes",()=>go({level:"theme"})]];
-    if(st.theme) parts.push([st.theme,()=>go({level:"sub",theme:st.theme})]);
-    if(st.sub) parts.push([st.sub,()=>go({level:"topic",theme:st.theme,sub:st.sub})]);
-    if(st.topic) parts.push([topicName(st.topic),()=>go({level:"prog",theme:st.theme,sub:st.sub,topic:st.topic})]);
-    if(st.prog!=null) parts.push([st.prog.n,null]);
-    crumbs.innerHTML=parts.map(([label,fn],i)=>{
-      const last=i===parts.length-1;
-      const el=last?`<span class="cur">${esc(label)}</span>`
-        :`<button type="button" data-i="${i}">${esc(label)}</button>`;
-      return (i?`<span class="sep">/</span>`:"")+el;
-    }).join("");
-    crumbs.querySelectorAll("button").forEach(b=>
-      b.addEventListener("click",()=>parts[+b.dataset.i][1]()));
-  }
-  function topicName(tid){
-    for(const th in D.tree) for(const s in D.tree[th]){
-      const f=D.tree[th][s].find(x=>x.id===tid); if(f) return f.n;
-    } return tid;
-  }
-  function go(next){ st=Object.assign({theme:null,sub:null,topic:null,prog:null},next); render(); }
-
-  function render(){
-    setCrumbs();
-    if(st.level==="theme"){
-      pane.innerHTML=`<div class="pick">`+D.themes.map(t=>{
-        const nsub=Object.keys(D.tree[t.t]||{}).length;
-        const tot=t.isb+t.ind+t.glo;
-        return `<button type="button" data-t="${esc(t.t)}">
-          <span class="ttl">${esc(t.t)}</span>
-          <span class="sub"><span>${tot} products</span><span>${nsub} sub-themes</span>
-          <span style="color:${t.isb?"var(--ink-3)":"var(--zero)"}">ISB ${t.isb}</span></span>
-          ${schoolBars(t.by)}</button>`;
-      }).join("")+`</div>`;
-      pane.querySelectorAll("button").forEach(b=>b.addEventListener("click",
-        ()=>go({level:"sub",theme:b.dataset.t})));
-    }
-    else if(st.level==="sub"){
-      const subs=D.subs.filter(x=>x.t===st.theme);
-      pane.innerHTML=`<div class="pick">`+subs.map(r=>{
-        const tot=SCHOOLS.reduce((a,[s])=>a+r.by[s],0);
-        const nt=subTopics(st.theme,r.st).length;
-        const mine=isbInSub(st.theme,r.st);
-        return `<button type="button" data-s="${esc(r.st)}">
-          <span class="ttl">${esc(r.st)}</span>
-          <span class="sub"><span>${tot} products</span><span>${nt} topics</span>
-          <span style="color:${r.by.isb?"var(--ink-3)":"var(--zero)"}">ISB ${r.by.isb}</span></span>
-          ${mine.length?`<span class="isbl">`+mine.map(p=>`<span>${esc(p.n)}${
-            p.sec&&!subTopics(st.theme,r.st).some(x=>x.id===p.t)?` <em>(as a component)</em>`:""}</span>`).join("")+`</span>`:""}
-          ${schoolBars(r.by)}</button>`;
-      }).join("")+`</div>`;
-      pane.querySelectorAll("button").forEach(b=>b.addEventListener("click",
-        ()=>go({level:"topic",theme:st.theme,sub:b.dataset.s})));
-    }
-    else if(st.level==="topic"){
-      const tops=subTopics(st.theme,st.sub);
-      const tids=new Set(tops.map(x=>x.id));
-      const mine=isbInSub(st.theme,st.sub);
-      const isbBlock=mine.length?`<div class="sres" style="margin-bottom:18px">
-        <div class="sh2">ISB in this sub-theme &middot; ${mine.length} product${mine.length===1?"":"s"}</div>`+
-        mine.map((p,i)=>`<button type="button" class="pr" data-mi="${i}">
-          <span><span class="pn">${esc(p.n)}${p.mk?'<span class="pmark">P</span>':''}</span>
-          <span class="pm"><span>${esc(topicName(tids.has(p.t)?p.t:p.sec))}</span>
-          ${tids.has(p.t)?"":`<span style="color:var(--ink-3)">covers it as a component</span>`}
-          ${p.pt?`<span>via ${esc(p.pt)}</span>`:""}</span></span>
-          <span class="school isb">${SL.isb}</span>
-          <span class="pc">${esc(p.f||"\u2014")}</span>
-          <span class="pc">${esc(p.dr||"\u2014")}</span></button>`).join("")+`</div>`
-        :`<div class="empty" style="margin-bottom:18px">ISB sells nothing in this sub-theme.</div>`;
-      pane.innerHTML=isbBlock+`<div class="pick">`+tops.map(t=>{
-        const list=coverTopic(t.id), c=countsFor(list);
-        const m=D.tmeta[t.id]||{};
-        const who=SCHOOLS.filter(([s])=>c[s]).map(([s,l])=>l).join(" · ")||"nobody in this set";
-        return `<button type="button" data-id="${t.id}">
-          <span class="ttl">${esc(t.n)} ${callBadge(t.id)}</span>
-          <span class="sub"><span>${list.length} product${list.length===1?"":"s"}</span>
-            <span>demand ${m.dem||0}${m.srcs?` / ${m.srcs} src`:""}</span>
-            ${t.ai!=="Stable"?`<span style="color:var(--lead)">${t.ai==="New"?"new since AI":"reshaped by AI"}</span>`:""}
-            ${m.resid?`<span style="color:var(--ink-3)">residual bucket</span>`:""}</span>
-          <span class="sub" style="color:var(--ink-2)">${esc(who)}</span>
-          ${schoolBars(c)}</button>`;
-      }).join("")+`</div>`;
-      pane.querySelectorAll(".pick button").forEach(b=>b.addEventListener("click",
-        ()=>go({level:"prog",theme:st.theme,sub:st.sub,topic:b.dataset.id})));
-      pane.querySelectorAll("[data-mi]").forEach(b=>b.addEventListener("click",()=>{
-        st.prog=mine[+b.dataset.mi]; st.level="detail"; render();
-      }));
-    }
-    else if(st.level==="prog"){
-      const list=coverTopic(st.topic)
-        .slice().sort((a,b)=>(a.sc==="isb"?-1:b.sc==="isb"?1:a.sc.localeCompare(b.sc))||a.n.localeCompare(b.n));
-      const m=D.tmeta[st.topic]||{};
-      const note=`<p class="lede" style="margin-bottom:14px">
-        ${list.length} product${list.length===1?"":"s"} cover this topic across the eleven schools.
-        Demand evidence scores ${m.dem||0}${m.srcs?` from ${m.srcs} independent source${m.srcs===1?"":"s"}`:""}${m.geo?` (${esc(m.geo.replace(/;/g,", "))})`:""}.
-        ${m.dsl?`<br><span style="color:var(--ink-3);font-size:12.5px">Sources: ${esc(m.dsl)}</span>`:""}
-        ${m.resid?`<br><span style="color:var(--zero)">This is a residual bucket: some products landed here by broad keyword match rather than a precise one.</span>`:""}</p>`;
-      if(!list.length){ pane.innerHTML=note+`<div class="empty">No school in this set sells a product
-        whose primary or secondary topic is this. That is the whitespace claim, and this is where it
-        resolves to.</div>`; return; }
-      pane.innerHTML=note+`<div class="plist">
-        <div class="ph"><span>Programme</span><span>School</span><span>Format</span><span>Length</span></div>`+
-        list.map((p,i)=>`<button type="button" class="pr" data-i="${i}">
-          <span><span class="pn">${esc(p.n)}${p.mk?'<span class="pmark">P</span>':''}</span><span class="pm">
-            ${p.pt?`<span>via ${esc(p.pt)}</span>`:""}
-            ${p.nw&&p.nw.toUpperCase().startsWith("Y")?`<span style="color:var(--lead)">new</span>`:""}
-            ${p.sec===st.topic?`<span style="color:var(--ink-3)">covers it as a component</span>`:""}
-            ${p.runs>1?`<span>${p.runs} scheduled runs</span>`:""}</span></span>
-          <span class="school ${p.sc==="isb"?"isb":""}">${SL[p.sc]||p.sc}</span>
-          <span class="pc">${esc(p.f||"—")}</span>
-          <span class="pc">${esc(p.dr||"—")}</span></button>`).join("")+`</div>`;
-      pane.querySelectorAll(".pr").forEach(b=>b.addEventListener("click",()=>{
-        st.prog=list[+b.dataset.i]; st.level="detail"; render();
-      }));
-    }
-    else if(st.level==="detail"){
-      const p=st.prog;
-      const row=(k,v,extra)=>`<div><dt>${k}</dt><dd class="${v?"":"none"}">${v?v:"not published on the source page"}</dd></div>`;
-      const fee = p.fr ? esc(p.fr) : (p.amt?`${esc(p.cur)} ${esc(p.amt)}`:"");
-      pane.innerHTML=`<div class="detail">
-        <h3>${esc(p.n)}${p.mk?'<span class="pmark">P</span>':''}</h3>
-        <div class="dsub"><span class="school ${p.sc==="isb"?"isb":""}">${SL[p.sc]||p.sc}</span>
-          <span>${esc(topicName(p.t))}</span>${callBadge(p.t)}
-          <span style="color:var(--ink-3)">tagged: ${esc(p.conf)}</span></div>
-        <div class="dl">
-          ${row("Format",esc(p.f||""))}
-          ${row("Length",esc(p.dr||""))}
-          ${row("Fee",fee)}
-          ${row("Level",esc(p.lv||""))}
-          ${row("Delivery partner",p.pt?esc(p.pt):"")}
-          ${row("Channel",esc(p.ch||""))}
-          ${row("Scheduled runs captured",String(p.runs))}
-          ${row("School\u2019s own category",p.cat?esc(p.cat):"")}
-        </div>
-        ${(p.conf==="low"||p.conf==="fallback")?`<div class="kt"><div class="lbl">Tagging note</div>
-          <div style="font-size:13px;color:var(--ink-3);line-height:1.5">Tagged from a broad keyword
-          match on the title or the school\u2019s own category, not a precise one. Several schools file
-          one programme under many category filters, so a product can surface under a topic it only
-          touches. Check the school\u2019s category above against the topic before quoting this row.</div></div>`:""}
-        <div class="kt"><div class="lbl">Target group</div>
-          <div style="font-size:13.5px;line-height:1.5;${p.ta?"":"color:var(--ink-3);font-style:italic"}">
-          ${p.ta?esc(p.ta):"Not published on this school’s listing pages. Seven of the eleven schools publish no target-audience text at listing level: only ISB, IIM-A, IIM-C and HBS do."}</div></div>
-        ${p.kt?`<div class="kt"><div class="lbl">Key topics taught</div><div class="tagrow">`+
-          p.kt.split(";").filter(x=>x.trim()).map(x=>`<span>${esc(x.trim())}</span>`).join("")+`</div></div>`:""}
-        ${p.u?`<div class="kt"><a class="ext" href="${esc(p.u)}" target="_blank" rel="noopener">Open the source page ↗</a></div>`:""}
-      </div>`;
-    }
-  }
-  // ---- search across topics and programme names ----
-  const qEl=document.getElementById("q");
-  function runSearch(q){
-    const s2=q.trim().toLowerCase();
-    if(s2.length<2){ render(); return; }
-    setCrumbs();
-    const topics=[];
-    for(const th in D.tree) for(const sb in D.tree[th]) for(const t of D.tree[th][sb])
-      if(t.n.toLowerCase().includes(s2)) topics.push({t,th,sb});
-    const hits=D.progs.filter(p=>p.n.toLowerCase().includes(s2)).slice(0,60);
-    let h="";
-    if(topics.length) h+=`<div class="sres"><div class="sh2">${topics.length} topic${topics.length>1?"s":""}</div>`+
-      topics.slice(0,25).map(x=>{const list=coverTopic(x.t.id);
-        return `<button type="button" class="pr" data-tid="${x.t.id}">
-          <span><span class="pn">${esc(x.t.n)}</span><span class="pm">
-          <span>${esc(x.th)} \u203a ${esc(x.sb)}</span>${callBadge(x.t.id)}</span></span>
-          <span class="pc">${list.length} product${list.length===1?"":"s"}</span>
-          <span class="pc hidem">demand ${(D.tmeta[x.t.id]||{}).dem||0}</span>
-          <span class="pc hidem"></span></button>`;}).join("")+`</div>`;
-    if(hits.length) h+=`<div class="sres"><div class="sh2">${hits.length} programme${hits.length>1?"s":""}</div>`+
-      hits.map((p,i)=>`<button type="button" class="pr" data-pi="${i}">
-        <span><span class="pn">${esc(p.n)}${p.mk?'<span class="pmark">P</span>':''}</span>
-        <span class="pm"><span>${esc(topicName(p.t))}</span></span></span>
-        <span class="school ${p.sc==="isb"?"isb":""}">${SL[p.sc]||p.sc}</span>
-        <span class="pc">${esc(p.f||"\u2014")}</span>
-        <span class="pc">${esc(p.dr||"\u2014")}</span></button>`).join("")+`</div>`;
-    if(!h) h=`<div class="empty">Nothing matches \u201c${esc(q)}\u201d.</div>`;
-    pane.innerHTML=h;
-    pane.querySelectorAll("[data-tid]").forEach(b=>b.addEventListener("click",()=>{
-      const [th,sb]=locate(b.dataset.tid);
-      qEl.value=""; go({level:"prog",theme:th,sub:sb,topic:b.dataset.tid});
-    }));
-    pane.querySelectorAll("[data-pi]").forEach(b=>b.addEventListener("click",()=>{
-      st.prog=hits[+b.dataset.pi]; st.level="detail"; qEl.value=""; render();
-    }));
-  }
-  let tmr; qEl.addEventListener("input",()=>{clearTimeout(tmr);
-    tmr=setTimeout(()=>runSearch(qEl.value),160);});
-
-  render();
-  function locate(tid){
-    for(const th in D.tree) for(const sb in D.tree[th])
-      if(D.tree[th][sb].some(x=>x.id===tid)) return [th,sb];
-    return [null,null];
-  }
-  const scrollTo=()=>document.getElementById("explorer")
-    .scrollIntoView({behavior:"smooth",block:"start"});
-  return {
-    openSub:(theme,sub)=>{ go({level:"topic",theme,sub}); scrollTo(); },
-    openTopic:(tid)=>{ const [th,sb]=locate(tid);
-      if(th) go({level:"prog",theme:th,sub:sb,topic:tid}); scrollTo(); }
-  };
-})();
-
-/* ---- call groups ---- */
-(function(){
-  const defs=[
-    {key:"LEAD - demand evidenced",cls:"lead",h:"Lead",
-     d:"Demand is evidenced across geographies and almost nobody sells it. These are the only places ISB can be first rather than late."},
-    {key:"LEAD/FAST-FOLLOW",cls:"lead",h:"Lead or move fast",
-     d:"An early market: two to five competitor products exist, so the window is open but closing."},
-    {key:"FOLLOW - proven",cls:"follow",h:"Follow",
-     d:"A market peers have proven and ISB is absent from. Following here is not imitation, it is closing a hole."},
-    {key:"DEFEND",cls:"defend",h:"Defend and deepen",
-     d:"ISB already sells it, demand is strong and the space is crowded. Depth and distinctiveness matter more than another SKU."},
-    {key:"FOLLOW (weak demand",cls:"follow",h:"Crowded, demand unproven",
-     d:"Peers cluster here but the demand evidence is thin, largely because these are functional domains the skills-led sources under-report. Judgement call, not a data call."},
-    {key:"REVIEW",cls:"review",h:"Review",
-     d:"ISB sells it with little peer or demand corroboration. Worth a deliberate keep-or-drop once enrolment data lands."}
-  ];
-  document.getElementById("groups").innerHTML=defs.map(g=>{
-    const rows=D.callrows.filter(c=>c.call.indexOf(g.key)===0);
-    if(!rows.length) return "";
-    return `<div class="grp ${g.cls}">
-      <div class="hd"><span class="dot"></span><h3>${g.h}</h3>
-        <span class="n">${rows.length} topic${rows.length>1?"s":""}</span><p>${g.d}</p></div>
-      ${rows.map(c=>`<div class="row drillrow" data-tid="${c.tid}" tabindex="0" role="button">
-        <div><div class="tp">${esc(c.topic)}</div><div class="mt">
-          <span>${esc(c.theme)}</span>
-          ${c.ai==="New"?'<span class="chip new">new since AI</span>':""}
-          ${c.ai==="Transformed"?'<span class="chip tr">reshaped by AI</span>':""}
-          ${c.resid?'<span class="chip flag">residual bucket</span>':""}
-          ${c.man?'<span class="chip flag">demand bridged</span>':""}
-          ${c.geo?'<span>'+esc(c.geo.replace(/;/g,", "))+'</span>':""}
-        </div></div>
-        <div class="col"><b>ISB</b>${c.isb}</div>
-        <div class="col hidem"><b>Peers</b>${c.comp}</div>
-        <div class="col hidem"><b>Demand</b>${c.dem} <span style="color:var(--ink-3);font-size:11px">/ ${c.srcs} src</span></div>
-      </div>`).join("")}</div>`;
+/* ---------------- call board ---------------- */
+function board(){
+  const maxD=Math.max(...D.topics.map(t=>t.dem))||1;
+  const card=t=>`<button type="button" class="tc" data-topic="${t.id}">
+    <div class="tn">${esc(t.n)} ${t.ai!=="Stable"?'<span class="ai">AI</span>':""}</div>
+    <div class="tm"><span class="dbar" title="demand evidence ${t.dem}"><i style="width:${Math.round(100*t.dem/maxD)}%"></i></span>
+    <span>${t.peers} peer${t.peers===1?"":"s"}</span><span style="${t.isb?"color:var(--accent);font-weight:600":""}">ISB ${t.isb}</span></div></button>`;
+  $("board").innerHTML=BOARD.map(c=>{
+    const list=D.topics.filter(t=>t.call===c&&topicOK(t));
+    return `<div class="col" style="--cc:${CALL[c].cc}"><div class="hd"><h3>${CALL[c].l}<span>${list.length}</span></h3>
+      <p>${CALL[c].d}</p></div>${list.length?list.map(card).join(""):`<div class="empty">None under these filters.</div>`}</div>`;
   }).join("");
-  document.querySelectorAll(".drillrow").forEach(el=>{
-    const open=()=>EX.openTopic(el.dataset.tid);
-    el.addEventListener("click",open);
-    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();open();}});
-  });
-})();
+  const w=D.topics.filter(t=>t.call==="WATCH"&&topicOK(t)), r=D.topics.filter(t=>t.call==="REVIEW"&&topicOK(t));
+  $("moreCalls").innerHTML=`<summary><b>${w.length} to watch</b> (${CALL.WATCH.d.toLowerCase()}) and <b>${r.length} to review</b></summary>
+    <div class="chiprow">${[...r,...w].map(t=>`<button type="button" class="chip" data-topic="${t.id}">${t.call==="REVIEW"?"Review · ":""}${esc(t.n)} · ${t.peers}</button>`).join("")}</div>`;
+}
 
-/* ---- demand list ---- */
-(function(){
-  const el=document.getElementById("dlist");
-  const SIG={"policy/regulation":"dated obligation","job postings":"job postings",
-    "industry body":"industry body","consultancy research":"consultancy research",
-    "employer survey":"employer survey","learner platform":"learner platform",
-    "expert/HBR":"expert view","news":"news"};
-  let mode="idx", open=new Set();
-  function rows(){
-    const a=D.demand.slice();
-    if(mode==="out") a.sort((x,y)=>(y.out-x.out)||(y.idx-x.idx));
-    else if(mode==="gap") a.sort((x,y)=>((y.idx-(y.isb?40:0))-(x.idx-(x.isb?40:0)))||(y.idx-x.idx));
-    else a.sort((x,y)=>y.idx-x.idx);
-    return a.slice(0,40);
-  }
-  function draw(){
-    el.innerHTML=rows().map((r,i)=>`<button type="button" class="drow" data-i="${i}" data-tid="${r.tid}">
-      <span><span class="dt2">${esc(r.t)}</span><span class="dm">
-        <span>${esc(r.th)}</span>
-        <span>${r.src} source${r.src===1?"":"s"} \u00b7 ${r.geo} geograph${r.geo===1?"y":"ies"}</span>
-        <span>${esc(SIG[r.sig]||r.sig)}</span>
-        ${r.dated?'<span style="color:var(--lead);font-weight:600">dated to 2027-31</span>':""}
-        ${r.contested?'<span style="color:var(--defend)">contested</span>':""}
-        ${r.ai==="New"?'<span class="chip new">new since AI</span>':""}
-      </span>${open.has(r.tid)&&r.why?`<span class="why">${esc(r.why)}</span>`:""}</span>
-      <span class="bar"><i style="width:${r.idx}%"></i><b>${r.idx}</b></span>
-      <span class="dots" title="Outlook 2027-31: ${r.out||"not assessed"} of 5">
-        ${[1,2,3,4,5].map(n=>`<span class="${r.out>=n?"on":""}"></span>`).join("")}</span>
-      <span class="gapn">${r.isb?`ISB ${r.isb}`:'<span style="color:var(--zero)">ISB 0</span>'}<br>
-        <span style="color:var(--ink-3);font-size:11px">peers ${r.peers}</span></span>
-    </button>`).join("");
-    el.querySelectorAll(".drow").forEach(b=>{
-      b.addEventListener("click",e=>{
-        const tid=b.dataset.tid;
-        if(e.shiftKey||e.metaKey){ open.has(tid)?open.delete(tid):open.add(tid); draw(); return; }
-        open.has(tid)?open.delete(tid):open.add(tid); draw();
-      });
-      b.addEventListener("dblclick",()=>EX.openTopic(b.dataset.tid));
-    });
-  }
-  const bs={idx:document.getElementById("dIdx"),out:document.getElementById("dOut"),
-            gap:document.getElementById("dGap")};
-  Object.entries(bs).forEach(([k,b])=>b.addEventListener("click",()=>{
-    mode=k; Object.entries(bs).forEach(([k2,b2])=>{b2.classList.toggle("on",k2===k);
-      b2.setAttribute("aria-pressed",k2===k);}); draw();
-  }));
-  draw();
-})();
+/* ---------------- peer moves ---------------- */
+function peerMoves(progs){
+  const isb=progs.filter(p=>p.sc==="isb"), peers=progs.filter(p=>p.sc!=="isb");
+  const grpName=F.sc?SC[F.sc].l:F.grp?{India:"Indian schools",Global:"global schools",Platform:"platforms"}[F.grp]:"all peers";
+  $("wsub").textContent=`ISB ${isb.length} products vs ${grpName} ${peers.length}. Sorted by gap. Click a theme to filter by it.`;
+  const themes=F.th?[F.th]:D.themes;
+  const share=(l,th)=>l.length?100*l.filter(p=>T[p.t].th===th).length/l.length:0;
+  const rows=D.themes.map(th=>({th,a:share(isb,th),b:share(peers,th)})).sort((x,y)=>(y.b-y.a)-(x.b-x.a));
+  const mx=Math.max(5,...rows.flatMap(r=>[r.a,r.b]));
+  const X=v=>(100*v/mx).toFixed(1)+"%";
+  $("weights").innerHTML=rows.map(r=>{const g=r.b-r.a, lo=Math.min(r.a,r.b), hi=Math.max(r.a,r.b);
+    return `<div class="wrow" data-theme="${esc(r.th)}" title="ISB ${r.a.toFixed(1)}% · peers ${r.b.toFixed(1)}%" style="${F.th&&F.th!==r.th?"opacity:.35":""}">
+      <span class="lb">${esc(r.th)}</span>
+      <span class="track"><span class="base"></span><span class="ln" style="left:${X(lo)};width:calc(${X(hi)} - ${X(lo)})"></span>
+      <span class="dot" style="left:${X(r.b)};background:var(--ink-3)"></span>
+      <span class="dot" style="left:${X(r.a)};background:var(--accent)"></span></span>
+      <span class="gapv">${g>0?"+":""}${g.toFixed(1)}</span></div>`;}).join("");
+  // new launches by topic
+  const nw=peers.filter(p=>p.nw);
+  const byT={}; nw.forEach(p=>(byT[p.t]=byT[p.t]||[]).push(p));
+  const top=Object.entries(byT).sort((a,b)=>b[1].length-a[1].length).slice(0,9);
+  const who=[...new Set(nw.map(p=>SC[p.sc].l))];
+  $("nsub").textContent=nw.length?`${nw.length} products across ${who.length} schools (${who.join(", ")}). Only these schools flag new launches, so absence elsewhere is not evidence.`:"No flagged launches under these filters.";
+  $("newl").innerHTML=top.map(([tid,l])=>`<button type="button" class="nrow" data-topic="${tid}">
+    <span>${esc(T[tid].n)} <span style="color:var(--ink-3)">· ${[...new Set(l.map(p=>SC[p.sc].l))].join(", ")}</span></span><span class="v">${l.length}</span></button>`).join("");
+  // AI-era share by school
+  const rowsA=D.schools.map(s=>{const l=progs.filter(p=>p.sc===s.s);
+    return {s,n:l.length,v:l.length?100*l.filter(p=>T[p.t].ai!=="Stable").length/l.length:0};})
+    .filter(r=>r.n>=15).sort((a,b)=>b.v-a.v);
+  const mA=Math.max(...rowsA.map(r=>r.v),1);
+  $("aibars").innerHTML=rowsA.map(r=>`<div class="hrow ${r.s.s==="isb"?"isb":""}" title="${r.n} products">
+    <span class="lb">${esc(r.s.l)}</span><span><span class="hbar" style="display:block;width:${(100*r.v/mA).toFixed(1)}%"></span></span>
+    <span class="v">${r.v.toFixed(0)}%</span></div>`).join("")||`<div class="empty">No school has 15+ products under these filters.</div>`;
+  // month-on-month changes
+  const c=D.changes;
+  $("changes").innerHTML=c?`<div class="card panel"><h3>Changes since ${esc(c.since)}</h3>
+    <div class="sub">${c.added.length} added · ${c.dropped.length} dropped · ${c.repriced.length} repriced</div>
+    ${[["Added",c.added],["Dropped",c.dropped]].map(([h,l])=>l.length?`<div class="blk"><div class="lbl">${h}</div><div class="tags">${
+      l.filter(x=>!F.th||(T[x[2]]||{}).th===F.th).slice(0,40).map(x=>`<span>${esc(SC[x[0]]?SC[x[0]].l:x[0])}: ${esc(x[1])}</span>`).join("")}</div></div>`:"").join("")}</div>`
+    :`<div class="empty">Month-on-month changes (programmes added, dropped or repriced) start after the next monthly refresh, when there is a previous month to compare against.</div>`;
+}
 
-/* ---- scatter ---- */
-(function(){
-  const svg=document.getElementById("plot");
-  const W=900,H=470,L=58,R=18,T=22,B=48;
-  const pw=W-L-R, ph=H-T-B;
-  const maxX=Math.max(...D.scatter.map(p=>p.sup)), maxY=Math.max(...D.scatter.map(p=>p.dem));
-  const xs=v=>L+(pw*v/maxX), ys=v=>T+ph-(ph*v/maxY);
-  let o=[];
-  // quadrant wash: high demand, low supply
-  o.push(`<rect x="${L}" y="${T}" width="${pw*0.22}" height="${ph*0.5}" fill="var(--lead-bg)" opacity=".85"/>`);
-  o.push(`<text x="${L+10}" y="${T+18}" font-size="11" font-weight="600" fill="var(--lead)"
-     font-family="IBM Plex Sans, sans-serif" letter-spacing=".06em">LEAD ZONE</text>`);
-  // grid + axes
-  for(let i=0;i<=4;i++){
-    const v=Math.round(maxY*i/4), y=ys(v);
-    o.push(`<line x1="${L}" y1="${y}" x2="${W-R}" y2="${y}" stroke="var(--rule)" stroke-width="1"/>`);
-    o.push(`<text x="${L-9}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--ink-3)"
-      font-family="IBM Plex Mono, monospace">${v}</text>`);
-  }
-  for(let i=0;i<=4;i++){
-    const v=Math.round(maxX*i/4), x=xs(v);
-    o.push(`<text x="${x}" y="${T+ph+20}" text-anchor="middle" font-size="11" fill="var(--ink-3)"
-      font-family="IBM Plex Mono, monospace">${v}</text>`);
-  }
-  o.push(`<line x1="${L}" y1="${T+ph}" x2="${W-R}" y2="${T+ph}" stroke="var(--ink-3)" stroke-width="1"/>`);
-  o.push(`<text x="${L+pw/2}" y="${H-10}" text-anchor="middle" font-size="12" fill="var(--ink-2)"
-    font-family="IBM Plex Sans, sans-serif">Competitor products covering the topic</text>`);
-  o.push(`<text x="14" y="${T+ph/2}" text-anchor="middle" font-size="12" fill="var(--ink-2)"
-    font-family="IBM Plex Sans, sans-serif" transform="rotate(-90 14 ${T+ph/2})">Demand evidence score</text>`);
-  // points: jitter deterministically so overlaps stay readable
-  D.scatter.forEach((p,i)=>{
-    const j=((i*37)%11-5)*0.9, k=((i*23)%9-4)*0.8;
-    const x=xs(p.sup)+j, y=ys(p.dem)+k;
-    const isb=p.isb>0;
-    o.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${isb?5.2:3.9}"
-      fill="${isb?"var(--accent)":"none"}" stroke="var(--accent)"
-      stroke-width="${isb?0:1.3}" opacity="${isb?.95:.5}"/>`);
+/* ---------------- coverage heatmap ---------------- */
+let cvMode="group"; const openT=new Set(["AI, Data & Digital"]);
+function coverage(progs){
+  const cols= cvMode==="group"
+    ? [["isb","ISB",p=>p.sc==="isb"],["India","Indian schools",p=>SC[p.sc].g==="India"],["Global","Global schools",p=>SC[p.sc].g==="Global"],["Platform","Platforms",p=>SC[p.sc].g==="Platform"]]
+        .filter(c=>c[0]==="isb"||(!F.grp&&!F.sc)||c[0]===F.grp||(F.sc&&SC[F.sc].g===c[0]))
+    : D.schools.filter(s=>s.s==="isb"||((!F.grp||s.g===F.grp)&&(!F.sc||s.s===F.sc))).map(s=>[s.s,s.l,p=>p.sc===s.s]);
+  const byTh={},bySt={};
+  progs.forEach(p=>{const t=T[p.t];(byTh[t.th]=byTh[t.th]||[]).push(p);(bySt[t.th+"|"+t.st]=bySt[t.th+"|"+t.st]||[]).push(p);});
+  const vals=[]; D.themes.forEach(th=>cols.forEach(c=>vals.push((byTh[th]||[]).filter(c[2]).length)));
+  const mx=Math.max(...vals,1);
+  const cell=(n,c)=>{const a=n?Math.round(10+60*Math.sqrt(n/mx)):0;
+    return `<td class="${c[0]==="isb"?"isbc":""}"><span class="cell ${n?"":"z"}" style="${n?`background:color-mix(in srgb,var(--heat) ${a}%,transparent)`:""}">${n}</span></td>`;};
+  const subs={}; D.topics.forEach(t=>{(subs[t.th]=subs[t.th]||new Set()).add(t.st);});
+  let h=`<thead><tr><th class="l nm">Theme / sub-theme</th>${cols.map(c=>`<th class="${c[0]==="isb"?"isbc":""}">${esc(c[1])}</th>`).join("")}<th>Calls</th></tr></thead><tbody>`;
+  D.themes.filter(th=>!F.th||th===F.th).forEach(th=>{
+    const l=byTh[th]||[], open=openT.has(th)||!!F.th;
+    const calls=D.topics.filter(t=>t.th===th&&BOARD.includes(t.call)).length;
+    h+=`<tr class="th ${open?"open":""}" data-theme="${esc(th)}"><td class="l nm"><span class="caret">▶</span> ${esc(th)}</td>${cols.map(c=>cell(l.filter(c[2]).length,c)).join("")}<td class="num">${calls||""}</td></tr>`;
+    if(open)[...subs[th]].forEach(st=>{const sl=bySt[th+"|"+st]||[];
+      const sc=D.topics.filter(t=>t.st===st&&BOARD.includes(t.call));
+      h+=`<tr class="st" data-theme="${esc(th)}" data-sub="${esc(st)}"><td class="l nm">${esc(st)}</td>${cols.map(c=>cell(sl.filter(c[2]).length,c)).join("")}
+        <td class="l">${sc.map(t=>`<span title="${esc(t.n)}" style="display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:2px;background:${CALL[t.call].cc}"></span>`).join("")}</td></tr>`;});
   });
-  // label the strongest lead-zone topics
-  const leads=D.scatter.filter(p=>p.isb===0&&p.dem>=10&&p.sup<=3&&!p.resid)
-    .sort((a,b)=>b.dem-a.dem).slice(0,5);
-  leads.forEach((p,i)=>{
-    const x=xs(p.sup)+16, y=ys(p.dem)+3+(i%2?11:-2);
-    const t=p.topic.length>44?p.topic.slice(0,42)+"…":p.topic;
-    o.push(`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" font-size="11" fill="var(--ink)"
-      font-family="IBM Plex Sans, sans-serif" font-weight="500">${esc(t)}</text>`);
-  });
-  o.push(`<g transform="translate(${W-R-188},${T+6})">
-    <circle cx="6" cy="6" r="5.2" fill="var(--accent)"/>
-    <text x="18" y="10" font-size="11" fill="var(--ink-2)" font-family="IBM Plex Sans, sans-serif">ISB sells it</text>
-    <circle cx="6" cy="26" r="3.9" fill="none" stroke="var(--accent)" stroke-width="1.3" opacity=".6"/>
-    <text x="18" y="30" font-size="11" fill="var(--ink-2)" font-family="IBM Plex Sans, sans-serif">ISB does not</text></g>`);
-  svg.innerHTML=o.join("");
-})();
+  $("heat").innerHTML=h+"</tbody>";
+}
+$("cvG").onclick=()=>{cvMode="group";$("cvG").classList.add("on");$("cvS").classList.remove("on");render();};
+$("cvS").onclick=()=>{cvMode="school";$("cvS").classList.add("on");$("cvG").classList.remove("on");render();};
+$("cvAll").onclick=e=>{if(openT.size===D.themes.length){openT.clear();e.target.textContent="Expand all";}
+  else{D.themes.forEach(t=>openT.add(t));e.target.textContent="Collapse all";} render();};
+$("heat").addEventListener("click",e=>{const tr=e.target.closest("tr");if(!tr)return;
+  if(tr.classList.contains("th")){const k=tr.dataset.theme;openT.has(k)?openT.delete(k):openT.add(k);render();}
+  else if(tr.classList.contains("st")) openSub(tr.dataset.theme,tr.dataset.sub);});
+
+/* ---------------- programme table ---------------- */
+let sortK="school", sortDir=1, shown=60, cur=[];
+const SORT={name:p=>p.n.toLowerCase(),school:p=>(p.sc==="isb"?"0":"1")+SC[p.sc].l,format:p=>p.f,
+  length:p=>p.w??1e9,fee:p=>p.inr??1e15,start:p=>p.ns||"9999"};
+function feat(p){return `<span class="feat">${p.cap==="Yes"?'<span title="Capstone project">C</span>':""}${p.imm==="Yes"?'<span title="Campus immersion">I</span>':""}${p.iv==="Yes"?'<span title="Industry visit">V</span>':""}</span>`;}
+function prow(p,i,mini){
+  return mini?`<button type="button" class="pr" data-pi="${i}"><span><div class="pn">${esc(p.n)}</div><div class="pm">${esc(SC[p.sc].l)}${p.pt?" · via "+esc(p.pt):""}</div></span>
+    <span class="c">${esc(p.f.replace(" Online",""))}</span><span class="c">${inr(p.inr)}</span><span class="c">${wk(p.w)}</span></button>`
+  :`<button type="button" class="pr" data-pi="${i}"><span><div class="pn">${esc(p.n)}</div>
+    <div class="pm">${esc(T[p.t].n)}${p.pt?" · via "+esc(p.pt):""}${p.nw?' · <span style="color:var(--c-lead)">new</span>':""}</div></span>
+    <span class="sch ${p.sc==="isb"?"isb":""}">${esc(SC[p.sc].l)}</span><span class="c hm">${esc(p.f)}</span>
+    <span class="c hm">${wk(p.w)}</span><span class="c">${inr(p.inr)}</span><span class="c hm">${p.ns||"—"}</span><span class="hm">${feat(p)}</span></button>`;
+}
+function table(progs){
+  const k=SORT[sortK];
+  cur=progs.slice().sort((a,b)=>{const x=k(a),y=k(b);return (x<y?-1:x>y?1:0)*sortDir||a.n.localeCompare(b.n);});
+  $("pcount").textContent=`${cur.length} of ${D.progs.length}`;
+  const hd=[["name","Programme"],["school","School"],["format","Format"],["length","Length"],["fee","Fee (INR)"],["start","Next start"],["","Has"]];
+  $("ptable").innerHTML=`<div class="ph">${hd.map(([k2,l])=>k2?`<button type="button" data-sort="${k2}" class="${sortK===k2?"on":""}">${l}${sortK===k2?(sortDir>0?" ↑":" ↓"):""}</button>`:`<span title="C capstone · I campus immersion · V industry visit">${l}</span>`).join("")}</div>`+
+    (cur.length?cur.slice(0,shown).map((p,i)=>prow(p,i)).join(""):`<div class="empty" style="margin:14px">Nothing matches. Loosen a filter or clear the search.</div>`)+
+    `<div class="pfoot">${cur.length>shown?`<button type="button" class="lnk" id="pmore">Show ${Math.min(100,cur.length-shown)} more</button>`:""}
+     <button type="button" class="lnk" id="pcsv">Download these ${cur.length} as CSV</button></div>`;
+}
+$("ptable").addEventListener("click",e=>{
+  const s=e.target.closest("[data-sort]"); if(s){const k=s.dataset.sort; sortDir=sortK===k?-sortDir:1; sortK=k; render(); return;}
+  if(e.target.id==="pmore"){shown+=100;render();return;}
+  if(e.target.id==="pcsv"){csv();return;}
+  const r=e.target.closest("[data-pi]"); if(r) openProg(cur[+r.dataset.pi]);
+});
+function csv(){
+  const cols=[["school",p=>SC[p.sc].n],["programme",p=>p.n],["theme",p=>T[p.t].th],["sub_theme",p=>T[p.t].st],["topic",p=>T[p.t].n],
+    ["call",p=>T[p.t].call],["format",p=>p.f],["level",p=>p.lv],["weeks",p=>p.w],["fee_raw",p=>p.fr],["fee_inr",p=>p.inr],
+    ["next_start",p=>p.ns],["capstone",p=>p.cap],["campus_immersion",p=>p.imm],["partner",p=>p.pt],["url",p=>p.u]];
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const body=[cols.map(c=>c[0]).join(",")].concat(cur.map(p=>cols.map(c=>q(c[1](p))).join(","))).join("\n");
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob(["﻿"+body],{type:"text/csv"}));
+  a.download="exec-ed-programmes.csv"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* ---------------- drawer ---------------- */
+let dList=[];
+function openDrawer(title,sub,body,hashKey){
+  const d=$("drawer");
+  d.innerHTML=`<div class="dhd"><button type="button" class="x" id="dx" aria-label="Close">✕</button>
+    <h3 id="dtitle">${title}</h3><div class="dsub">${sub}</div></div><div class="dbody">${body}</div>`;
+  d.classList.add("on"); d.setAttribute("aria-hidden","false"); $("scrim").classList.add("on"); d.scrollTop=0;
+  $("dx").focus(); writeHash(hashKey);
+}
+function closeDrawer(){$("drawer").classList.remove("on");$("drawer").setAttribute("aria-hidden","true");$("scrim").classList.remove("on");writeHash();}
+$("scrim").onclick=closeDrawer;
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer();});
+$("drawer").addEventListener("click",e=>{
+  if(e.target.id==="dx"){closeDrawer();return;}
+  const r=e.target.closest("[data-pi]"); if(r){openProg(dList[+r.dataset.pi]);return;}
+  const t=e.target.closest("[data-topic]"); if(t) openTopic(t.dataset.topic);
+});
+const badge=c=>c?`<span class="badge" style="--cc:${CALL[c].cc}">${CALL[c].l}</span>`:"";
+function plist(list,empty){
+  const start=dList.length; dList=dList.concat(list);
+  return list.length?`<div class="mini">${list.map((p,i)=>prow(p,start+i,true)).join("")}</div>`:`<div class="empty">${empty}</div>`;
+}
+function openTopic(id){
+  const t=T[id]; dList=[];
+  const all=D.progs.filter(p=>p.t===id||p.sec===id);
+  const isb=all.filter(p=>p.sc==="isb");
+  const peers=all.filter(p=>p.sc!=="isb"&&progOK(p,{}));
+  const fees=peers.map(p=>p.inr).filter(v=>v!=null);
+  const groups=["India","Global","Platform"].map(g=>[g,peers.filter(p=>SC[p.sc].g===g)]).filter(x=>x[1].length);
+  const body=`${t.call?`<p class="why" style="--cc:${CALL[t.call].cc}"><b>${CALL[t.call].l}:</b> ${esc(t.why)}.</p>`:""}
+    <div class="stats" style="margin-top:14px">
+      <div><b>${t.dem}</b><span>demand evidence, ${t.srcs} source${t.srcs===1?"":"s"}</span></div>
+      <div><b>${t.peers}</b><span>peer schools sell it</span></div>
+      <div><b style="color:var(--accent)">${isb.length}</b><span>ISB products</span></div>
+      <div><b>${inr(median(fees))}</b><span>peer median fee (${fees.length} with a fee)</span></div></div>
+    <div class="blk"><div class="lbl">ISB</div>${plist(isb,"ISB sells nothing whose main or secondary topic is this.")}</div>
+    ${groups.map(([g,l])=>`<div class="blk"><div class="lbl">${{India:"Indian schools",Global:"Global schools",Platform:"Platforms"}[g]} · ${l.length}</div>${plist(l,"")}</div>`).join("")||`<div class="blk"><div class="empty">No peer product under the current filters.</div></div>`}
+    <div class="blk"><div class="lbl">Demand evidence</div><p>${t.dsl?esc(t.dsl):"No published demand source maps to this topic."}${t.geo?` <span style="color:var(--ink-3)">(${esc(t.geo.replace(/;/g,", "))})</span>`:""}</p>
+      ${t.out!=null?`<p class="note">2027-31 outlook ${t.out}/5, an analyst judgment rather than evidence: ${esc(t.why2)}</p>`:""}
+      ${t.resid?`<p class="note">Residual bucket: some products landed here by broad keyword match, so the peer count may be inflated.</p>`:""}</div>`;
+  openDrawer(esc(t.n),`${badge(t.call)}<span>${esc(t.th)} › ${esc(t.st)}</span>${t.ai!=="Stable"?'<span class="ai">AI-era</span>':""}`,body,{topic:id});
+}
+function openSub(th,st){
+  dList=[];
+  const tops=D.topics.filter(t=>t.th===th&&t.st===st);
+  const ids=new Set(tops.map(t=>t.id));
+  const isb=D.progs.filter(p=>p.sc==="isb"&&(ids.has(p.t)||ids.has(p.sec)));
+  const body=`<div class="blk" style="margin-top:0"><div class="lbl">ISB in this sub-theme</div>${plist(isb,"ISB sells nothing in this sub-theme.")}</div>
+    <div class="blk"><div class="lbl">Topics</div><div class="mini">${tops.map(t=>{const n=D.progs.filter(p=>(p.t===t.id||p.sec===t.id)&&progOK(p)).length;
+      return `<button type="button" class="pr" data-topic="${t.id}" style="grid-template-columns:minmax(0,1fr) 90px 60px"><span><div class="pn">${esc(t.n)}</div>
+      <div class="pm">demand ${t.dem} · ${t.peers} peers · ISB ${t.isb}</div></span><span>${badge(t.call)}</span><span class="c">${n} prog.</span></button>`;}).join("")}</div></div>`;
+  openDrawer(esc(st),`<span>${esc(th)}</span>`,body,{sub:th+"|"+st});
+}
+function closest(p){
+  const t=T[p.t];
+  return D.progs.filter(q=>q.sc!==p.sc&&q!==p).map(q=>{const u=T[q.t];let s=0;
+    if(q.t===p.t)s+=4;else if(q.sec===p.t||q.t===p.sec)s+=3;else if(u.st===t.st)s+=2;else return null;
+    if(q.f===p.f)s+=1; if(LV(q.lv)===LV(p.lv)&&p.lv!=="Unknown")s+=1;
+    if(p.w&&q.w){const r=Math.max(p.w,q.w)/Math.min(p.w,q.w); s+=r<1.5?1.5:r<3?.5:0;}
+    return [s,q];}).filter(Boolean).sort((a,b)=>b[0]-a[0]).slice(0,10).map(x=>x[1]);
+}
+function openProg(p){
+  const t=T[p.t]; dList=[];
+  const peers=closest(p), pf=peers.map(q=>q.inr).filter(v=>v!=null), med=median(pf);
+  const pos=p.inr&&med?`${inr(p.inr)} against a median of ${inr(med)} across the ${pf.length} closest peer programmes with a published fee: ${p.inr>med?Math.round(100*(p.inr/med-1))+"% above":Math.round(100*(1-p.inr/med))+"% below"}.`:"";
+  const row=(k,v)=>`<div><dt>${k}</dt><dd class="${v?"":"none"}">${v||"not published"}</dd></div>`;
+  const feats=[p.cap==="Yes"&&"Capstone",p.imm==="Yes"&&"Campus immersion",p.iv==="Yes"&&"Industry visit"].filter(Boolean);
+  const body=`<dl class="dl">
+      ${row("Format",esc(p.f))}${row("Length",esc(p.dr||wk(p.w)))}${row("Fee",esc(p.fr)+(p.inr&&!/₹|rs|inr/i.test(p.fr)?` <span style="color:var(--ink-3)">≈ ${inr(p.inr)}</span>`:""))}
+      ${row("Level",esc(LV(p.lv)))}${row("Next start",p.ns)}${row("Delivery partner",esc(p.pt))}
+      ${row("Design features",feats.join(", "))}${row("Last known start",p.ls)}</dl>
+    ${pos?`<div class="blk"><div class="lbl">Price position</div><p>${pos}</p></div>`:""}
+    ${p.ta?`<div class="blk"><div class="lbl">Target group</div><p>${esc(p.ta)}</p></div>`:""}
+    ${p.kt?`<div class="blk"><div class="lbl">Key topics taught</div><div class="tags">${p.kt.split(";").filter(x=>x.trim()).map(x=>`<span>${esc(x.trim())}</span>`).join("")}</div></div>`:""}
+    <div class="blk"><div class="lbl">Closest peer programmes</div>${plist(peers,"No peer programme in the same topic or sub-theme.")}
+      <p class="note">Matched on topic first, then sub-theme, then format, level and length.</p></div>
+    <div class="blk">${p.u?`<a class="ext" href="${esc(p.u)}" target="_blank" rel="noopener">Open the source page ↗</a>`:""}
+      <p class="note">${p.prov==="team-sheet"?"Added from the team's competitor sheet"+(p.lvf?`, confirmed ${p.lvf}.`:"; not yet confirmed on a live page."):`Captured from the school's catalogue${p.lvf?", last verified "+p.lvf:""}.`}
+      ${p.conf==="low"||p.conf==="fallback"?" Topic tagged from a broad keyword match; check it before quoting.":""}</p></div>`;
+  openDrawer(esc(p.n),`<span class="sch ${p.sc==="isb"?"isb":""}">${esc(SC[p.sc].n)}</span><a href="#" data-topic="${p.t}" style="color:var(--ink-2)">${esc(t.n)}</a>${badge(t.call)}`,body);
+}
+
+/* ---------------- wiring ---------------- */
+document.addEventListener("click",e=>{
+  if(e.target.closest("#drawer"))return;
+  const t=e.target.closest("[data-topic]"); if(t){e.preventDefault();openTopic(t.dataset.topic);return;}
+  const w=e.target.closest(".wrow"); if(w){F.th=F.th===w.dataset.theme?"":w.dataset.theme;update();}
+});
+function render(){
+  const progs=D.progs.filter(p=>progOK(p));
+  $("fcount").textContent=`${progs.length} programmes match`;
+  board(); peerMoves(progs); coverage(progs); table(progs);
+}
+function update(){shown=60;syncControls();writeHash();render();}
+
+$("asof").textContent=`${D.schools.length} schools & platforms · ${D.progs.length} programmes · ${D.asof}`;
+$("notes").innerHTML=[
+  `<b>Calls</b> use the whole market and do not change with the school, format, fee or length filters. Peer pressure is the number of distinct peers selling a topic (as a product or a module), not a product count, so platforms that list many near-identical certificates do not dominate.`,
+  `<b>Demand evidence</b> scores published sources: 2 points per distinct source (up to 5), 1 per geography, 2 if the evidence concerns senior people. ${D.quality.signals} signals in all. Sources speak in skills, so finance and marketing read as low-demand when they are not.`,
+  `<b>ISB is verified by hand, peers are not.</b> ISB's ${D.progs.filter(p=>p.sc==="isb").length} products were read off live pages; peer catalogues were captured in bulk and keyword-tagged. ${D.quality.fromSheet} programmes came from the team's competitor sheet and are queued for confirmation.`,
+  `<b>No ISB enrolment, revenue or feedback yet.</b> "Review" and "Defend" calls rest on what ISB sells, not on what sells.`,
+  `<b>Fees</b> are converted at fixed planning rates set on ${esc(D.fxDate)} (${Object.entries(D.fx).map(([k,v])=>k+" "+v).join(", ")}), not live rates. ${D.quality.noFee} programmes publish no fee; INSEAD and IIM-B rarely do.`,
+  `<b>Start dates go stale every month.</b> ${D.quality.noStart} programmes have no future start on record. The monthly refresh works through ${D.quality.queue} queued gaps.`,
+  `<b>Out of scope:</b> degree programmes, custom programmes, Coursera and edX courses. Platform listings carrying a school's brand are counted under that school, with the platform as partner.`
+].map(x=>`<li>${x}</li>`).join("");
+
+const h0=readHash(); syncControls(); tiles(); render();
+if(h0.get("topic")&&T[h0.get("topic")]) openTopic(h0.get("topic"));
+else if(h0.get("sub")){const [th,st]=h0.get("sub").split("|"); openSub(th,st);}
 </script>

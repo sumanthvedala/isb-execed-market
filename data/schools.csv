@@ -1,0 +1,21 @@
+slug,school,label,group,region
+isb,Indian School of Business,ISB,ISB,India
+iima,IIM Ahmedabad,IIM-A,India,India
+iimb,IIM Bangalore,IIM-B,India,India
+iimc,IIM Calcutta,IIM-C,India,India
+iimi,IIM Indore,IIM-I,India,India
+iimk,IIM Kozhikode,IIM-K,India,India
+iiml,IIM Lucknow,IIM-L,India,India
+spjain,SP Jain,SP Jain,India,India
+hbs,Harvard Business School,HBS,Global,Global
+hec,HEC Paris,HEC,Global,Global
+imd,IMD,IMD,Global,Global
+insead,INSEAD,INSEAD,Global,Global
+kellogg,Kellogg School of Management,Kellogg,Global,Global
+lbs,London Business School,LBS,Global,Global
+stanford,Stanford GSB,Stanford,Global,Global
+wharton,Wharton,Wharton,Global,Global
+emeritus,Emeritus,Emeritus,Platform,India
+imarticus,Imarticus Learning,Imarticus,Platform,India
+jaro,Jaro Education,Jaro,Platform,India
+timespro,TimesPro,TimesPro,Platform,India

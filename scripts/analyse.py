@@ -8,10 +8,13 @@ tmap={t['topic_id']:t for t in tax}
 prog=list(csv.DictReader(open(f'{BASE}/programmes_tagged.csv',encoding='utf-8')))
 dem=list(csv.DictReader(open(f'{BASE}/demand/demand_signals.csv',encoding='utf-8')))
 
-INDIA={'isb','iima','iimb','iimc','iimk','iiml'}
-GLOBAL={'hbs','wharton','insead','lbs','imd'}
-COMP_INDIA=INDIA-{'isb'}
-SCHOOLS=['isb']+sorted(COMP_INDIA)+sorted(GLOBAL)
+# school groups come from data/schools.csv, so adding a school is one row there
+_sch=list(csv.DictReader(open(f'{BASE}/data/schools.csv',encoding='utf-8')))
+COMP_INDIA={s['slug'] for s in _sch if s['group']=='India'}
+GLOBAL={s['slug'] for s in _sch if s['group']=='Global'}
+PLATFORM={s['slug'] for s in _sch if s['group']=='Platform'}
+SCHOOLS=[s['slug'] for s in _sch]
+PEERS=[s for s in SCHOOLS if s!='isb']
 
 # ---------- map demand signals to topics with the same keyword engine ----------
 pats=[]
@@ -130,13 +133,13 @@ m1=[]
 for th in themes:
     c=theme_c[th]
     isb=c['isb']; ind=sum(c[s] for s in COMP_INDIA); glo=sum(c[s] for s in GLOBAL)
-    tot_ind_prod=sum(1 for p in prog if p['school_slug'] in COMP_INDIA)
-    tot_glo_prod=sum(1 for p in prog if p['school_slug'] in GLOBAL)
-    isb_tot=sum(1 for p in prog if p['school_slug']=='isb')
+    plat=sum(c[s] for s in PLATFORM)
+    tot=lambda grp:sum(1 for p in prog if p['school_slug'] in grp) or 1
     row=dict(theme=th, isb=isb,
-        isb_share_pct=round(100*isb/isb_tot,1),
-        india_comp=ind, india_comp_share_pct=round(100*ind/tot_ind_prod,1),
-        global_comp=glo, global_share_pct=round(100*glo/tot_glo_prod,1),
+        isb_share_pct=round(100*isb/tot({'isb'}),1),
+        india_comp=ind, india_comp_share_pct=round(100*ind/tot(COMP_INDIA),1),
+        global_comp=glo, global_share_pct=round(100*glo/tot(GLOBAL),1),
+        platform_comp=plat, platform_share_pct=round(100*plat/tot(PLATFORM),1),
         demand_sources=len(theme_dem[th]))
     for s in SCHOOLS: row[s]=c[s]
     m1.append(row)
@@ -159,6 +162,7 @@ for t in tax:
     row=dict(theme=t['theme'],subtheme=t['subtheme'],subtheme_id=t['subtheme_id'],
              isb=c['isb'],india_comp=sum(c[s] for s in COMP_INDIA),
              global_comp=sum(c[s] for s in GLOBAL),
+             platform_comp=sum(c[s] for s in PLATFORM),
              isb_also_covers=_sec['isb'],
              peers_also_cover=sum(_sec[s] for s in SCHOOLS if s!='isb'),
              demand_sources=len(sub_dem[t['subtheme_id']]))
@@ -172,10 +176,15 @@ for t in tax:
     c=topic_c[t['topic_id']]
     dscore,srcs,geos=demand_score(t['topic_id'])
     isb=c['isb']; ind=sum(c[s] for s in COMP_INDIA); glo=sum(c[s] for s in GLOBAL)
+    plat=sum(c[s] for s in PLATFORM)
     schools_present=sum(1 for s in SCHOOLS if c[s]>0)
+    c2=topic_c2[t['topic_id']]
     row=dict(theme=t['theme'],subtheme=t['subtheme'],topic=t['topic'],topic_id=t['topic_id'],
-      ai_era_flag=t['ai_era_flag'],isb=isb,india_comp=ind,global_comp=glo,
-      total_supply=isb+ind+glo,schools_present=schools_present,
+      ai_era_flag=t['ai_era_flag'],isb=isb,india_comp=ind,global_comp=glo,platform_comp=plat,
+      total_supply=isb+ind+glo+plat,schools_present=schools_present,
+      peers_present=sum(1 for s in PEERS if c2[s]>0),
+      peers_new=sum(1 for p_ in prog if p_['school_slug']!='isb' and p_['topic_id']==t['topic_id']
+                    and (p_['is_new'] or '').upper().startswith('Y')),
       isb_incl_secondary=topic_c2[t['topic_id']]['isb'],
       supply_incl_secondary=sum(topic_c2[t['topic_id']][s] for s in SCHOOLS),
       supply_is_residual_bucket='Y' if t['topic'] in SUPPLY_RESIDUAL else '',
@@ -186,30 +195,31 @@ for t in tax:
 w('outputs/matrix_topic_full.csv',m3,list(m3[0].keys()))
 
 # ---- Gap register ----
+# Peer pressure is counted in SCHOOLS, not products. With 19 peers, including
+# platforms that list dozens of near-identical certificates, a product count
+# rewards catalogue size; the number of distinct peers that chose to sell a
+# topic (as a product or a module) is the better read of a proven market.
+# ISB presence = PRIMARY topic only: a product is what it is sold as.
+isb_subs={p['subtheme'] for p in prog if p['school_slug']=='isb' and p['theme']!='UNCLASSIFIED'}
+CROWDED,EARLY=5,2      # peers present: >=5 crowded, 2-4 early market, <=1 thin
+DEM_HI,DEM_MID,DEM_LO=8,6,4
 gaps=[]
 for r in m3:
-    isb,ind,glo,d=r['isb'],r['india_comp'],r['global_comp'],r['demand_score']
-    comp=ind+glo
-    # a topic competitors cover only as a module still counts as covered
-    comp_broad=r['supply_incl_secondary']-r['isb_incl_secondary']
-    comp=max(comp,comp_broad)
-    # ISB presence = PRIMARY topic only: a product is what it is sold as.
-    # Competitor coverage = broad: a topic taught as a module is not whitespace.
-    if isb==0 and comp>=6 and d>=6: kind='FOLLOW - proven market, ISB absent'
-    elif isb==0 and comp>=6 and d<6: kind='FOLLOW (weak demand evidence) - competitors crowded'
-    elif isb==0 and comp<=2 and d>=8: kind='LEAD - demand evidenced, supply thin everywhere'
-    elif isb==0 and 3<=comp<=5 and d>=8: kind='LEAD/FAST-FOLLOW - early market'
-    elif isb>0 and comp>=10 and d>=8: kind='DEFEND & DEEPEN - ISB present in a hot crowded space'
-    elif isb>0 and d<4 and comp<=3: kind='REVIEW - ISB present, little demand or peer evidence'
-    elif isb==0 and comp==0 and d>=8: kind='LEAD (greenfield) - nobody supplies it'
-    else: kind=''
-    if kind:
-        gaps.append(dict(call=kind,**r))
-prio={'LEAD (greenfield) - nobody supplies it':0,'LEAD - demand evidenced, supply thin everywhere':1,
-  'LEAD/FAST-FOLLOW - early market':2,'FOLLOW - proven market, ISB absent':3,
-  'DEFEND & DEEPEN - ISB present in a hot crowded space':4,
-  'FOLLOW (weak demand evidence) - competitors crowded':5,'REVIEW - ISB present, little demand or peer evidence':6}
-gaps.sort(key=lambda g:(prio[g['call']],-g['demand_score'],-g['total_supply']))
+    isb,d,peers=r['isb'],r['demand_score'],r['peers_present']
+    adj=r['subtheme'] in isb_subs
+    if isb==0 and peers<EARLY and d>=DEM_HI: call,why='LEAD','demand evidenced, almost nobody sells it'
+    elif isb==0 and peers<CROWDED and d>=DEM_HI: call,why='LEAD','demand evidenced, early market'
+    elif isb==0 and peers>=CROWDED and d>=DEM_MID and adj: call,why='DIVERSIFY','proven market next to a sub-theme ISB already sells in'
+    elif isb==0 and peers>=CROWDED and d>=DEM_MID: call,why='FOLLOW','proven market, ISB absent'
+    elif isb==0 and peers>=CROWDED: call,why='WATCH','peers crowd in, demand evidence thin'
+    elif isb>0 and peers>=CROWDED+1 and d>=DEM_HI: call,why='DEFEND','ISB present in a hot, crowded space'
+    elif isb>0 and d>=DEM_HI: call,why='DEEPEN','ISB present, demand strong, few peers: room to own it'
+    elif isb>0 and d<DEM_LO and peers<=EARLY: call,why='REVIEW','ISB present, little demand or peer evidence'
+    else: call=why=''
+    if call:
+        gaps.append(dict(call=call,why=why,**r))
+prio={'LEAD':0,'DIVERSIFY':1,'FOLLOW':2,'DEFEND':3,'DEEPEN':4,'WATCH':5,'REVIEW':6}
+gaps.sort(key=lambda g:(prio[g['call']],-g['demand_score'],-g['peers_present']))
 w('outputs/gap_register.csv',gaps,list(gaps[0].keys()))
 
 # ---- front-loading: what schools flagged new ----

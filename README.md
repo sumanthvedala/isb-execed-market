@@ -1,4 +1,4 @@
-# ISB Exec Ed Theme Map — live dashboard
+# ISB Exec Ed Market Map — live dashboard
 
 Static dashboard + a monthly refresh. No server, no licence, no database.
 
@@ -28,9 +28,19 @@ Action; swap the deploy step for `Azure/static-web-apps-deploy@v1` and add a
 `staticwebapp.config.json` requiring authentication. ISB is already on Microsoft 365, so
 people sign in with the account they have and nobody outside the tenant gets in.
 
+## What is in it
+
+ISB against 15 schools (IIM-A, B, C, I, K, L, SP Jain; HBS, HEC, IMD, INSEAD, Kellogg, LBS,
+Stanford, Wharton) and 4 platforms (Emeritus, Imarticus, Jaro, TimesPro), listed in
+`data/schools.csv`. A platform listing carrying a school's brand is counted under the
+school, with the platform as partner. Coursera and edX courses are out of scope.
+
+The team's competitor sheet (the Power BI source) is merged in with
+`scripts/import_team_sheet.py`; see `data/REFRESH_SPEC.md`.
+
 ## What runs each month
 
-`build_taxonomy.py` → `classify.py` → `analyse.py` → `demand_index.py` → `build_data.py`
+`build_taxonomy.py` → `classify.py` → `analyse.py` → `demand_index.py` → `refresh_queue.py` → `build_data.py`
 → `build_site.py` → `check_drift.py`
 
 `check_drift.py` fails the build if any school's product count moved more than 10%, so a
@@ -40,11 +50,16 @@ broken scraper cannot silently rewrite the numbers.
 
 | File | What it does |
 | --- | --- |
-| `data/overrides.csv` | Pins a product to the right topic. All 41 ISB products are pinned here, hand-verified. Add a row and the fix is permanent. |
+| `data/overrides.csv` | Pins a product to the right topic. All 46 ISB products are pinned here, hand-verified. Add a row and the fix is permanent. |
 | `data/taxonomy.csv` | The 15 themes / 46 sub-themes / 230 topics and the keywords that match them. Edit via `scripts/build_taxonomy.py`. |
 
 Both are editable in the GitHub web UI. Every edit is a commit with your name on it, which
 is the audit trail.
+
+`refresh_queue.py` writes `outputs/refresh_queue.csv`: only the programmes with a missing
+fee, format, duration or future start date, or a row nobody has confirmed on a live page.
+A scheduled Claude task works through it (`data/REFRESH_SPEC.md`) and commits the fixes;
+that push re-runs the Action.
 
 ## Still to build
 
