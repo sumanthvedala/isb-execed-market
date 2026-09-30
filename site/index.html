@@ -182,6 +182,9 @@ tr.srow td.isbcol{background:var(--accent-soft)}
 .pick button:hover{background:var(--accent-soft)}
 .pick button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .pick .ttl{font-weight:500;line-height:1.35;font-size:13.5px}
+.pick .isbl{display:flex;flex-direction:column;gap:2px;font-size:11.5px;line-height:1.35;
+  color:var(--accent);border-left:2px solid var(--accent);padding-left:7px}
+.pick .isbl em{font-style:normal;color:var(--ink-3)}
 .pick .sub{font-size:11.5px;color:var(--ink-3);display:flex;gap:9px;flex-wrap:wrap;align-items:center}
 .bars{display:flex;gap:2px;align-items:flex-end;height:20px}
 .bars span{flex:1;min-width:4px;background:var(--rule);border-radius:1px;position:relative}
@@ -539,6 +542,13 @@ const EX=(function(){
   const subTopics=(th,st_)=>((D.tree[th]||{})[st_]||[]);
   const subProgs=(th,st_)=>{const ids=new Set(subTopics(th,st_).map(x=>x.id));
     return D.progs.filter(p=>ids.has(p.t));};
+  // ISB's own products in a sub-theme: primary topic first, then those that
+  // only touch it through a secondary topic
+  const isbInSub=(th,st_)=>{const ids=new Set(subTopics(th,st_).map(x=>x.id));
+    const own=D.progs.filter(p=>p.sc==="isb"&&ids.has(p.t));
+    const comp=D.progs.filter(p=>p.sc==="isb"&&!ids.has(p.t)&&ids.has(p.sec));
+    const byName=(a,b)=>a.n.localeCompare(b.n);
+    return own.sort(byName).concat(comp.sort(byName));};
 
   function callBadge(tid){
     const c=D.calls[tid]; if(!c) return "";
@@ -599,10 +609,13 @@ const EX=(function(){
       pane.innerHTML=`<div class="pick">`+subs.map(r=>{
         const tot=SCHOOLS.reduce((a,[s])=>a+r.by[s],0);
         const nt=subTopics(st.theme,r.st).length;
+        const mine=isbInSub(st.theme,r.st);
         return `<button type="button" data-s="${esc(r.st)}">
           <span class="ttl">${esc(r.st)}</span>
           <span class="sub"><span>${tot} products</span><span>${nt} topics</span>
           <span style="color:${r.by.isb?"var(--ink-3)":"var(--zero)"}">ISB ${r.by.isb}</span></span>
+          ${mine.length?`<span class="isbl">`+mine.map(p=>`<span>${esc(p.n)}${
+            p.sec&&!subTopics(st.theme,r.st).some(x=>x.id===p.t)?` <em>(as a component)</em>`:""}</span>`).join("")+`</span>`:""}
           ${schoolBars(r.by)}</button>`;
       }).join("")+`</div>`;
       pane.querySelectorAll("button").forEach(b=>b.addEventListener("click",
@@ -610,7 +623,20 @@ const EX=(function(){
     }
     else if(st.level==="topic"){
       const tops=subTopics(st.theme,st.sub);
-      pane.innerHTML=`<div class="pick">`+tops.map(t=>{
+      const tids=new Set(tops.map(x=>x.id));
+      const mine=isbInSub(st.theme,st.sub);
+      const isbBlock=mine.length?`<div class="sres" style="margin-bottom:18px">
+        <div class="sh2">ISB in this sub-theme &middot; ${mine.length} product${mine.length===1?"":"s"}</div>`+
+        mine.map((p,i)=>`<button type="button" class="pr" data-mi="${i}">
+          <span><span class="pn">${esc(p.n)}${p.mk?'<span class="pmark">P</span>':''}</span>
+          <span class="pm"><span>${esc(topicName(tids.has(p.t)?p.t:p.sec))}</span>
+          ${tids.has(p.t)?"":`<span style="color:var(--ink-3)">covers it as a component</span>`}
+          ${p.pt?`<span>via ${esc(p.pt)}</span>`:""}</span></span>
+          <span class="school isb">${SL.isb}</span>
+          <span class="pc">${esc(p.f||"\u2014")}</span>
+          <span class="pc">${esc(p.dr||"\u2014")}</span></button>`).join("")+`</div>`
+        :`<div class="empty" style="margin-bottom:18px">ISB sells nothing in this sub-theme.</div>`;
+      pane.innerHTML=isbBlock+`<div class="pick">`+tops.map(t=>{
         const list=coverTopic(t.id), c=countsFor(list);
         const m=D.tmeta[t.id]||{};
         const who=SCHOOLS.filter(([s])=>c[s]).map(([s,l])=>l).join(" · ")||"nobody in this set";
@@ -623,8 +649,11 @@ const EX=(function(){
           <span class="sub" style="color:var(--ink-2)">${esc(who)}</span>
           ${schoolBars(c)}</button>`;
       }).join("")+`</div>`;
-      pane.querySelectorAll("button").forEach(b=>b.addEventListener("click",
+      pane.querySelectorAll(".pick button").forEach(b=>b.addEventListener("click",
         ()=>go({level:"prog",theme:st.theme,sub:st.sub,topic:b.dataset.id})));
+      pane.querySelectorAll("[data-mi]").forEach(b=>b.addEventListener("click",()=>{
+        st.prog=mine[+b.dataset.mi]; st.level="detail"; render();
+      }));
     }
     else if(st.level==="prog"){
       const list=coverTopic(st.topic)
