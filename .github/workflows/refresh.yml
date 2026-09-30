@@ -3,6 +3,9 @@ on:
   schedule:
     - cron: '0 2 1 * *'      # 02:00 UTC on the 1st of each month
   workflow_dispatch:          # and on demand from the Actions tab
+  push:                       # and whenever the monthly Claude refresh commits catalogue fixes
+    branches: [main]
+    paths: ['data/**']
 permissions:
   contents: write
   pages: write
@@ -21,6 +24,7 @@ jobs:
           python scripts/classify.py
           python scripts/analyse.py
           python scripts/demand_index.py
+          python scripts/refresh_queue.py
           python scripts/build_data.py
           python scripts/build_site.py
       - name: Guardrail - fail if any school's product count moved more than 10%

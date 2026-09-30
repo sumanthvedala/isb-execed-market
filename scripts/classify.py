@@ -69,7 +69,13 @@ SECTOR=[(re.compile(r,re.I),t) for r,t in SECTOR]
 EXCLUDE=re.compile(r'faculty development|case teaching|case writing|case pedagog|'
   r'doctoral|participant-centered learning|participant centred learning|'
   r'research and academic publishing|teaching effectiveness|for teachers|'
-  r'management development programme for faculty',re.I)
+  r'management development programme for faculty|'
+  # degree programmes are out of scope (CATALOGUE_SPEC)
+  r'\bmaster of\b|\bmasters? in\b|\be?mba\b|\bpgpx\b',re.I)
+
+# Out of scope: MOOC marketplaces. Coursera and edX courses are not competing
+# executive education products (decision, 30 Sep 2026).
+MOOC=re.compile(r'coursera|\bedx\b|edx\.org|^iimbx',re.I)
 
 # Fallback: broad single-concept terms, applied ONLY when nothing else matched.
 # Weight is low by construction (scored separately) so a real match always wins.
@@ -209,7 +215,7 @@ unmatched=[]
 excluded=[]
 for r in prods:
     blob=' '.join(str(r.get(k,'')) for k in ('programme_name','school_category','target_audience'))
-    if EXCLUDE.search(blob):
+    if EXCLUDE.search(blob) or MOOC.search(' '.join(str(r.get(k,'')) for k in ('partner','url','programme_name'))):
         excluded.append(r); continue
     pri=priority_topic(r)
     if pri:
