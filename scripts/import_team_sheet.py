@@ -86,11 +86,18 @@ VARIANT = {'virtual', 'london', 'dubai', 'singapore', 'paris', 'mumbai', 'delhi'
            'campus', 'live', 'blended', 'batch', 'strategies', 'management'}
 
 
+# same words, different products (ISB product categorisation workbook, Oct 2026):
+# Leadership Essentials is ISB Online, 15 weeks; Essentials of Leadership is 5 days on campus
+DISTINCT = {frozenset(('leadership essentials', 'essentials of leadership'))}
+
+
 def same_programme(a, b):
     """Two normalised names name the same product: identical once filler words
     go ("Leadership AI" / "Leadership with AI", "Essentials of Leadership" /
     "Leadership Essentials"), or differing only by a location, format or batch
     word ("Mergers and Acquisitions - Dubai")."""
+    if frozenset((a, b)) in DISTINCT:
+        return False
     ca, cb = core(a), core(b)
     if not ca or not cb:
         return False

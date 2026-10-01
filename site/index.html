@@ -99,6 +99,30 @@ section{padding:34px 0 8px;scroll-margin-top:118px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--rule);
   border:1px solid var(--rule);border-radius:10px;overflow:hidden;margin:6px 0 22px}
 .tile{background:var(--card);padding:15px 17px}
+/* headline tiles on the left, "What's new" pinned top right */
+.topgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,350px);gap:14px;align-items:start;margin:6px 0 22px}
+.topgrid .tiles{margin:0;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:860px){.topgrid{grid-template-columns:1fr}}
+@media (max-width:480px){.topgrid .tiles{grid-template-columns:1fr}}
+.wn{background:var(--card);border:1px solid var(--rule);border-radius:10px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.wn .wh{padding:12px 15px 10px;border-bottom:1px solid var(--rule-2);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.wn .wh h3{font-size:16px;font-weight:600}
+.wn .wh .pulse{width:8px;height:8px;border-radius:99px;background:var(--accent);flex:none;align-self:center}
+.wn .wh span{font-size:11px;color:var(--ink-3);margin-left:auto}
+.wn .sum{display:flex;gap:6px;flex-wrap:wrap;padding:9px 15px 4px}
+.wn .sum b{font-size:11.5px;font-weight:600;border:1px solid var(--rule);border-radius:99px;padding:1px 8px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums}
+.wn ul{list-style:none;margin:0;padding:4px 0;flex:1}
+.wn li button{appearance:none;border:0;background:none;width:100%;text-align:left;cursor:pointer;display:grid;
+  grid-template-columns:8px minmax(0,1fr);gap:9px;padding:7px 15px;align-items:start}
+.wn li button:hover{background:var(--rule-2)}
+.wn li i{width:8px;height:8px;border-radius:2px;margin-top:6px;background:var(--cc,var(--ink-3))}
+.wn li .t{font-size:12.5px;line-height:1.35}
+.wn li .d{font-size:11px;color:var(--ink-3)}
+.wn .wf{border-top:1px solid var(--rule-2);padding:8px 15px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.wn .wf span{font-size:11px;color:var(--ink-3)}
+.wn .none{padding:10px 15px;font-size:12.5px;color:var(--ink-3)}
 .tile .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
 .tile .v{font-family:Spectral,serif;font-size:30px;font-weight:600;line-height:1.1;margin-top:6px}
 .tile .v small{font-size:14px;color:var(--ink-3);font-weight:500}
@@ -301,7 +325,10 @@ details.notes li{margin:6px 0;max-width:80ch}
 
 <section id="decide">
   <div class="sh"><h2>Where ISB should move</h2><span class="q">each topic gets one call from three facts: does ISB sell it, how many peers sell it, how strong the demand evidence is</span></div>
-  <div class="tiles" id="tiles"></div>
+  <div class="topgrid">
+    <div class="tiles" id="tiles"></div>
+    <aside class="wn" id="wn" aria-label="What's new"></aside>
+  </div>
   <div class="board" id="board"></div>
   <details class="more" id="moreCalls"></details>
 </section>
@@ -488,6 +515,66 @@ $("sdrop").addEventListener("keydown",e=>{
 });
 document.addEventListener("click",e=>{if(!e.target.closest("#sdrop")&&e.target.id!=="fq")hideDrop();});
 $("freset").addEventListener("click",()=>{for(const k in F)F[k]=k==="ai"?false:"";update();});
+
+/* ---------------- what's new ---------------- */
+function newsItems(){
+  const c=D.changes||{added:[],dropped:[],repriced:[],calls:[]}, out=[];
+  const isbA=c.added.filter(x=>x[0]==="isb"), isbD=c.dropped.filter(x=>x[0]==="isb");
+  const since=fmtM(c.since);
+  if(isbA.length===1) out.push({cc:"var(--accent)",t:`ISB added: ${isbA[0][1]}`,d:`since ${since}`,prog:[isbA[0][0],isbA[0][1]]});
+  else if(isbA.length) out.push({cc:"var(--accent)",t:`ISB added ${isbA.length} programmes`,d:isbA.map(x=>x[1]).join(" · "),list:["Added by ISB",isbA]});
+  if(isbD.length) out.push({cc:"var(--accent)",t:`ISB no longer lists ${isbD.length} programme${isbD.length>1?"s":""}`,d:isbD.map(x=>x[1]).join(" · "),list:["Dropped by ISB",isbD]});
+  (c.calls||[]).forEach(([tid,o,n])=>T[tid]&&out.push({cc:n?CALL[n].cc:"var(--c-watch)",
+    t:`${T[tid].n}: ${o?CALL[o].l:"no call"} → ${n?CALL[n].l:"no call"}`,d:"call moved",topic:tid}));
+  const by=(l)=>{const m={};l.filter(x=>x[0]!=="isb").forEach(x=>(m[x[0]]=m[x[0]]||[]).push(x));return Object.entries(m).sort((a,b)=>b[1].length-a[1].length);};
+  by(c.added).forEach(([s,l])=>out.push({cc:"var(--ink-3)",t:`${SC[s]?SC[s].l:s} added ${l.length} programme${l.length>1?"s":""}`,
+    d:l.slice(0,2).map(x=>x[1]).join(" · ")+(l.length>2?" …":""),list:["Added by "+(SC[s]?SC[s].l:s),l]}));
+  by(c.dropped).forEach(([s,l])=>out.push({cc:"var(--ink-3)",t:`${SC[s]?SC[s].l:s} dropped ${l.length} programme${l.length>1?"s":""}`,
+    d:l.slice(0,2).map(x=>x[1]).join(" · "),list:["Dropped by "+(SC[s]?SC[s].l:s),l]}));
+  if(c.repriced.length) out.push({cc:"var(--ink-3)",t:`${c.repriced.length} programme${c.repriced.length>1?"s":""} repriced`,
+    d:c.repriced.slice(0,2).map(x=>x[1]).join(" · "),list:["Repriced",c.repriced]});
+  D.whatsnew.log.forEach(e=>out.push({cc:e.scope==="isb"?"var(--accent)":"var(--ink-3)",t:e.headline,d:fmtD(e.date),log:e}));
+  return out;
+}
+const fmtM=s=>{const d=new Date(s+"-01T00:00:00");return isNaN(d)?s:d.toLocaleDateString("en-GB",{month:"short",year:"numeric"});};
+const fmtD=s=>{const d=new Date(s+"T00:00:00");return isNaN(d)?s:d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});};
+let NEWS=[];
+function whatsNew(){
+  const c=D.changes, w=D.whatsnew; NEWS=newsItems();
+  const parts=c?[[c.added.length,"added"],[c.dropped.length,"dropped"],[c.repriced.length,"repriced"],
+    [(c.calls||[]).length,"calls moved"],[c.filled||0,"fees filled"]].filter(([n])=>n):[];
+  const sum=c?(parts.length?parts.map(([n,l])=>`<b>${n} ${l}</b>`).join("")+`<span style="font-size:11px;color:var(--ink-3);align-self:center">since ${esc(fmtM(c.since))}</span>`
+    :`<span style="font-size:12px;color:var(--ink-3)">No programme or call changes since ${esc(fmtM(c.since))}</span>`):"";
+  $("wn").innerHTML=`<div class="wh"><i class="pulse"></i><h3>What's new</h3><span>Refreshed ${esc(w.ran)} · next ${esc(w.next)}</span></div>
+    ${c?`<div class="sum">${sum}</div>`:""}
+    ${NEWS.length?`<ul>${NEWS.slice(0,5).map((n,i)=>`<li><button type="button" data-ni="${i}" style="--cc:${n.cc}"><i></i>
+      <span><div class="t">${esc(n.t)}</div><div class="d">${esc(n.d)}</div></span></button></li>`).join("")}</ul>`
+      :`<div class="none">No catalogue changes found in the latest refresh.</div>`}
+    <div class="wf"><span>${D.quality.queue} gaps queued for the next refresh</span><button type="button" class="lnk" id="wnAll">See everything</button></div>`;
+}
+$("wn").addEventListener("click",e=>{
+  if(e.target.id==="wnAll"){openNews();return;}
+  const b=e.target.closest("[data-ni]"); if(b) openNewsItem(NEWS[+b.dataset.ni]);
+});
+function openNewsItem(n){
+  if(n.topic) return openTopic(n.topic);
+  if(n.prog){const p=D.progs.find(q=>q.sc===n.prog[0]&&q.n===n.prog[1]); if(p) return openProg(p);}
+  if(n.list){ dList=[]; const ps=n.list[1].map(x=>D.progs.find(q=>q.sc===x[0]&&q.n===x[1])).filter(Boolean);
+    const rest=n.list[1].filter(x=>!D.progs.some(q=>q.sc===x[0]&&q.n===x[1]));
+    return openDrawer(esc(n.list[0]),`<span>since ${esc(fmtM(D.changes.since))}</span>`,
+      plist(ps,"")+(rest.length?`<div class="blk"><div class="tags">${rest.map(x=>`<span>${esc(x[1])}${x[2]&&x[3]?` · ${esc(x[2])} → ${esc(x[3])}`:""}</span>`).join("")}</div></div>`:""));}
+  if(n.log) return openDrawer(esc(n.log.headline),`<span>${esc(fmtD(n.log.date))}</span>`,`<p class="blk">${esc(n.log.detail)}</p>`);
+}
+function openNews(){
+  dList=[];
+  const body=`${NEWS.length?`<div class="mini">${NEWS.map((n,i)=>`<button type="button" class="pr" data-news="${i}" style="grid-template-columns:10px minmax(0,1fr)">
+      <i style="width:8px;height:8px;border-radius:2px;background:${n.cc}"></i><span><div class="pn">${esc(n.t)}</div><div class="pm">${esc(n.d)}</div></span></button>`).join("")}</div>`:`<div class="empty">Nothing changed in the latest refresh.</div>`}
+    <div class="blk"><div class="lbl">How this updates</div><p>The refresh runs on the 1st of every month. It compares every programme
+    with last month's snapshot (added, dropped, repriced, fees newly published) and every topic's call. Imports and manual fixes
+    are logged by hand. ${D.quality.queue} gaps are queued for the next run.</p></div>`;
+  openDrawer("What's new",`<span>Refreshed ${esc(D.whatsnew.ran)} · next ${esc(D.whatsnew.next)}</span>`,body);
+}
+$("drawer").addEventListener("click",e=>{const n=e.target.closest("[data-news]"); if(n){e.stopPropagation();openNewsItem(NEWS[+n.dataset.news]);}},true);
 
 /* ---------------- headline tiles (whole market, ignore filters) ---------------- */
 function tiles(){
@@ -745,7 +832,7 @@ $("notes").innerHTML=[
   `<b>Out of scope:</b> degree programmes, custom programmes, Coursera and edX courses. Platform listings carrying a school's brand are counted under that school, with the platform as partner.`
 ].map(x=>`<li>${x}</li>`).join("");
 
-const h0=readHash(); syncControls(); tiles(); render();
+const h0=readHash(); syncControls(); tiles(); whatsNew(); render();
 if(h0.get("topic")&&T[h0.get("topic")]) openTopic(h0.get("topic"));
 else if(h0.get("sub")){const [th,st]=h0.get("sub").split("|"); openSub(th,st);}
 
