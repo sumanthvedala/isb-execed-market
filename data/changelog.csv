@@ -1,0 +1,5 @@
+"date","scope","headline","detail"
+"2026-09-30","data","Team competitor sheet merged","Programmes we did not hold were added from the Power BI competitor sheet; only blank fields were filled on programmes we already had. 60 duplicate cohort rows and 9 Coursera/edX rows dropped."
+"2026-09-30","isb","5 ISB programmes confirmed live and added","Chief Strategy Officer Programme, General Management Programme, ISB-NUS Global Advanced Management Programme, Business Strategy (ISB Online), EY-ISB Board Effectiveness for Women."
+"2026-09-30","scope","Peer set widened to 19","Added IIM Indore, SP Jain, HEC Paris, Kellogg, Stanford and four platforms (Emeritus, Imarticus, Jaro, TimesPro). Platform listings carrying a school's brand now count under that school."
+"2026-10-01","isb","ISB product workbook checked against the catalogue","Four ISB Online programmes were missing and are now added (fees still to be captured). Leadership Essentials (ISB Online) and Essentials of Leadership (campus) are now kept as separate products. Fees on the live site were kept where the workbook's Open Portfolio tab shows older, lower figures."

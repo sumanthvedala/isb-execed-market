@@ -21,7 +21,10 @@ school websites. This task is the part that does, and it only fetches what is mi
 4. New programmes on a school's catalogue page that we do not hold: add a row with
    `provenance=catalogue-capture` and today's `last_verified`.
 5. Never invent a fee, date or topic. Blank beats a guess.
-6. Commit to `main` as "Monthly gap-fill YYYY-MM". The push re-runs the Action, which
+6. Append one line to `data/changelog.csv` (date, scope isb|peers|data, headline, detail) saying what
+   you filled, removed or added. It shows in the dashboard's "What's new" box. Programme adds, drops,
+   repricing and call changes are detected automatically; do not log those by hand.
+7. Commit to `main` as "Monthly gap-fill YYYY-MM". The push re-runs the Action, which
    rebuilds the dashboard and the drift check.
 
 ## Budget

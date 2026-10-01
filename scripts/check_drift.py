@@ -18,6 +18,11 @@ with open(snapdir/f'programmes-{today}.csv','w',newline='',encoding='utf-8') as 
     w=csv.writer(f,quoting=csv.QUOTE_ALL); w.writerow(['school_slug','programme_name','topic_id','format','fee_currency','fee_amount'])
     for r in csv.DictReader(open(ROOT/'programmes_tagged.csv',encoding='utf-8')):
         w.writerow([r['school_slug'],r['programme_name'],r['topic_id'],r['format'],r['fee_currency'],r['fee_amount']])
+# the call on each topic, so next month's "What's new" can say which calls moved
+with open(snapdir/f'calls-{today}.csv','w',newline='',encoding='utf-8') as f:
+    w=csv.writer(f,quoting=csv.QUOTE_ALL); w.writerow(['topic_id','call'])
+    for r in csv.DictReader(open(ROOT/'outputs'/'gap_register.csv',encoding='utf-8')):
+        w.writerow([r['topic_id'],r['call']])
 if not prev:
     print('no prior snapshot; baseline written'); sys.exit(0)
 # a deliberate re-scope (new schools, a merged sheet) is not a scraper failure

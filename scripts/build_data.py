@@ -81,11 +81,31 @@ if snaps:
                             if old[(s, n)]['fee_amount'] and cur[(s, n)]['fee_amount']
                             and old[(s, n)]['fee_amount'] != cur[(s, n)]['fee_amount']]}
 
+    # gaps the refresh closed: a fee that was blank last month and is published now
+    changes['filled'] = sum(1 for k in cur.keys() & old.keys()
+                            if not old[k]['fee_amount'] and cur[k]['fee_amount'])
+
+# calls that moved since the last month's snapshot
+csnaps = [p for p in sorted((R / 'snapshots').glob('calls-*.csv')) if p.stem[-7:] < this_month]
+if csnaps and changes is not None:
+    oldc = {r['topic_id']: r['call'] for r in csv.DictReader(open(csnaps[-1], encoding='utf-8'))}
+    newc = {t['id']: t['call'] for t in topics if t['call']}
+    changes['calls'] = [[tid, oldc.get(tid, ''), newc.get(tid, '')] for tid in sorted(set(oldc) | set(newc))
+                        if oldc.get(tid, '') != newc.get(tid, '')]
+
+# "What's new": the latest refresh plus the hand-written changelog, newest first
+log = sorted(L('data/changelog.csv'), key=lambda r: r['date'], reverse=True) \
+    if (R / 'data/changelog.csv').exists() else []
+today = datetime.date.today()
+whatsnew = {'ran': today.strftime('%d %b %Y'),
+            'next': (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1).strftime('%d %b %Y'),
+            'log': log[:12]}
+
 q = L('outputs/refresh_queue.csv') if (R / 'outputs/refresh_queue.csv').exists() else []
 d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'schools': [{'s': s['slug'], 'l': s['label'], 'g': s['group'], 'n': s['school']} for s in schools],
      'themes': list(dict.fromkeys(t['theme'] for t in tax)),
-     'topics': topics, 'progs': progs, 'changes': changes,
+     'topics': topics, 'progs': progs, 'changes': changes, 'whatsnew': whatsnew,
      'fx': {k: v for k, v in fx.items() if k != 'INR'}, 'fxDate': L('data/fx.csv')[0]['set_on'],
      'quality': {'queue': len(q), 'noFee': sum(1 for p in progs if p['inr'] is None),
                  'noStart': sum(1 for p in progs if not p['ns']),
