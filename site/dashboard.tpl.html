@@ -442,7 +442,10 @@ function writeHash(extra){
   history.replaceState(null,"",h.toString()?"#"+h:location.pathname);
 }
 function syncControls(){
-  $("fq").value=F.q; $("fth").value=F.th; $("fgrp").value=F.grp; $("fsc").value=F.sc; $("ff").value=F.f;
+  // never rewrite the box while someone is typing in it: F.q is trimmed, so
+  // writing it back would delete the space between words as it is typed
+  if(document.activeElement!==$("fq")) $("fq").value=F.q;
+  $("fth").value=F.th; $("fgrp").value=F.grp; $("fsc").value=F.sc; $("ff").value=F.f;
   $("flv").value=F.lv; $("ffee").value=F.fee; $("flen").value=F.len; $("fai").checked=F.ai;
   [["fq","q"],["fth","th"],["fgrp","grp"],["fsc","sc"],["ff","f"],["flv","lv"],["ffee","fee"],["flen","len"]]
     .forEach(([id,k])=>$(id).classList.toggle("on",!!F[k]));
