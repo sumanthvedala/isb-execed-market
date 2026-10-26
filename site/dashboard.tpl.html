@@ -538,7 +538,7 @@ function search(q){
   const latest=D.launches?D.launches.rows.filter(r=>r.eff).sort((a,b)=>a.eff<b.eff?1:-1).slice(0,5):[];
   $("view").innerHTML=`<div class="hero">
       <div class="about">
-        <p class="tagline">This is ISB Executive Education's lens on the market.</p>
+        <p class="tagline">This is ISB Executive Education's eye on the market.</p>
         <p>It shows what is happening, so we can plan what to do next, and keep ISB where it is: number one in executive education in India.</p>
         <p class="small">Every programme, every price, every new launch: ${D.progs.length.toLocaleString("en-IN")} programmes taught by ISB and ${D.schools.length-1} other business schools and platforms, and what employers say they need. Refreshed every month.</p>
       </div>
