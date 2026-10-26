@@ -22,7 +22,9 @@
 :root{
   --paper:#FBFCFE; --ink:#12152B; --ink-2:#454A63; --ink-3:#6B7089; --rule:#E2E5EE; --wash:#F2F4F9;
   --isb:#192890;            /* ISB deep blue: replace with the official brand hex */
-  --isb-wash:#EBEEFB;
+  --isb-wash:#E6ECFF; --isb-hover:#D2DCFF;
+  /* call labels: validated as an ordered set (Lead to Defend), white text on each */
+  --lead:#047857; --diversify:#5B21B6; --follow:#0369A1; --deepen:#B45309; --defend:#A21CAF; --watch:#475569;
   --prob:#FFF2CC;           /* the register's own "probable" shading */
   --serif:Newsreader,"Iowan Old Style",Georgia,serif;
   --sans:"IBM Plex Sans",-apple-system,"Segoe UI",sans-serif;
@@ -32,10 +34,10 @@
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --paper:#0D0F1C; --ink:#ECEEF6; --ink-2:#B9BED3; --ink-3:#8A90AA; --rule:#262A40; --wash:#151829;
-  --isb:#A5B1FF; --isb-wash:#1A1E3A; --prob:#3A3115; color-scheme:dark}}
+  --isb:#A5B1FF; --isb-wash:#1E2550; --isb-hover:#2A3370; --prob:#3A3115; --diversify:#6D28D9; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#0D0F1C; --ink:#ECEEF6; --ink-2:#B9BED3; --ink-3:#8A90AA; --rule:#262A40; --wash:#151829;
-  --isb:#A5B1FF; --isb-wash:#1A1E3A; --prob:#3A3115; color-scheme:dark}
+  --isb:#A5B1FF; --isb-wash:#1E2550; --isb-hover:#2A3370; --prob:#3A3115; --diversify:#6D28D9; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{background:var(--paper);color:var(--ink)}
 body{margin:0;font:400 var(--t3)/1.55 var(--sans);-webkit-font-smoothing:antialiased}
@@ -51,12 +53,15 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 /* masthead */
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--paper);border-bottom:1px solid var(--rule)}
-.mast{display:flex;align-items:center;gap:22px;padding-block:12px;flex-wrap:wrap}
+.mast{display:flex;align-items:center;gap:14px 22px;padding-block:12px;flex-wrap:wrap}
 .brand{font-size:var(--t4);letter-spacing:.01em;color:var(--ink-2);text-decoration:none;white-space:nowrap}
 .brand b{color:var(--isb);font-weight:600}
-nav.main{display:flex;gap:18px;font-size:var(--t4)}
-nav.main a{text-decoration:none;color:var(--ink-2);padding-block:2px;border-bottom:1px solid transparent}
-nav.main a.on{color:var(--ink);border-bottom-color:var(--ink)}
+nav.main{order:3;flex-basis:100%;display:flex;gap:8px;flex-wrap:wrap}
+nav.main a{text-decoration:none;font-size:15px;font-weight:500;color:var(--isb);background:var(--isb-wash);padding:9px 18px;border-radius:999px;transition:background .12s}
+nav.main a:hover{background:var(--isb-hover)}
+nav.main a.on{background:var(--isb);color:var(--paper)}
+nav.main a.first{font-weight:600}
+body.home .find{visibility:hidden}
 .find{margin-left:auto;position:relative;flex:1 1 200px;max-width:300px;min-width:160px}
 .find input{width:100%;border:1px solid var(--rule);background:var(--paper);border-radius:6px;padding:6px 10px;font-size:14px}
 .find kbd{position:absolute;right:8px;top:7px;font:11px var(--mono);color:var(--ink-3)}
@@ -66,8 +71,9 @@ nav.main a.on{color:var(--ink);border-bottom-color:var(--ink)}
 .hits a{display:block;padding:6px 14px;text-decoration:none}
 .hits a:hover,.hits a.on{background:var(--wash)}
 .hits a span{display:block;font-size:12px;color:var(--ink-3)}
-@media (max-width:760px){header.top{position:static}.find{order:3;flex-basis:100%;max-width:none;margin-left:0}
-  nav.main{gap:14px;overflow-x:auto;white-space:nowrap;max-width:100%;padding-bottom:2px}.find kbd{display:none}}
+@media (max-width:760px){header.top{position:static}.find{order:2;flex-basis:100%;max-width:none;margin-left:0}
+  body.home .find{display:none}
+  nav.main{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;max-width:100%;padding-bottom:4px}nav.main a{font-size:14px;padding:8px 14px}.find kbd{display:none}}
 
 main{padding-block:44px 80px}
 h1{font:500 var(--t1)/1.08 var(--serif);letter-spacing:-.015em;margin:0 0 14px;text-wrap:balance}
@@ -98,7 +104,7 @@ section>header h2{font-size:22px}
 .r{display:grid;grid-template-columns:var(--cols,minmax(0,1fr) 110px 110px 90px 90px);gap:14px;align-items:baseline;
   padding:10px 0;border-bottom:1px solid var(--rule);text-decoration:none}
 a.r:hover{background:var(--wash)}
-.r .n{font-weight:500;line-height:1.35}
+.r .n{font-weight:500;line-height:1.35;font-size:16px}
 .r .s{font-size:var(--t4);color:var(--ink-3);margin-top:2px}
 .r .c{font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
 .r.hd{font-size:12px;color:var(--ink-3);padding-block:6px}
@@ -115,12 +121,40 @@ details.r>summary::-webkit-details-marker{display:none}
 /* controls: text buttons, not pills */
 .tools{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-bottom:14px;font-size:14px}
 .tabs{display:flex;gap:16px;flex-wrap:wrap}
-.tabs button{appearance:none;border:0;background:none;padding:2px 0;cursor:pointer;color:var(--ink-3);border-bottom:1px solid transparent}
-.tabs button.on{color:var(--ink);border-bottom-color:var(--ink)}
+.tabs{gap:8px}
+.tabs button{appearance:none;cursor:pointer;border:1px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:999px;padding:8px 15px;font-size:14px}
+.tabs button:hover{background:var(--isb-wash)}
+.tabs button.on{background:var(--isb);border-color:var(--isb);color:var(--paper)}
+.tabs button.on .meta{color:inherit;opacity:.8}
 select,input[type=text],input[type=number],input[type=search],textarea{border:1px solid var(--rule);background:var(--paper);border-radius:6px;padding:6px 9px;font-size:14px;max-width:100%}
 label.ck{display:inline-flex;gap:6px;align-items:center;color:var(--ink-2)}
 .lnk{appearance:none;border:0;background:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--rule);font-size:14px;color:var(--ink-2)}
 
+/* call labels */
+.call{display:inline-block;font:600 13px/1 var(--sans);letter-spacing:.02em;color:#fff;background:var(--cc,var(--watch));
+  padding:6px 11px;border-radius:999px;vertical-align:3px;white-space:nowrap}
+.cl-LEAD{--cc:var(--lead)}.cl-DIVERSIFY{--cc:var(--diversify)}.cl-FOLLOW{--cc:var(--follow)}.cl-DEEPEN{--cc:var(--deepen)}
+.cl-DEFEND{--cc:var(--defend)}.cl-WATCH,.cl-REVIEW{--cc:var(--watch)}
+h2 .call{font-size:15px;padding:7px 14px;vertical-align:4px}
+/* search */
+.hero{max-width:980px}
+.hero h1{margin-bottom:8px}
+.big{display:flex;gap:10px;margin:22px 0 14px}
+.big input{flex:1;min-width:0;font-size:18px;padding:14px 18px;border:2px solid var(--isb);border-radius:14px;background:var(--paper)}
+.btn{appearance:none;border:0;cursor:pointer;background:var(--isb);color:var(--paper);font-weight:600;font-size:16px;padding:0 24px;border-radius:14px}
+.btn:hover{filter:brightness(1.12)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:14px;color:var(--ink-3)}
+.chip{appearance:none;border:0;cursor:pointer;background:var(--isb-wash);color:var(--isb);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:500;text-decoration:none}
+.chip:hover{background:var(--isb-hover)}
+.pill{border:1px solid var(--rule);background:var(--paper);border-radius:999px;padding:8px 14px;font-size:14px;color:var(--ink);cursor:pointer}
+.pill.on{border-color:var(--isb);background:var(--isb-wash);color:var(--isb);font-weight:500}
+label.pillck{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--rule);border-radius:999px;padding:7px 14px;font-size:14px;cursor:pointer}
+label.pillck.on{border-color:var(--lead);color:var(--lead);font-weight:500}
+.newtag{display:inline-block;font:600 11.5px/1 var(--sans);color:var(--lead);border:1.5px solid var(--lead);border-radius:999px;padding:3px 8px;margin-left:8px;vertical-align:2px;white-space:nowrap}
+.newtag.prob{color:var(--deepen);border-color:var(--deepen)}
+.explain{font-size:14px;color:var(--ink-2);background:var(--wash);border-radius:10px;padding:12px 16px;margin:14px 0;max-width:760px}
+.steps{display:flex;gap:10px 26px;flex-wrap:wrap;margin:14px 0 26px;font-size:15px}
+.steps span b{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--isb);color:var(--paper);font-size:13px;margin-right:8px}
 /* facts */
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:22px 0}
 .facts div{border-top:1px solid var(--rule);padding-top:8px}
@@ -163,10 +197,10 @@ footer p{max-width:78ch}
 <body>
 <header class="top">
   <div class="wrap mast">
-    <a class="brand" href="#/"><b>ISB</b> Executive Education · Market brief</a>
+    <a class="brand" href="#/"><b>ISB</b> Executive Education · Market intelligence</a>
     <nav class="main" id="nav">
-      <a href="#/">Brief</a><a href="#/portfolio">Where ISB stands</a><a href="#/launches">Peer launches</a>
-      <a href="#/programmes">Programmes</a><a href="#/test">Test a programme</a>
+      <a href="#/" class="first">Search programmes</a><a href="#/launches">New launches</a><a href="#/test">Test a programme idea</a>
+      <a href="#/brief">Monthly brief</a><a href="#/portfolio">Where ISB stands</a>
     </nav>
     <div class="find" role="search">
       <input type="search" id="find" placeholder="Find a topic, programme or school" aria-label="Find" autocomplete="off">
@@ -208,14 +242,21 @@ const isAI=s=>/\bai\b|artificial intelligence|agentic|gen ?ai|generative/i.test(
 // calls in words: what they mean, said plainly
 const CALL={LEAD:"Lead",DIVERSIFY:"Diversify",FOLLOW:"Follow",DEEPEN:"Deepen",DEFEND:"Defend",WATCH:"Watch",REVIEW:"Review"};
 const CALLSAYS={
-  LEAD:"ISB does not sell this. Demand is evidenced and few, if any, peers sell it.",
-  DIVERSIFY:"ISB does not sell this, but already sells next to it. The market is proven.",
-  FOLLOW:"ISB does not sell this. Many peers do, and demand is evidenced.",
-  DEEPEN:"ISB sells this, demand is strong and few peers compete. There is room to own it.",
-  DEFEND:"ISB sells this in a hot, crowded space.",
-  WATCH:"Many peers sell this, but demand evidence is thin.",
-  REVIEW:"ISB sells this with little demand or peer evidence. Needs enrolment data before any decision."};
-const callLine=t=>t.call?`<b>${CALL[t.call]}.</b> ${CALLSAYS[t.call]}`:`No call. Not enough demand evidence or peer activity to make one.`;
+  LEAD:"ISB does not sell this. Research shows demand, and few or no other schools sell it.",
+  DIVERSIFY:"ISB does not sell this, but sells something close to it. Other schools have proven the market.",
+  FOLLOW:"ISB does not sell this. Many other schools do, and research shows demand.",
+  DEEPEN:"ISB sells this, demand is strong and few other schools compete. There is room to own it.",
+  DEFEND:"ISB sells this, and so do many other schools, in a topic with strong demand.",
+  WATCH:"Many other schools sell this, but little research shows demand.",
+  REVIEW:"ISB sells this, but little research shows demand and few other schools sell it. Check enrolments before deciding."};
+const pill=c=>c?`<span class="call cl-${c}">${CALL[c]}</span>`:"";
+const callLine=t=>t.call?`${pill(t.call)} ${CALLSAYS[t.call]}`:`No call yet: not enough demand evidence or activity by other schools to make one.`;
+// "demand" said in words: the score is how much published research says
+// employers and executives need this (2 per independent report up to 5,
+// 1 per region, 2 if it concerns senior people)
+const DEM=t=>t.dem>=13?"Strong":t.dem>=8?"Moderate":t.dem>0?"Some":"No";
+const demText=t=>t.dem?`${DEM(t)} demand, from ${plural(t.srcs,"independent report")}`:"No published research found";
+const DEM_EXPLAIN=`<b>What “demand” means here.</b> How strongly published research (World Economic Forum, LinkedIn, Naukri, employer surveys, regulators) says employers and executives need this skill. <i>Strong</i> means several independent reports across regions say so; <i>some</i> means one or two. It is not ISB enrolment data.`;
 const movedCall=Object.fromEntries(((D.changes||{}).calls||[]).map(([id,o,n])=>[id,[o,n]]));
 
 /* closest peer programmes: same topic first, then secondary, then sub-theme;
@@ -248,7 +289,7 @@ function strip(list,mark){
   return `<svg class="strip" viewBox="0 0 ${W} ${H}" role="img" aria-label="Fees of ${pts.length} programmes on a log scale">
     <line x1="${L}" x2="${W-R}" y1="30" y2="30" stroke="var(--rule)"/>
     ${ticks.map(v=>`<line x1="${x(v)}" x2="${x(v)}" y1="26" y2="34" stroke="var(--rule)"/><text x="${x(v)}" y="54" text-anchor="middle">${v>=1e7?"₹"+v/1e7+"Cr":"₹"+v/1e5+"L"}</text>`).join("")}
-    ${med?`<line x1="${x(med)}" x2="${x(med)}" y1="14" y2="38" stroke="var(--ink-2)" stroke-dasharray="2 2"/><text x="${x(med)}" y="10" text-anchor="${anc(med)}" style="fill:var(--ink-2)">peer median ${lakh(med)}</text>`:""}
+    ${med?`<line x1="${x(med)}" x2="${x(med)}" y1="14" y2="38" stroke="var(--ink-2)" stroke-dasharray="2 2"/><text x="${x(med)}" y="10" text-anchor="${anc(med)}" style="fill:var(--ink-2)">typical fee ${lakh(med)}</text>`:""}
     ${pts.filter(p=>!p.isb&&!p.me).map(p=>`<circle cx="${x(p.v)}" cy="30" r="4" fill="var(--ink-3)" fill-opacity=".55"><title>${esc(p.s)}: ${esc(p.n)} · ${lakh(p.v)}</title></circle>`).join("")}
     ${pts.filter(p=>p.isb).map(p=>`<circle cx="${x(p.v)}" cy="30" r="5.5" fill="var(--isb)" stroke="var(--paper)" stroke-width="2"><title>ISB: ${esc(p.n)} · ${lakh(p.v)}</title></circle>`).join("")}
     ${pts.filter(p=>p.me).map(p=>`<circle cx="${x(p.v)}" cy="30" r="7" fill="var(--paper)" stroke="var(--isb)" stroke-width="2.5"><title>Your proposal · ${lakh(p.v)}</title></circle>`).join("")}
@@ -260,7 +301,7 @@ const COMPACT="--cols:minmax(0,1fr) 92px 78px 70px";
 function progRow(p,opt={}){
   const s=SC[p.sc];
   return `<a class="r ${p.sc==="isb"?"isbrow":""}" href="#/p/${p.i}" style="${opt.compact?COMPACT:""}">
-    <span><div class="n">${esc(p.n)}${p.new?'<span class="mark">new this month</span>':""}</div>
+    <span><div class="n">${esc(p.n)}${newTag(p.launch)}${p.new?'<span class="mark">added this month</span>':""}</div>
       <div class="s">${esc(s.l)}${p.pt?` · with ${esc(p.pt)}`:""}${opt.topic?` · ${esc(T[p.t].n)}`:""}</div></span>
     <span class="c hm">${esc(p.f==="Self-paced Online"?"Self-paced":p.f)}</span><span class="c hm">${wk(p.w)}</span>
     <span class="c">${p.inr?lakh(p.inr):"—"}</span>${opt.compact?"":`<span class="c hm">${p.ns?fmtD(p.ns):"—"}</span>`}</a>`;
@@ -283,15 +324,15 @@ function brief(){
       d:`${who.join(", ")}. A further ${L.rows.filter(r=>!r.eff).length} are marked new by their schools but carry no launch date.`,go:["#/launches?w=3","See the launches"]});
   }
   const leads=D.topics.filter(t=>t.call==="LEAD").sort((a,b)=>b.dem-a.dem), lead=leads[0];
-  if(lead) out.push({h:`The strongest unmet demand we track is <b>${esc(lead.n)}</b>: ${plural(lead.srcs,"independent source")} call for it, and ${lead.peers?`only ${plural(lead.peers,"peer")} ${lead.peers===1?"sells":"sell"} it`:"no school in the set sells it"}.`,
+  if(lead) out.push({h:`The strongest unmet demand we track is <b>${esc(lead.n)}</b>: ${plural(lead.srcs,"independent report")} say employers need it, and ${lead.peers?`only ${plural(lead.peers,"other school")} ${lead.peers===1?"sells":"sell"} it`:"no school we track sells it"}.`,
     d:`ISB does not sell it either. ${leads.length-1} more topics share this profile.`,go:[`#/topic/${lead.id}`,"Open the topic"]});
   const def=D.topics.filter(t=>t.call==="DEFEND").sort((a,b)=>b.peers-a.peers)[0];
-  if(def) out.push({h:`ISB's most contested ground is <b>${esc(def.n)}</b>: ${plural(def.isb,"ISB programme")} against ${def.peers} peer schools.`,
-    d:`Demand evidence there is among the strongest we track (score ${def.dem}).`,go:[`#/topic/${def.id}`,"See who sells it"]});
+  if(def) out.push({h:`ISB's most contested ground is <b>${esc(def.n)}</b>: ${plural(def.isb,"ISB programme")} against ${def.peers} other schools.`,
+    d:`Published research shows ${DEM(def).toLowerCase()} demand for it (${plural(def.srcs,"independent report")}).`,go:[`#/topic/${def.id}`,"See who sells it"]});
   const isb=D.progs.filter(p=>p.sc==="isb");
   const zero=D.themes.filter(th=>!isb.some(p=>T[p.t].th===th));
   if(zero.length){const n=D.progs.filter(p=>zero.includes(T[p.t].th)).length;
-    out.push({h:`ISB sells nothing in <b>${zero.join("; ").replace(/; ([^;]*)$/," or $1")}</b>, where peers sell ${n} programmes.`,
+    out.push({h:`ISB sells nothing in <b>${zero.join("; ").replace(/; ([^;]*)$/," or $1")}</b>, where other schools sell ${n} programmes.`,
       d:`Every other theme has at least one ISB programme.`,go:["#/portfolio","See where ISB stands"]});}
   const pp=pricePositions().sort((a,b)=>b.gap-a.gap);
   if(pp.length){const above=pp.filter(x=>x.gap>0).length;
@@ -299,16 +340,17 @@ function brief(){
       d:`Widest gap: ${esc(pp[0].p.n)}, ${Math.round(pp[0].gap)}% above.`,go:["#/portfolio?at=price","See every programme's position"]});}
   const c=D.changes;
   if(c){const isbA=c.added.filter(x=>x[0]==="isb").length, pa=c.added.length-isbA;
-    const bits=[isbA&&`ISB added ${isbA} programmes`,pa&&`peers added ${pa}`,c.dropped.length&&`${c.dropped.length} dropped`,c.repriced.length&&`${c.repriced.length} repriced`,(c.calls||[]).length&&plural(c.calls.length,"call")+" moved"].filter(Boolean);
+    const bits=[isbA&&`ISB added ${isbA} programmes`,pa&&`other schools added ${pa}`,c.dropped.length&&`${c.dropped.length} dropped`,c.repriced.length&&`${c.repriced.length} repriced`,(c.calls||[]).length&&plural(c.calls.length,"call")+" moved"].filter(Boolean);
     out.push({h:`Since ${fmtD(c.since)}: ${bits.length?bits.join(", "):"no catalogue changes"}.`,d:`The catalogue refreshes on the 1st of each month. Next: ${esc(D.whatsnew.next)}.`,go:["#/updates","See all updates"]});}
   $("view").innerHTML=`<div class="read">
-    <p class="kicker">${esc(D.whatsnew.ran)} · ${D.progs.length} programmes from ISB and ${D.schools.length-1} peers</p>
+    <h1>Monthly brief</h1>
+    <p class="kicker">What changed in the market and what it means for ISB · ${esc(D.whatsnew.ran)} · ${D.progs.length} programmes from ISB and ${D.schools.length-1} other schools</p>
     ${out.map((s,i)=>`<div class="st ${i?"":"first"}"><p class="lead">${s.h}</p><p class="meta">${s.d}</p><a class="go" href="${s.go[0]}">${s.go[1]} →</a></div>`).join("")}
   </div>
   <div class="doors">
-    <a href="#/test"><b>Test a programme idea</b><span>Describe it, and see who already sells it, at what price, and what the market says.</span></a>
-    <a href="#/portfolio"><b>Where ISB stands</b><span>Where to lead, follow, diversify, deepen or defend, and how ISB is priced.</span></a>
-    <a href="#/programmes"><b>Every programme</b><span>${D.progs.length} programmes, filterable, sortable, downloadable.</span></a>
+    <a href="#/"><b>Search programmes</b><span>Find any of ${D.progs.length} programmes by topic, role, school or keyword.</span></a>
+    <a href="#/test"><b>Test a programme idea</b><span>Describe an idea and see who already sells something similar, at what price, and whether there is demand.</span></a>
+    <a href="#/portfolio"><b>Where ISB stands</b><span>Where ISB should lead, follow, diversify, deepen or defend, and how it is priced.</span></a>
   </div>`;
 }
 
@@ -322,11 +364,12 @@ function topic(id){
     <h1 class="read">${esc(t.n)}</h1>
     <p class="lead read">${callLine(t)}${mv?` <span class="meta">(was ${mv[0]?CALL[mv[0]]:"no call"} last month)</span>`:""}</p>
     <dl class="facts">
-      <div><dt>Demand evidence</dt><dd>${t.dem?`${t.dem}, from ${plural(t.srcs,"source")}`:"none published"}</dd></div>
-      <div><dt>Peers selling it</dt><dd>${plural(t.peers,"school")}</dd></div>
+      <div><dt>Market demand</dt><dd>${demText(t)}</dd></div>
+      <div><dt>Other schools selling it</dt><dd>${t.peers||"none"}</dd></div>
       <div><dt>ISB</dt><dd class="${isb.length?"isb":"none"}">${(()=>{const o=isbOn(id);return o.sold.length?plural(o.sold.length,"programme")+(o.part.length?`, plus ${o.part.length} as a module`:""):o.part.length?`only as a module in ${o.part.length}`:"nothing";})()}</dd></div>
-      <div><dt>Peer fees</dt><dd>${f.length?`median ${lakh(median(f))}, ${f.length} published`:"not published"}</dd></div>
+      <div><dt>What other schools charge</dt><dd>${f.length?`typically ${lakh(median(f))} (middle of ${f.length} published fees)`:"no fees published"}</dd></div>
     </dl>
+    <p class="explain">${DEM_EXPLAIN}</p>
     ${strip(all)}
     <section><header><h2>ISB</h2></header>
       ${isb.length?`<div class="rows">${progHead()}${isb.map(p=>progRow(p)).join("")}</div>`:`<p class="meta">ISB sells nothing whose main or secondary topic is this.</p>`}</section>
@@ -335,8 +378,8 @@ function topic(id){
     <section class="read"><header><h2>The evidence</h2></header>
       <p>${t.dsl?esc(t.dsl):"No published demand source maps to this topic."}${t.geo?` <span class="meta">(${esc(t.geo.replace(/;/g,", "))})</span>`:""}</p>
       ${t.out!=null?`<p class="meta">Our 2027-31 outlook is ${t.out} out of 5. That is a judgment, not evidence: ${esc(t.why2)}</p>`:""}
-      ${t.resid?`<p class="meta">Some programmes landed here on a broad keyword match, so the peer count may be inflated.</p>`:""}
-      <p class="meta">The call comes from three facts: whether ISB sells it, how many peer schools sell it as a programme or a module, and how strong the published demand evidence is.</p>
+      ${t.resid?`<p class="meta">Some programmes landed here on a broad keyword match, so the count of other schools may be inflated.</p>`:""}
+      <p class="meta">The call comes from three facts: whether ISB sells it, how many other schools sell it (as a programme or a module inside one), and how much published research says employers need it.</p>
       <p><a href="#/test?topic=${t.id}">Test a programme idea in this topic →</a></p></section>`;
 }
 
@@ -348,14 +391,14 @@ function programme(i){
   const feats=[p.cap==="Yes"&&"capstone",p.imm==="Yes"&&"campus immersion",p.iv==="Yes"&&"industry visit"].filter(Boolean);
   $("view").innerHTML=`<p class="meta"><span class="${p.sc==="isb"?"isb":""}">${esc(SC[p.sc].n)}</span> · <a href="#/topic/${p.t}">${esc(t.n)}</a></p>
     <h1 class="read">${esc(p.n)}</h1>
-    ${p.inr&&med&&f.length>=3?`<p class="lead read">${lakh(p.inr)}, ${p.inr>med?`${Math.round(100*(p.inr/med-1))}% above`:`${Math.round(100*(1-p.inr/med))}% below`} the median of the ${f.length} closest peer programmes with a published fee.</p>`:""}
+    ${p.inr&&med&&f.length>=3?`<p class="lead read">${lakh(p.inr)}, ${p.inr>med?`${Math.round(100*(p.inr/med-1))}% above`:`${Math.round(100*(1-p.inr/med))}% below`} the typical fee of the ${f.length} most similar programmes at other schools.</p>`:""}
     <dl class="facts">${row("Format",esc(p.f))}${row("Length",esc(p.dr||(p.w?wk(p.w):"")))}${row("Fee as published",esc(p.fr))}
       ${row("Level",esc(LV(p.lv)))}${row("Next start",p.ns?fmtD(p.ns):"")}${row("Delivered with",esc(p.pt))}${row("Includes",feats.join(", "))}${row("Topic call",t.call?CALL[t.call]:"")}</dl>
     ${p.ta?`<p class="read"><span class="meta">For </span>${esc(p.ta)}</p>`:""}
     ${p.kt?`<p class="read"><span class="meta">Teaches </span>${esc(p.kt.split(";").map(x=>x.trim()).filter(Boolean).join(", "))}</p>`:""}
     ${strip([p,...peers])}
-    <section><header><h2>Closest peer programmes</h2><span class="meta">matched on topic, then format, level and length</span></header>
-      ${peers.length?`<div class="rows">${progHead()}${peers.map(q=>progRow(q)).join("")}</div>`:`<p class="meta">No peer programme in the same topic or sub-theme.</p>`}</section>
+    <section><header><h2>Most similar programmes at other schools</h2><span class="meta">matched on topic, then format, level and length</span></header>
+      ${peers.length?`<div class="rows">${progHead()}${peers.map(q=>progRow(q)).join("")}</div>`:`<p class="meta">No other school sells a programme in the same topic or sub-theme.</p>`}</section>
     <p class="meta" style="margin-top:28px">${p.u?`<a href="${esc(p.u)}" target="_blank" rel="noopener">Source page</a> · `:""}${
       p.prov==="team-sheet"?"From the team's competitor sheet"+(p.lvf?`, confirmed ${fmtD(p.lvf)}`:", not yet confirmed on a live page"):`Captured from the school's catalogue${p.lvf?`, verified ${fmtD(p.lvf)}`:""}`}.${
       p.conf==="low"||p.conf==="fallback"?" Topic matched on a broad keyword; check it before quoting.":""}</p>`;
@@ -376,24 +419,25 @@ function portfolio(){
   const mx=Math.max(...W.flatMap(r=>[r.a,r.b]));
   const X=v=>(100*v/mx).toFixed(1)+"%";
   const pp=pricePositions().sort((a,b)=>b.gap-a.gap);
-  const tcols="--cols:minmax(0,1fr) 110px 80px 70px";
+  const tcols="--cols:minmax(0,1fr) 150px 130px 80px";
   $("view").innerHTML=`<h1 class="read">Where ISB stands</h1>
-    <p class="lead read">ISB sells ${isb.length} programmes; the median peer school sells ${median(sizes)}. ${Math.round(aiShare(isb))}% of ISB's catalogue is in AI-era topics, against a peer median of ${Math.round(peerAi)}%.</p>
-    <p class="meta read">Each topic gets one call from three facts: whether ISB sells it, how many peer schools sell it, and how strong the published demand evidence is. Calls use the whole market.</p>
-    ${groups.map(([c,l])=>`<section><header><h2>${CALL[c]}</h2><span class="meta">${CALLSAYS[c]}</span></header>
+    <p class="lead read">ISB sells ${isb.length} programmes; the typical school we track sells ${median(sizes)}. ${Math.round(aiShare(isb))}% of ISB's catalogue is in AI-era topics, against ${Math.round(peerAi)}% at the typical school.</p>
+    <p class="read" style="color:var(--ink-2)">Each topic gets one call from three facts: whether ISB sells it, how many other schools sell it, and how much published research says employers need it.</p>
+    <p class="explain">${DEM_EXPLAIN}</p>
+    ${groups.map(([c,l])=>`<section><header><h2>${pill(c)}</h2><span style="font-size:15px;color:var(--ink-2)">${CALLSAYS[c]}</span></header>
       <div class="rows">${l.map(t=>`<a class="r" href="#/topic/${t.id}" style="${tcols}">
         <span><div class="n">${esc(t.n)}${movedCall[t.id]?'<span class="mark">call moved</span>':""}</div><div class="s">${esc(t.th)}</div></span>
-        <span class="c hm">demand ${t.dem}</span><span class="c">${plural(t.peers,"peer")}</span><span class="c ${t.isb?"isb":""}">ISB ${t.isb}</span></a>`).join("")||`<p class="meta">None.</p>`}</div></section>`).join("")}
+        <span class="c hm">${DEM(t)} demand</span><span class="c">${t.peers?plural(t.peers,"other school"):"no other school"}</span><span class="c ${t.isb?"isb":""}">ISB: ${t.isb||"none"}</span></a>`).join("")||`<p class="meta">None.</p>`}</div></section>`).join("")}
     <details class="fold"><summary>${rest.length} more topics to watch or review</summary>
-      <div class="rows" style="margin-top:10px">${rest.map(t=>`<a class="r" href="#/topic/${t.id}" style="--cols:minmax(0,1fr) 80px 70px"><span><div class="n">${esc(t.n)}</div><div class="s">${CALL[t.call]} · ${esc(t.th)}</div></span><span class="c">${plural(t.peers,"peer")}</span><span class="c">ISB ${t.isb}</span></a>`).join("")}</div></details>
-    <section><header><h2>How ISB weights its catalogue</h2><span class="meta">share of ISB's programmes in each theme (<span class="isb">●</span>) against peers' share (●), sorted by the gap</span></header>
+      <div class="rows" style="margin-top:10px">${rest.map(t=>`<a class="r" href="#/topic/${t.id}" style="--cols:minmax(0,1fr) 130px 80px"><span><div class="n">${esc(t.n)} ${pill(t.call)}</div><div class="s">${esc(t.th)}</div></span><span class="c">${plural(t.peers,"other school")}</span><span class="c">ISB: ${t.isb||"none"}</span></a>`).join("")}</div></details>
+    <section><header><h2>How ISB weights its catalogue</h2><span class="meta">share of ISB's programmes in each theme (<span class="isb">●</span>) against other schools' share (●), sorted by the gap</span></header>
       <div class="weights">${W.map(r=>{const lo=Math.min(r.a,r.b),hi=Math.max(r.a,r.b),g=r.b-r.a;
         return `<div class="w"><span>${esc(r.th)}</span><span class="tr"><i style="left:${X(lo)};width:calc(${X(hi)} - ${X(lo)})"></i>
           <b style="left:${X(r.b)};background:var(--ink-3)" title="Peers ${r.b.toFixed(1)}%"></b><b style="left:${X(r.a)};background:var(--isb)" title="ISB ${r.a.toFixed(1)}%"></b></span>
           <span class="num meta" style="text-align:right">${g>0?"+":""}${g.toFixed(1)}</span></div>`;}).join("")}</div>
-      <p class="meta" style="margin-top:8px">A positive gap means peers put more of their catalogue there than ISB does, in percentage points.</p></section>
-    <section id="price"><header><h2>How ISB is priced</h2><span class="meta">each ISB programme against the median of its closest peer programmes with a published fee</span></header>
-      <div class="rows"><div class="r hd" style="--cols:minmax(0,1fr) 100px 120px 70px"><span>ISB programme</span><span>ISB fee</span><span>Peer median</span><span>Gap</span></div>
+      <p class="meta" style="margin-top:8px">A positive gap means other schools put more of their catalogue there than ISB does, in percentage points.</p></section>
+    <section id="price"><header><h2>How ISB is priced</h2><span class="meta">each ISB programme against the typical fee of the most similar programmes at other schools</span></header>
+      <div class="rows"><div class="r hd" style="--cols:minmax(0,1fr) 100px 120px 70px"><span>ISB programme</span><span>ISB fee</span><span>Typical fee elsewhere</span><span>Gap</span></div>
       ${pp.map(x=>`<a class="r isbrow" href="#/p/${x.p.i}" style="--cols:minmax(0,1fr) 100px 120px 70px"><span class="n">${esc(x.p.n)}</span>
         <span class="c">${lakh(x.p.inr)}</span><span class="c hm">${lakh(x.med)} <span class="meta">(${x.n})</span></span><span class="c">${x.gap>0?"+":""}${Math.round(x.gap)}%</span></a>`).join("")}</div>
       <p class="meta" style="margin-top:8px">Fees in other currencies are converted at fixed planning rates (${Object.entries(D.fx).map(([k,v])=>k+" "+v).join(", ")}), not live rates.</p></section>
@@ -429,8 +473,8 @@ function launches(q){
   const list=L.rows.filter(r=>inWin(r)&&(!lConf||!r.prob)&&(!lQ||hit([r.n,SC[r.sc].l,SC[r.sc].n,r.pt,r.f].join(" ").toLowerCase(),lQ)))
     .sort((a,b)=>key(a)-key(b)||a.n.localeCompare(b.n));
   const tabs=[["all","All 12 months"],["1","Last month"],["3","Last 3 months"],["6","Last 6 months"],["6-12","6 to 12 months ago"],["undated","No launch date"]];
-  $("view").innerHTML=`<h1 class="read">New programmes from peers</h1>
-    <p class="lead read">${L.rows.length} programmes that ten peers had never run before, launched ${fmtD(L.from)} to ${fmtD(L.asof)}. ${L.rows.filter(r=>r.prob).length} are probable: the school marks them new but has not said when they were announced.</p>
+  $("view").innerHTML=`<h1 class="read">New programmes launched by other schools</h1>
+    <p class="lead read">${L.rows.length} programmes that ten leading schools had never run before, launched ${fmtD(L.from)} to ${fmtD(L.asof)}. ${L.rows.filter(r=>r.prob).length} are probable: the school marks them new but has not said when they were announced.</p>
     ${timeline(L,inWin)}
     <div class="tools"><div class="tabs" id="ltabs">${tabs.map(([w,l])=>`<button type="button" data-w="${w}" class="${lWin===w?"on":""}">${l} <span class="meta">${L.rows.filter(r=>inW(r,w)).length}</span></button>`).join("")}</div></div>
     <div class="tools">
@@ -472,7 +516,7 @@ function timeline(L,inWin){
   const dots=L.rows.filter(r=>r.eff&&SC[r.sc].g in lanes).map(r=>{const g=SC[r.sc].g,k=g+Math.round(x(r.eff)/9);stack[k]=(stack[k]||0)+1;
     const y=lanes[g]+(g==="India"?-1:1)*(stack[k]-1)*8, on=inWin(r);
     return `<circle cx="${x(r.eff).toFixed(1)}" cy="${y}" r="3.6" fill="${on?"var(--ink)":"var(--ink-3)"}" fill-opacity="${on?1:.35}"><title>${esc(SC[r.sc].l)}: ${esc(r.n)} · ${fmtD(r.eff)}</title></circle>`;}).join("");
-  return `<div class="scroll"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:620px;height:auto;margin:10px 0 18px" role="img" aria-label="Dated peer launches across the year">
+  return `<div class="scroll"><svg viewBox="0 0 ${W} ${H}" style="width:100%;min-width:620px;height:auto;margin:10px 0 18px" role="img" aria-label="Dated launches by other schools across the year">
     ${sel?`<rect x="${x(sel[0])}" y="8" width="${x(sel[1])-x(sel[0])}" height="${H-34}" fill="var(--wash)"/>`:""}
     <line x1="${l}" x2="${W-r}" y1="62" y2="62" stroke="var(--rule)"/>
     ${months.map(m=>`<line x1="${x(m)}" x2="${x(m)}" y1="58" y2="66" stroke="var(--rule)"/><text x="${x(m)}" y="${H-4}" text-anchor="middle">${new Date(m+"T00:00:00").toLocaleDateString("en-GB",{month:"short"})}</text>`).join("")}
@@ -480,61 +524,106 @@ function timeline(L,inWin){
     ${dots}</svg></div>`;
 }
 
-/* ---------- every programme ---------- */
-const PF={q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",ai:false}; let pSort=["school",1], pShown=80, pList=[];
-const FEE=[["","any fee"],["0-100000","under ₹1 L"],["100000-250000","₹1 to 2.5 L"],["250000-500000","₹2.5 to 5 L"],["500000-1000000","₹5 to 10 L"],["1000000-1e12","₹10 L and over"],["none","fee not published"]];
-const LEN=[["","any length"],["0-1","up to a week"],["1-4.3","1 week to a month"],["4.3-13","1 to 3 months"],["13-26","3 to 6 months"],["26-1e9","6 months and over"]];
+/* ---------- search programmes (home) ---------- */
+// mark catalogue programmes that are in the launch register, so a search shows
+// what other schools have just launched
+// names must be near-identical once filler words go (one extra word allowed,
+// e.g. "Batch 1"), and each launch marks at most one programme
+const LSTOP=new Set(["the","and","of","in","for","with","programme","program","course","online","certificate","a","an","to","batch","on","executive"]);
+const ltok=n=>new Set(words(n.replace(/\(.*?\)/g," ").replace(/[^\w\s]/g," ")).filter(w=>w.length>1&&!LSTOP.has(w)&&!/^\d+$/.test(w)));
+if(D.launches) D.launches.rows.forEach(r=>{
+  const a=ltok(r.n); if(a.size<2&&![...a].some(w=>w.length>5)) return;
+  let best=null,bd=9;
+  D.progs.forEach(p=>{if(p.sc!==r.sc||p.launch) return; const b=ltok(p.n);
+    const miss=[...a].filter(w=>!b.has(w)).length, extra=[...b].filter(w=>!a.has(w)).length;
+    if(miss===0&&extra<=1&&extra<bd){best=p;bd=extra;}});
+  if(best) best.launch=r;
+});
+const lDate=r=>r.basis==="launch"?fmtD(r.ld):fmtD(r.eff);
+const newTag=r=>r?`<span class="newtag ${r.prob?"prob":""}">${r.prob?"New, launch date not published":"New launch, "+lDate(r)}</span>`:"";
+const PF={q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",nw:false}; let pSort="best", pShown=60, pList=[];
+const FEE=[["","Any fee"],["0-100000","Under ₹1 lakh"],["100000-250000","₹1 to 2.5 lakh"],["250000-500000","₹2.5 to 5 lakh"],["500000-1000000","₹5 to 10 lakh"],["1000000-1e12","₹10 lakh and over"],["none","Fee not published"]];
+const LEN=[["","Any length"],["0-1","Up to a week"],["1-4.3","1 week to a month"],["4.3-13","1 to 3 months"],["13-26","3 to 6 months"],["26-1e9","6 months and over"]];
 const inR=(v,r)=>{const [a,b]=r.split("-").map(Number);return v!=null&&v>=a&&v<b;};
-function programmes(q){
+const TRY=["CFO","AI for leaders","board","digital marketing","healthcare","women leadership","negotiation","strategy"];
+function search(q){
   if(q.sc!=null){PF.sc=q.sc;PF.g="";} if(q.q!=null)PF.q=q.q;
   const o=(l,v)=>l.map(([k,n])=>`<option value="${esc(k)}" ${v===k?"selected":""}>${esc(n)}</option>`).join("");
-  $("view").innerHTML=`<h1 class="read">Every programme</h1>
-    <p class="lead read" id="pcount"></p>
-    <div class="tools">
-      <input type="search" id="pq" placeholder="Search names, topics, partners" value="${esc(PF.q)}" aria-label="Search programmes" style="flex:1 1 220px">
-      <select id="pg" aria-label="Schools">${o([["","all schools"],["isb","ISB only"],["India","Indian schools"],["Global","Global schools"],["Platform","Platforms"],...D.schools.filter(s=>s.s!=="isb").map(s=>["s:"+s.s,s.l])],PF.sc==="isb"?"isb":PF.sc?"s:"+PF.sc:PF.g)}</select>
-      <select id="pth" aria-label="Theme">${o([["","all themes"],...D.themes.map(t=>[t,t])],PF.th)}</select>
-      <select id="pf" aria-label="Format">${o([["","any format"],...["Campus","Blended","Live Online","Self-paced Online"].map(x=>[x,x])],PF.f)}</select>
-      <select id="plv" aria-label="Level">${o([["","any level"],...["C-suite/Senior","Board","Mid-career","Functional specialist","Early/Emerging","Mixed"].map(x=>[x,x])],PF.lv)}</select>
-      <select id="pfee" aria-label="Fee">${o(FEE,PF.fee)}</select><select id="plen" aria-label="Length">${o(LEN,PF.len)}</select>
-      <label class="ck"><input type="checkbox" id="pai" ${PF.ai?"checked":""}> AI-era topics</label>
-      <button type="button" class="lnk" id="preset">clear</button>
+  const latest=D.launches?D.launches.rows.filter(r=>r.eff).sort((a,b)=>a.eff<b.eff?1:-1).slice(0,5):[];
+  $("view").innerHTML=`<div class="hero">
+      <h1>Search executive programmes</h1>
+      <p class="lead" style="color:var(--ink-2)">${D.progs.length} programmes from ISB and ${D.schools.length-1} other schools and platforms. Search by topic, role, school or keyword, then open any programme to compare it with the closest alternatives.</p>
+      <form class="big" id="bigf" role="search" onsubmit="return false">
+        <input type="search" id="pq" placeholder="Try “CFO”, “AI for boards” or “IIM Ahmedabad”" value="${esc(PF.q)}" aria-label="Search programmes" autocomplete="off">
+        <button type="submit" class="btn">Search</button>
+      </form>
+      <div class="chips" id="try"><span>Popular:</span>${TRY.map(t=>`<button type="button" class="chip" data-q="${esc(t)}">${esc(t)}</button>`).join("")}</div>
     </div>
+    ${latest.length?`<section style="margin-top:36px" id="latest"><header><h2>Just launched by other schools</h2><a href="#/launches" style="font-size:15px">See all ${D.launches.rows.length} new launches →</a></header>
+      <div class="rows">${latest.map(r=>`<a class="r" href="#/launches?q=${encodeURIComponent(r.n.split(/[(:]/)[0].trim())}" style="--cols:minmax(0,1fr) 90px 130px">
+        <span><div class="n">${esc(r.n)}</div><div class="s">${esc(r.ev)}</div></span><span class="c">${esc(SC[r.sc].l)}</span><span class="c">${lDate(r)}</span></a>`).join("")}</div></section>`:""}
+    <section style="margin-top:40px"><header><h2 id="ptitle">All programmes</h2><span class="meta" id="pcount"></span></header>
+    <div class="tools" style="gap:8px">
+      <select class="pill" id="pg" aria-label="School">${o([["","All schools"],["isb","ISB only"],["India","Indian schools"],["Global","Global schools"],["Platform","Platforms"],...D.schools.filter(s=>s.s!=="isb").map(s=>["s:"+s.s,s.n])],PF.sc==="isb"?"isb":PF.sc?"s:"+PF.sc:PF.g)}</select>
+      <select class="pill" id="pth" aria-label="Theme">${o([["","All themes"],...D.themes.map(t=>[t,t])],PF.th)}</select>
+      <select class="pill" id="pf" aria-label="Format">${o([["","Any format"],...["Campus","Blended","Live Online","Self-paced Online"].map(x=>[x,x])],PF.f)}</select>
+      <select class="pill" id="plv" aria-label="Level">${o([["","Any level"],...["C-suite/Senior","Board","Mid-career","Functional specialist","Early/Emerging","Mixed"].map(x=>[x,x])],PF.lv)}</select>
+      <select class="pill" id="pfee" aria-label="Fee">${o(FEE,PF.fee)}</select>
+      <select class="pill" id="plen" aria-label="Length">${o(LEN,PF.len)}</select>
+      <label class="pillck ${PF.nw?"on":""}" id="pnwl"><input type="checkbox" id="pnw" ${PF.nw?"checked":""}> New launches only</label>
+      <button type="button" class="lnk" id="preset">Clear all</button>
+    </div>
+    <div class="tools"><label>Sort by <select id="psort">${o([["best","Best match, ISB first"],["feeup","Fee, low to high"],["feedown","Fee, high to low"],["len","Length, shortest first"],["start","Next start, soonest first"],["school","School, A to Z"]],pSort)}</select></label>
+      <span style="flex:1"></span><button type="button" class="lnk" id="pcsv">Download these as a spreadsheet (CSV)</button></div>
+    <div id="ptopics"></div>
     <div class="rows" id="plist"></div>
-    <p style="margin-top:14px"><button type="button" class="lnk" id="pmore"></button> <button type="button" class="lnk" id="pcsv" style="margin-left:18px">Download these as CSV</button></p>`;
-  const bind=(id,k)=>{$(id).onchange=e=>{PF[k]=e.target.value;pShown=80;drawProgs();};};
+    <p style="margin-top:16px"><button type="button" class="btn" id="pmore" style="padding:12px 22px;font-size:15px"></button></p></section>`;
+  const sel=["pg","pth","pf","plv","pfee","plen"];
+  const mark=()=>sel.forEach(id=>$(id).classList.toggle("on",!!$(id).value));
+  const bind=(id,k)=>{$(id).onchange=e=>{PF[k]=e.target.value;pShown=60;mark();drawProgs();};};
   bind("pth","th");bind("pf","f");bind("plv","lv");bind("pfee","fee");bind("plen","len");
-  $("pg").onchange=e=>{const v=e.target.value;PF.sc=v.startsWith("s:")?v.slice(2):v==="isb"?"isb":"";PF.g=v.startsWith("s:")||v==="isb"?"":v;pShown=80;drawProgs();};
-  $("pai").onchange=e=>{PF.ai=e.target.checked;drawProgs();};
-  let tm; $("pq").oninput=e=>{clearTimeout(tm);tm=setTimeout(()=>{if(!$("plist"))return;PF.q=e.target.value.trim();pShown=80;drawProgs();},200);};
-  $("preset").onclick=()=>{Object.assign(PF,{q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",ai:false});programmes({});};
+  $("pg").onchange=e=>{const v=e.target.value;PF.sc=v.startsWith("s:")?v.slice(2):v==="isb"?"isb":"";PF.g=v.startsWith("s:")||v==="isb"?"":v;pShown=60;mark();drawProgs();};
+  $("pnw").onchange=e=>{PF.nw=e.target.checked;$("pnwl").classList.toggle("on",PF.nw);pShown=60;drawProgs();};
+  $("psort").onchange=e=>{pSort=e.target.value;drawProgs();};
+  let tm; const run=()=>{if(!$("plist"))return;PF.q=$("pq").value.trim();pShown=60;drawProgs();};
+  $("pq").oninput=()=>{clearTimeout(tm);tm=setTimeout(run,180);};
+  $("bigf").onsubmit=e=>{e.preventDefault();clearTimeout(tm);run();$("ptitle").scrollIntoView({behavior:"smooth"});return false;};
+  $("try").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;$("pq").value=b.dataset.q;run();$("ptitle").scrollIntoView({behavior:"smooth"});};
+  $("preset").onclick=()=>{Object.assign(PF,{q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",nw:false});search({});};
   $("pmore").onclick=()=>{pShown+=200;drawProgs();};
   $("pcsv").onclick=csv;
-  drawProgs();
+  mark(); drawProgs();
 }
 function drawProgs(){
   const ok=p=>{const t=T[p.t];
     if(PF.sc&&p.sc!==PF.sc)return false; if(PF.g&&SC[p.sc].g!==PF.g)return false;
-    if(PF.th&&t.th!==PF.th)return false; if(PF.ai&&t.ai==="Stable")return false;
+    if(PF.th&&t.th!==PF.th)return false; if(PF.nw&&!p.launch)return false;
     if(PF.f&&p.f!==PF.f)return false; if(PF.lv&&LV(p.lv)!==PF.lv)return false;
     if(PF.fee){if(PF.fee==="none"){if(p.inr!=null)return false;}else if(!inR(p.inr,PF.fee))return false;}
     if(PF.len&&!inR(p.w,PF.len))return false;
     if(PF.q&&!hit([p.n,t.n,t.st,t.th,SC[p.sc].l,SC[p.sc].n,p.pt,p.cat,p.kt].join(" ").toLowerCase(),PF.q))return false;
     return true;};
-  const K={school:p=>(p.sc==="isb"?"0":"1")+SC[p.sc].l+p.n.toLowerCase(),format:p=>p.f,length:p=>p.w??1e9,fee:p=>p.inr??1e15,start:p=>p.ns||"9999"};
-  const [k,dir]=pSort;
-  pList=D.progs.filter(ok).sort((a,b)=>{const x=K[k](a),y=K[k](b);return (x<y?-1:x>y?1:0)*dir;});
-  const isbN=pList.filter(p=>p.sc==="isb").length;
-  $("pcount").textContent=`${pList.length} programmes${isbN&&isbN<pList.length?`, ${isbN} of them ISB's`:""}.`;
-  const hb=(key,l)=>`<button type="button" data-k="${key}" class="${k===key?"on":""}">${l}${k===key?(dir>0?" ↑":" ↓"):""}</button>`;
-  $("plist").innerHTML=`<div class="r hd">${hb("school","Programme")}${hb("format","Format")}${hb("length","Length")}${hb("fee","Fee")}${hb("start","Next start")}</div>`+
-    (pList.slice(0,pShown).map(p=>progRow(p,{topic:1})).join("")||`<p class="meta" style="padding:14px 0">Nothing matches. Clear a filter.</p>`);
-  $("plist").querySelector(".hd").onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;pSort=[b.dataset.k,pSort[0]===b.dataset.k?-pSort[1]:1];drawProgs();};
+  const ws=words(PF.q), nameHits=p=>ws.filter(w=>has(p.n.toLowerCase(),w)).length;
+  const K={best:p=>(p.sc==="isb"?0:1e6)-nameHits(p)*1e4+(p.launch?-100:0)+p.n.length,feeup:p=>p.inr??1e15,feedown:p=>-(p.inr??-1),
+    len:p=>p.w??1e9,start:p=>p.ns?Date.parse(p.ns):1e15,school:p=>SC[p.sc].n+" "+p.n};
+  const k=K[pSort];
+  pList=D.progs.filter(ok).sort((a,b)=>{const x=k(a),y=k(b);return x<y?-1:x>y?1:0;});
+  const isbN=pList.filter(p=>p.sc==="isb").length, nwN=pList.filter(p=>p.launch).length;
+  const filtered=PF.q||PF.sc||PF.g||PF.th||PF.f||PF.lv||PF.fee||PF.len||PF.nw;
+  if($("latest")) $("latest").hidden=!!filtered;
+  $("ptitle").textContent=PF.q?`Programmes matching “${PF.q}”`:filtered?"Programmes matching your filters":"All programmes";
+  $("pcount").textContent=`${pList.length} found${isbN?` · ${isbN} at ISB`:""}${nwN?` · ${nwN} new launches`:""}`;
+  // topics that match the words, with their call: the "so what" of a search
+  const tops=PF.q?D.topics.filter(t=>hit([t.n,t.st].join(" ").toLowerCase(),PF.q)).slice(0,3):[];
+  $("ptopics").innerHTML=tops.length?`<div class="explain" style="max-width:none">${tops.map(t=>`<div style="padding:4px 0"><a href="#/topic/${t.id}"><b>${esc(t.n)}</b></a> ${pill(t.call)} <span class="meta">${demText(t)} · ${t.peers?plural(t.peers,"other school"):"no other school"} · ISB: ${t.isb||"none"}</span></div>`).join("")}</div>`:"";
+  $("plist").innerHTML=progHead()+(pList.slice(0,pShown).map(p=>progRow(p,{topic:1})).join("")||`<p style="padding:18px 0;font-size:16px">Nothing matches. Try fewer words, or <button type="button" class="lnk" onclick="document.getElementById('preset').click()">clear all filters</button>.</p>`);
   $("pmore").textContent=pList.length>pShown?`Show ${Math.min(200,pList.length-pShown)} more`:"";
+  $("pmore").hidden=pList.length<=pShown;
 }
 function csv(){
   const cols=[["school",p=>SC[p.sc].n],["programme",p=>p.n],["theme",p=>T[p.t].th],["sub_theme",p=>T[p.t].st],["topic",p=>T[p.t].n],["call",p=>T[p.t].call],
-    ["format",p=>p.f],["level",p=>p.lv],["weeks",p=>p.w],["fee_as_published",p=>p.fr],["fee_inr",p=>p.inr],["next_start",p=>p.ns],["partner",p=>p.pt],["url",p=>p.u]];
+    ["format",p=>p.f],["level",p=>p.lv],["weeks",p=>p.w],["fee_as_published",p=>p.fr],["fee_inr",p=>p.inr],["next_start",p=>p.ns],
+    ["new_launch",p=>p.launch?(p.launch.ld||"probable"):""],["partner",p=>p.pt],["url",p=>p.u]];
   const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
   const body=[cols.map(c=>c[0]).join(",")].concat(pList.map(p=>cols.map(c=>q(c[1](p))).join(","))).join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+body],{type:"text/csv"}));a.download="exec-ed-programmes.csv";a.click();
@@ -557,6 +646,8 @@ function test(q){
   TP=v;
   const o=(l,val)=>l.map(x=>`<option ${x===val?"selected":""}>${esc(x)}</option>`).join("");
   $("view").innerHTML=`<h1 class="read">Test a programme idea</h1>
+    <p class="lead read">Thinking of launching a new programme? Describe it here. You will see which programmes other schools already sell that are closest to your idea, what they charge and how long they run, whether published research shows demand for the topic, and what ISB already offers nearby.</p>
+    <div class="steps"><span><b>1</b>Describe your idea</span><span><b>2</b>Check the topic we matched it to</span><span><b>3</b>See who you would compete with, and at what price</span></div>
     <div class="test">
       <form id="tf" autocomplete="off" onsubmit="return false">
         <label>Working title<input type="text" id="tt" value="${esc(v.t)}"></label>
@@ -598,27 +689,27 @@ function testResult(v){
   const STOP=new Set(["with","from","into","leaders","leader","leadership","programme","program","executive","management","business","professional","certificate","advanced","strategic","course"]);
   const sig=new Set(words((v.t+" "+v.d).replace(/[^\w\s]/g," ")).filter(x=>x.length>2&&!STOP.has(x)));
   const L=D.launches, recent=L?L.rows.filter(r=>words(r.n.replace(/[^\w\s]/g," ")).filter(x=>sig.has(x)).length>=2):[];
-  const priceS=fee&&med?`priced ${fee>med?`${Math.round(100*(fee/med-1))}% above`:`${Math.round(100*(1-fee/med))}% below`} their median`:"";
+  const priceS=fee&&med?`and you would be priced ${fee>med?`${Math.round(100*(fee/med-1))}% above`:`${Math.round(100*(1-fee/med))}% below`} their typical fee`:"";
   const fmts={}; comps.forEach(p=>fmts[p.f]=(fmts[p.f]||0)+1);
-  out.innerHTML=`<p class="lead">${v.t?`<b>${esc(v.t)}</b> would`:"This idea would"} enter <a href="#/topic/${t.id}">${esc(t.n)}</a>, where ${t.peers?plural(t.peers,"peer school")+" already "+(t.peers===1?"sells":"sell"):"no peer school sells yet"}${priceS?`, ${priceS}`:""}. ${isbSay(isbOn(t.id))}</p>
-    <p>${callLine(t)}</p>
+  out.innerHTML=`<p class="lead">${v.t?`<b>${esc(v.t)}</b> would`:"This idea would"} enter <a href="#/topic/${t.id}">${esc(t.n)}</a>, where ${t.peers?plural(t.peers,"other school")+" already "+(t.peers===1?"sells":"sell"):"no other school sells yet"}${priceS?`, ${priceS}`:""}. ${isbSay(isbOn(t.id))}</p>
+    <p style="font-size:16px">${callLine(t)}</p>
     <dl class="facts">
-      <div><dt>Demand evidence</dt><dd>${t.dem?`${t.dem}, ${plural(t.srcs,"source")}`:"none published"}</dd></div>
-      <div><dt>Your fee</dt><dd>${fee?lakh(fee)+(fees.length?`; ${pctile(fee,fees)}th percentile of ${fees.length}`:""):"not set"}</dd></div>
-      <div><dt>Your length</dt><dd>${w?wk(w)+(mlen?`; comparables' median ${wk(mlen)}`:""):"not set"}</dd></div>
-      <div><dt>Comparable formats</dt><dd>${Object.entries(fmts).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`${n} ${k.toLowerCase()}`).join(", ")||"none"}</dd></div>
+      <div><dt>Market demand</dt><dd>${demText(t)}</dd></div>
+      <div><dt>Your fee</dt><dd>${fee?lakh(fee)+(fees.length?`; ${fee>med?"above":"below"} the typical ${lakh(med)} of ${fees.length} similar programmes`:""):"not set"}</dd></div>
+      <div><dt>Your length</dt><dd>${w?wk(w)+(mlen?`; similar programmes typically run ${wk(mlen)}`:""):"not set"}</dd></div>
+      <div><dt>How similar programmes are taught</dt><dd>${Object.entries(fmts).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`${n} ${k.toLowerCase()}`).join(", ")||"none"}</dd></div>
     </dl>
     ${strip(comps,fee)}
-    ${fee&&fees.length?`<p class="meta">Your proposal is the open circle; grey dots are the comparable peer programmes with a published fee.</p>`:""}
-    <section style="margin-top:36px"><header><h2>Closest programmes already on sale</h2></header>
+    ${fee&&fees.length?`<p class="meta">Your idea is the open circle; grey dots are similar programmes at other schools, by fee.</p>`:""}
+    <section style="margin-top:36px"><header><h2>Programmes you would compete with</h2><span class="meta">the closest ones already on sale at other schools</span></header>
       ${comps.length?`<div class="rows">${progHead(1)}${comps.map(p=>progRow(p,{compact:1})).join("")}</div>`:`<p class="meta">Nothing comparable on sale in this topic or its sub-theme.</p>`}</section>
     <section><header><h2>ISB's own programmes nearby</h2></header>
       ${isbHere.length||isbNear.length?`<div class="rows">${progHead(1)}${[...isbHere,...isbNear].map(p=>progRow(p,{compact:1})).join("")}</div>
         <p class="meta" style="margin-top:6px">${isbOn(t.id).sold.length?"Same topic: check for overlap before launching.":isbHere.length?"These teach the topic as a module; a dedicated programme would sit next to them.":"Same sub-theme, different topic: a natural place to extend from."}</p>`:`<p class="meta">ISB sells nothing in this topic or its sub-theme.</p>`}</section>
-    <section><header><h2>Similar peer launches in the last year</h2></header>
+    <section><header><h2>Similar launches by other schools in the last year</h2></header>
       ${recent.length?`<div class="rows">${recent.map(r=>`<a class="r ${r.prob?"prob":""}" href="${esc(r.u)}" target="_blank" rel="noopener" style="--cols:minmax(0,1fr) 80px 120px">
         <span><div class="n">${esc(r.n)}</div><div class="s">${esc(r.ev)}</div></span><span class="c">${esc(SC[r.sc].l)}</span><span class="c">${r.ld?fmtD(r.ld):r.prob?"probable":fmtD(r.eff)}</span></a>`).join("")}</div>
-        <p class="meta" style="margin-top:6px">Matched on shared words in the title and description, so check each one.</p>`:`<p class="meta">None of the ${L?L.rows.length:0} peer launches in the last year shares two or more key words with this idea.</p>`}</section>`;
+        <p class="meta" style="margin-top:6px">Matched on shared words in the title and description, so check each one.</p>`:`<p class="meta">None of the ${L?L.rows.length:0} launches by other schools in the last year shares two or more key words with this idea.</p>`}</section>`;
 }
 
 /* ---------- updates ---------- */
@@ -633,14 +724,14 @@ function updates(){
     <section><header><h2>Log</h2></header><div class="rows">${D.whatsnew.log.map(e=>`<div class="r" style="--cols:110px minmax(0,1fr)"><span class="c">${fmtD(e.date)}</span><span><div class="n">${esc(e.headline)}</div><div class="s">${esc(e.detail)}</div></span></div>`).join("")}</div></section>
     <p class="meta" style="margin-top:22px">${D.quality.queue} gaps (missing fees, lengths or start dates) are queued for the next refresh.</p>`;
 }
-function notFound(){$("view").innerHTML=`<h1>Not found</h1><p><a href="#/">Back to the brief</a></p>`;}
+function notFound(){$("view").innerHTML=`<h1>Not found</h1><p><a href="#/">Back to search</a></p>`;}
 
 /* ---------- find ---------- */
 let hitOn=0;
 function find(qs){
   const box=$("hits"); if(!qs.trim()){box.hidden=true;return;}
-  const tops=D.topics.filter(t=>hit([t.n,t.st,t.th].join(" ").toLowerCase(),qs)).slice(0,5).map(t=>({h:`#/topic/${t.id}`,n:t.n,s:`Topic · ${t.call?CALL[t.call]:"no call"} · ISB ${t.isb} · ${plural(t.peers,"peer")}`}));
-  const sch=D.schools.filter(s=>hit((s.n+" "+s.l).toLowerCase(),qs)).slice(0,3).map(s=>({h:`#/programmes?sc=${s.s}`,n:s.n,s:`All ${D.progs.filter(p=>p.sc===s.s).length} programmes`}));
+  const tops=D.topics.filter(t=>hit([t.n,t.st,t.th].join(" ").toLowerCase(),qs)).slice(0,5).map(t=>({h:`#/topic/${t.id}`,n:t.n,s:`Topic · ${t.call?CALL[t.call]:"no call"} · ${DEM(t)} demand · ${plural(t.peers,"other school")}`}));
+  const sch=D.schools.filter(s=>hit((s.n+" "+s.l).toLowerCase(),qs)).slice(0,3).map(s=>({h:`#/?sc=${s.s}`,n:s.n,s:`All ${D.progs.filter(p=>p.sc===s.s).length} programmes`}));
   const pr=D.progs.filter(p=>hit([p.n,T[p.t].n,SC[p.sc].l,SC[p.sc].n,p.pt].join(" ").toLowerCase(),qs))
     .sort((a,b)=>(a.sc==="isb"?0:1)-(b.sc==="isb"?0:1)).slice(0,7).map(p=>({h:`#/p/${p.i}`,n:p.n,s:`${SC[p.sc].l} · ${p.f} · ${p.inr?lakh(p.inr):"fee not published"}`}));
   const la=D.launches?D.launches.rows.filter(r=>hit([r.n,SC[r.sc].l].join(" ").toLowerCase(),qs)).slice(0,3).map(r=>({h:`#/launches?q=${encodeURIComponent(qs)}`,n:r.n,s:`New at ${SC[r.sc].l} · ${r.ld?fmtD(r.ld):"launch date not published"}`})):[];
@@ -648,7 +739,7 @@ function find(qs){
   const g=(h,l)=>l.length?`<div class="g">${h}</div>`+l.map(x=>`<a href="${x.h}" data-i="${i}" class="${i++===0?"on":""}">${esc(x.n)}<span>${esc(x.s)}</span></a>`).join(""):"";
   const any=tops.length+sch.length+pr.length+la.length;
   box.innerHTML=any?g("Topics",tops)+g("Schools",sch)+g("Programmes",pr)+g("Peer launches",la)
-    +`<a href="#/programmes?q=${encodeURIComponent(qs)}" data-i="${i}">Every programme matching “${esc(qs)}”</a>`
+    +`<a href="#/?q=${encodeURIComponent(qs)}" data-i="${i}">Every programme matching “${esc(qs)}”</a>`
     :`<div class="g">Nothing matches “${esc(qs)}”.</div>`;
   box.hidden=false;
 }
@@ -669,13 +760,14 @@ function route(){
   const h=location.hash.replace(/^#/,"")||"/";
   const [path,qs]=h.split("?"); const q=Object.fromEntries(new URLSearchParams(qs||""));
   const parts=path.split("/").filter(Boolean), at=parts[0]||"";
-  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#/"+at));
-  ({"":brief,portfolio,launches:()=>launches(q),programmes:()=>programmes(q),test:()=>test(q),updates,
+  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#/"+(at==="programmes"?"":at)));
+  document.body.classList.toggle("home",at===""||at==="programmes");
+  ({"":()=>search(q),programmes:()=>search(q),brief,portfolio,launches:()=>launches(q),test:()=>test(q),updates,
     topic:()=>topic(parts[1]),p:()=>programme(parts[1])}[at]||notFound)();
   if(q.at&&$(q.at)) $(q.at).scrollIntoView(); else window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",route);
-$("foot").innerHTML=`<p>Built from ${D.schools.length} schools' and platforms' own catalogues, ${D.quality.signals} published demand signals and the Product Team's peer launch register. ISB's programmes are checked against live pages; peer catalogues are captured in bulk and tagged by keyword, so peer counts are indicative. There is no ISB enrolment, revenue or feedback data here yet. Fees in other currencies use fixed planning rates set on ${esc(D.fxDate)}. Out of scope: degree programmes, custom programmes, Coursera and edX.</p>
+$("foot").innerHTML=`<p>Built from ${D.schools.length} schools' and platforms' own catalogues, ${D.quality.signals} published demand signals and the Product Team's register of new launches. ISB's programmes are checked against live pages; other schools' catalogues are captured in bulk and tagged by keyword, so their counts are indicative. There is no ISB enrolment, revenue or feedback data here yet. Fees in other currencies use fixed planning rates set on ${esc(D.fxDate)}. Out of scope: degree programmes, custom programmes, Coursera and edX.</p>
   <p><a href="#/updates">Updates</a> · refreshed ${esc(D.whatsnew.ran)}</p>`;
 route();
 
