@@ -124,7 +124,9 @@ h2 .call{font-size:15px;padding:7px 14px;vertical-align:4px}
 /* search */
 .hero{max-width:980px}
 .hero h1{margin-bottom:8px}
-.about{font:400 clamp(19px,2.2vw,22px)/1.45 var(--serif);color:var(--ink);border-left:4px solid var(--isb);padding:2px 0 2px 16px;margin:0 0 28px;max-width:860px}
+.about{border-left:4px solid var(--isb);padding:2px 0 2px 18px;margin:0 0 30px;max-width:860px}
+.about .tagline{font:600 clamp(26px,3.4vw,34px)/1.15 var(--serif);letter-spacing:-.01em;color:var(--isb);margin:0 0 10px;text-wrap:balance}
+.about p{font:400 clamp(18px,2vw,21px)/1.45 var(--serif);color:var(--ink);margin:0}
 .big{display:flex;gap:10px;margin:22px 0 14px}
 .big input{flex:1;min-width:0;font-size:18px;padding:14px 18px;border:2px solid var(--isb);border-radius:14px;background:var(--paper)}
 .btn{appearance:none;border:0;cursor:pointer;background:var(--isb);color:var(--paper);font-weight:600;font-size:16px;padding:0 24px;border-radius:14px}
@@ -534,9 +536,12 @@ function search(q){
   const o=(l,v)=>l.map(([k,n])=>`<option value="${esc(k)}" ${v===k?"selected":""}>${esc(n)}</option>`).join("");
   const latest=D.launches?D.launches.rows.filter(r=>r.eff).sort((a,b)=>a.eff<b.eff?1:-1).slice(0,5):[];
   $("view").innerHTML=`<div class="hero">
-      <p class="about">ISB Executive Education's view of the market: every open programme sold by ISB and ${D.schools.length-1} other business schools and platforms (${D.progs.length.toLocaleString("en-IN")} in all), what they charge, what they have just launched, and what published research says employers need. Updated every month.</p>
+      <div class="about">
+        <p class="tagline">Every programme. Every price. Every new launch.</p>
+        <p>${D.progs.length.toLocaleString("en-IN")} executive programmes, taught by ISB and ${D.schools.length-1} other business schools and platforms. What each one costs. What was launched in the last year. What employers say they need. All in one place. Refreshed every month.</p>
+      </div>
       <h1>Search executive programmes</h1>
-      <p style="font-size:17px;color:var(--ink-2);margin:0">Check what already exists before launching, revamping or pricing a programme. Search by topic, role, school or keyword, then open any programme to see its closest alternatives and how ISB compares.</p>
+      <p style="font-size:17px;color:var(--ink-2);margin:0">Know the market before you launch, revamp or price a programme. Type a topic, a role or a school. Open any programme. See exactly what it competes with.</p>
       <form class="big" id="bigf" role="search" onsubmit="return false">
         <input type="search" id="pq" placeholder="Try “CFO”, “AI for boards” or “IIM Ahmedabad”" value="${esc(PF.q)}" aria-label="Search programmes" autocomplete="off">
         <button type="submit" class="btn">Search</button>
