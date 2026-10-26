@@ -37,6 +37,38 @@ def weeks(p):
     return w if w else (round(d / 5, 1) if d else None)
 
 
+MONTHS = {m: i for i, m in enumerate(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'], 1)}
+TODAY = datetime.date.today()
+
+
+def first_date(raw, future=False):
+    """First date in a catalogue's free-text start field, as ISO. Catalogues write
+    "Apr 25-30, 2027", "03-Jan-2027", "2 Nov 2026" or ISO; anything else, or a
+    date already past when future=True, comes back blank rather than guessed."""
+    s = (raw or '').strip()
+    m = re.match(r'(\d{4})-(\d{2})-(\d{2})', s)
+    y = re.search(r'\b(20\d\d)\b', s)
+    if m:
+        d = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+    else:
+        m1 = re.search(r'\b([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2})\b', s)          # Apr 25
+        m2 = re.search(r'\b(\d{1,2})[\s-]+([A-Za-z]{3})[a-z]*\b', s)          # 2 Nov / 03-Jan
+        if m2 and m2.group(2).lower() in MONTHS and (not m1 or m2.start() < m1.start()):
+            day, mon = int(m2.group(1)), MONTHS[m2.group(2).lower()]
+        elif m1 and m1.group(1).lower() in MONTHS:
+            day, mon = int(m1.group(2)), MONTHS[m1.group(1).lower()]
+        else:
+            return ''
+        if not y:
+            return ''
+        d = (int(y.group(1)), mon, day)
+    try:
+        dt = datetime.date(*d)
+    except ValueError:
+        return ''
+    return '' if future and dt < TODAY else dt.isoformat()
+
+
 progs = []
 for p in prog:
     if p['theme'] == 'UNCLASSIFIED':
@@ -47,7 +79,7 @@ for p in prog:
         'w': weeks(p), 'dr': clip(g(p, 'duration_raw'), 50),
         'inr': inr(p), 'fr': clip(g(p, 'fee_raw'), 46),
         'pt': p['partner'], 'nw': 1 if (p['is_new'] or '').upper().startswith('Y') else 0,
-        'ns': g(p, 'next_start')[:10], 'ls': g(p, 'last_known_start')[:10],
+        'ns': first_date(g(p, 'next_start'), future=True), 'ls': first_date(g(p, 'last_known_start')),
         'cap': g(p, 'capstone'), 'imm': g(p, 'campus_immersion'), 'iv': g(p, 'industry_visit'),
         'ta': clip(g(p, 'target_audience'), 200), 'kt': clip(g(p, 'key_topics'), 300),
         'u': p['url'], 'conf': p['match_confidence'], 'cat': clip(p['school_category'], 100),
@@ -64,7 +96,9 @@ for t in tax:
         'why2': d.get('outlook_rationale', ''), 'sig': d.get('best_signal', ''),
         'isb': int(m.get('isb') or 0), 'peers': int(m.get('peers_present') or 0),
         'resid': m.get('supply_is_residual_bucket') == 'Y',
-        'call': c.get('call', ''), 'why': c.get('why', '')})
+        'call': c.get('call', ''), 'why': c.get('why', ''),
+        # keyword phrases, so the page can match a typed programme idea to topics
+        'kw': [k.strip().lower() for k in t['keywords'].split(';') if k.strip()]})
 
 # programme-level change since the latest snapshot from an earlier month
 this_month = datetime.date.today().strftime('%Y-%m')
@@ -123,6 +157,12 @@ if (R / 'data/peer_launches.csv').exists():
                                                 'u': r['source']} for r in L('data/peer_launches_not_counted.csv')])
 
 q = L('outputs/refresh_queue.csv') if (R / 'outputs/refresh_queue.csv').exists() else []
+# programmes that appeared since last month's snapshot get a "new" mark in place
+if changes:
+    _added = {(s_, n_) for s_, n_, _t in changes['added']}
+    for p in progs:
+        if (p['sc'], p['n']) in _added:
+            p['new'] = 1
 d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'schools': [{'s': s['slug'], 'l': s['label'], 'g': s['group'], 'n': s['school']} for s in schools],
      'themes': list(dict.fromkeys(t['theme'] for t in tax)),
