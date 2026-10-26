@@ -101,11 +101,32 @@ whatsnew = {'ran': today.strftime('%d %b %Y'),
             'next': (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1).strftime('%d %b %Y'),
             'log': log[:12]}
 
+# peer new-launch register (Product Team, hand-verified). The date a launch is
+# placed on: its published launch date; failing that, a first cohort that has
+# already run (the register's other confirmation rule); probables stay undated.
+launches = None
+if (R / 'data/peer_launches.csv').exists():
+    meta = json.loads((R / 'data/peer_launches_meta.json').read_text(encoding='utf-8'))
+    rows = []
+    for r in L('data/peer_launches.csv'):
+        ld, fc = r['launch_date'], r['first_cohort_date']
+        if ld:
+            eff, basis = (ld if len(ld) == 10 else ld + '-01'), 'launch'
+        elif r['probable'] != 'Y' and len(fc) == 10 and fc <= meta['asof']:
+            eff, basis = fc, 'first cohort'
+        else:
+            eff, basis = '', ''
+        rows.append({'sc': r['school_slug'], 'n': r['programme'], 'ld': ld, 'ev': r['evidence'], 'fc': r['first_cohort'],
+                     'fcd': fc, 'f': r['format'], 'dur': r['duration'], 'fee': r['fee'], 'pt': r['partner'],
+                     'u': r['url'], 'prob': r['probable'] == 'Y', 'eff': eff, 'basis': basis})
+    launches = dict(meta, rows=rows, excluded=[{'sc': r['school_slug'], 'n': r['programme'], 'why': r['why_not_counted'],
+                                                'u': r['source']} for r in L('data/peer_launches_not_counted.csv')])
+
 q = L('outputs/refresh_queue.csv') if (R / 'outputs/refresh_queue.csv').exists() else []
 d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'schools': [{'s': s['slug'], 'l': s['label'], 'g': s['group'], 'n': s['school']} for s in schools],
      'themes': list(dict.fromkeys(t['theme'] for t in tax)),
-     'topics': topics, 'progs': progs, 'changes': changes, 'whatsnew': whatsnew,
+     'topics': topics, 'progs': progs, 'changes': changes, 'whatsnew': whatsnew, 'launches': launches,
      'fx': {k: v for k, v in fx.items() if k != 'INR'}, 'fxDate': L('data/fx.csv')[0]['set_on'],
      'quality': {'queue': len(q), 'noFee': sum(1 for p in progs if p['inr'] is None),
                  'noStart': sum(1 for p in progs if not p['ns']),

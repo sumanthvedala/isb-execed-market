@@ -23,6 +23,7 @@
   /* call colours: validated as a set (dataviz validator, adjacent order below) */
   --c-lead:#008300; --c-diversify:#2a78d6; --c-follow:#eda100; --c-deepen:#4a3aa7; --c-defend:#eb6834;
   --c-watch:#8A8083;
+  --prob-bg:#FFF2CC; --prob-ink:#7A5A00;
   --shadow:0 1px 2px rgba(27,22,24,.05), 0 12px 32px -22px rgba(27,22,24,.28);
   color-scheme:light;
 }
@@ -31,7 +32,7 @@
   --rule:#312829; --rule-2:#241E20; --accent:#E2879A; --accent-soft:#2F2025;
   --heat:#3987e5; --zero:#E8867A; --zero-bg:#33201E;
   --c-lead:#008300; --c-diversify:#3987e5; --c-follow:#c98500; --c-deepen:#9085e9; --c-defend:#d95926;
-  --c-watch:#978C8D; --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -22px rgba(0,0,0,.7);
+  --c-watch:#978C8D; --prob-bg:#3A3115; --prob-ink:#E3C46A; --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -22px rgba(0,0,0,.7);
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
@@ -39,7 +40,7 @@
   --rule:#312829; --rule-2:#241E20; --accent:#E2879A; --accent-soft:#2F2025;
   --heat:#3987e5; --zero:#E8867A; --zero-bg:#33201E;
   --c-lead:#008300; --c-diversify:#3987e5; --c-follow:#c98500; --c-deepen:#9085e9; --c-defend:#d95926;
-  --c-watch:#978C8D; --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -22px rgba(0,0,0,.7);
+  --c-watch:#978C8D; --prob-bg:#3A3115; --prob-ink:#E3C46A; --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -22px rgba(0,0,0,.7);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -236,6 +237,20 @@ thead th.isbc{color:var(--accent)}
 .sch.isb{color:var(--accent)}
 .feat{display:flex;gap:3px}
 .feat span{font-size:9.5px;font-weight:700;border:1px solid var(--rule);border-radius:3px;padding:0 3px;color:var(--ink-3)}
+.lr,.lh{display:grid;grid-template-columns:96px minmax(0,1fr) 74px 128px 120px 110px;gap:10px;padding:9px 14px;align-items:center}
+.lh{background:var(--rule-2);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);font-weight:600;border-bottom:1px solid var(--rule)}
+.lr{appearance:none;border:0;border-bottom:1px solid var(--rule-2);background:none;width:100%;text-align:left;cursor:pointer}
+.lr:hover{background:var(--accent-soft)}
+.lr .pn{font-size:13px;font-weight:500;line-height:1.3}
+.lr .pm{font-size:11px;color:var(--ink-3);margin-top:2px}
+.lr .c{font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.lr .dt{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.lr .dt small{display:block;font-size:10.5px;font-weight:400;color:var(--ink-3)}
+.lr.prob .pcell{background:var(--prob-bg);margin:-4px -6px;padding:4px 6px;border-radius:4px}
+.ptag{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--prob-ink);border:1px solid var(--prob-ink);border-radius:3px;padding:0 4px;margin-left:6px;vertical-align:1px}
+@media (max-width:760px){#lwin{flex-wrap:wrap;gap:6px;border:0;background:none;overflow:visible}
+  #lwin button{border:1px solid var(--rule)!important;border-radius:99px;padding:4px 11px}
+  .lh{display:none}.lr{grid-template-columns:84px minmax(0,1fr)}.lr .c.hm{display:none}}
 .pfoot{display:flex;gap:14px;align-items:center;padding:10px 14px;font-size:12.5px;color:var(--ink-3)}
 @media (max-width:760px){
   .ph{display:none}
@@ -299,7 +314,7 @@ details.notes li{margin:6px 0;max-width:80ch}
 <header class="top">
   <div class="bar">
     <span class="nm">Exec Ed Market Map</span>
-    <nav><a href="#decide">Decide</a><a href="#peers">Peer moves</a><a href="#coverage">Coverage</a><a href="#programmes">Programmes</a></nav>
+    <nav><a href="#decide">Decide</a><a href="#peers">Peer moves</a><a href="#launches">New launches</a><a href="#coverage">Coverage</a><a href="#programmes">Programmes</a></nav>
     <span class="dt" id="asof"></span>
   </div>
   <div class="filters" role="search">
@@ -336,22 +351,39 @@ details.notes li{margin:6px 0;max-width:80ch}
 <section id="peers">
   <div class="sh"><h2>Where competitors are putting their portfolio</h2></div>
   <p class="lede">Each theme's share of ISB's catalogue against its share of the peers' catalogue: a grey dot far to
-  the right of the maroon one is a theme peers weight more heavily than ISB does. Beside it, what peers flag as
-  launched in 2025-26, and each school's share of products in AI-era topics.</p>
+  the right of the maroon one is a theme peers weight more heavily than ISB does. Beside it, how many new
+  programmes each peer launched in the last year, and each school's share of products in AI-era topics.</p>
   <div class="grid2">
     <div class="card panel"><h3>Portfolio weight by theme</h3>
       <div class="sub" id="wsub"></div>
       <div class="legend"><span><i style="background:var(--accent)"></i>ISB</span><span><i style="background:var(--ink-3)"></i>Peers</span><span>Gap = peers minus ISB, percentage points</span></div>
       <div id="weights"></div></div>
     <div style="display:flex;flex-direction:column;gap:16px">
-      <div class="card panel"><h3>New launches flagged 2025-26</h3>
-        <div class="sub" id="nsub"></div><div class="newlist" id="newl"></div></div>
+      <div class="card panel"><h3>New launches, last 12 months</h3>
+        <div class="sub" id="nsub"></div><div id="newl"></div></div>
       <div class="card panel"><h3>Share of catalogue in AI-era topics</h3>
         <div class="sub">Topics new since AI or reshaped by it. Schools with fewer than 15 products are left out.</div>
         <div id="aibars"></div></div>
     </div>
   </div>
   <div id="changes" style="margin-top:16px"></div>
+</section>
+
+<section id="launches">
+  <div class="sh"><h2>New launches by peers</h2><span class="q" id="lcount"></span></div>
+  <p class="lede" id="llede"></p>
+  <div class="ctrl">
+    <div class="seg" role="group" aria-label="Launch window" id="lwin">
+      <button type="button" data-w="all" class="on">All 12 months</button><button type="button" data-w="1">Last month</button><button type="button" data-w="3">Last 3 months</button><button type="button" data-w="6">Last 6 months</button><button type="button" data-w="6-12">6–12 months ago</button><button type="button" data-w="undated">Date not published</button>
+    </div>
+    <label for="lsort">Sort</label>
+    <select id="lsort" aria-label="Sort launches">
+      <option value="new">Launch date, newest first</option><option value="old">Launch date, oldest first</option>
+      <option value="cohort">First cohort, soonest first</option><option value="school">School</option></select>
+    <label class="tog"><input type="checkbox" id="lconf"> Confirmed only</label>
+  </div>
+  <div class="ptable" id="ltable"></div>
+  <details class="more" id="lexcl"></details>
 </section>
 
 <section id="coverage">
@@ -519,6 +551,68 @@ $("sdrop").addEventListener("keydown",e=>{
 document.addEventListener("click",e=>{if(!e.target.closest("#sdrop")&&e.target.id!=="fq")hideDrop();});
 $("freset").addEventListener("click",()=>{for(const k in F)F[k]=k==="ai"?false:"";update();});
 
+/* ---------------- peer new launches ---------------- */
+const LAUNCH_SCHOOLS=()=>["hbs","wharton","insead","lbs","imd","iima","iimb","iimc","iimk","iiml"];
+let lWin="all", lList=[];
+const addM=(iso,m)=>{const d=new Date(iso+"T00:00:00");d.setMonth(d.getMonth()+m);return d.toISOString().slice(0,10);};
+function launchOK(r){
+  const L=D.launches;
+  if(F.sc&&r.sc!==F.sc) return false;
+  if(F.grp&&SC[r.sc].g!==F.grp) return false;
+  if(F.q&&!hit([r.n,SC[r.sc].l,SC[r.sc].n,r.pt,r.f,r.ev].join(" ").toLowerCase(),F.q)) return false;
+  if($("lconf").checked&&r.prob) return false;
+  if(lWin==="undated") return !r.eff;
+  if(lWin==="all") return true;
+  if(!r.eff) return false;
+  if(lWin==="6-12") return r.eff>=L.from&&r.eff<addM(L.asof,-6);
+  return r.eff>=addM(L.asof,-(+lWin));
+}
+function launchDate(r){
+  if(r.basis==="launch") return `${r.ld.length===7?fmtM(r.ld):fmtD(r.ld)}<small>${r.ld.length===7?"month only":"announced"}</small>`;
+  if(r.basis==="first cohort") return `${fmtD(r.eff)}<small>first cohort ran</small>`;
+  return `<span style="color:var(--ink-3);font-weight:400">Not published</span>`;
+}
+function launches(){
+  const L=D.launches; if(!L){$("launches").hidden=true;return;}
+  const srt=$("lsort").value, big="9999";
+  const key={new:r=>r.eff?-Date.parse(r.eff):1e15,old:r=>r.eff?Date.parse(r.eff):1e15,
+    cohort:r=>r.fcd?Date.parse(r.fcd.length===7?r.fcd+"-01":r.fcd):1e15,
+    school:r=>LAUNCH_SCHOOLS().indexOf(r.sc)*1e14+(r.eff?-Date.parse(r.eff)/1e6:0)}[srt];
+  lList=L.rows.filter(launchOK).sort((a,b)=>key(a)-key(b)||a.n.localeCompare(b.n));
+  const prob=lList.filter(r=>r.prob).length;
+  $("lcount").textContent=`${lList.length} of ${L.rows.length}${prob?` · ${prob} probable`:""}`;
+  $("llede").innerHTML=`Programmes the ten peers had never run before, launched ${esc(fmtD(L.from))} to ${esc(fmtD(L.asof))}. Windows count back from ${esc(fmtD(L.asof))}, when the register was compiled. A launch is placed by its announcement or page-publish date, or by its first cohort where that has already run. <span style="background:var(--prob-bg);padding:0 4px;border-radius:3px">Shaded</span> rows are probable: the school marks them new but has not said when they were announced, so they appear only under "All 12 months" and "Date not published". Search and the school filters above apply here.`;
+  $("ltable").innerHTML=`<div class="lh"><span>Launched</span><span>Programme</span><span>School</span><span>First cohort</span><span>Format</span><span>Fee</span></div>`+
+    (lList.length?lList.map((r,i)=>`<button type="button" class="lr ${r.prob?"prob":""}" data-li="${i}">
+      <span class="dt">${launchDate(r)}</span>
+      <span class="pcell"><div class="pn">${esc(r.n)}${r.prob?'<span class="ptag">probable</span>':""}</div><div class="pm">${esc(r.ev)}${r.pt&&!/^(direct|not named)$/i.test(r.pt)?" · via "+esc(r.pt):""}</div></span>
+      <span class="sch">${esc(SC[r.sc].l)}</span><span class="c hm">${esc(r.fc)}</span><span class="c hm">${esc(r.f)}</span><span class="c hm">${esc(r.fee)}</span></button>`).join("")
+     :`<div class="empty" style="margin:14px">No launch in this window${F.sc||F.grp||F.q?" under the current search and school filters":""}.</div>`);
+  const ex=L.excluded.filter(r=>(!F.sc||r.sc===F.sc)&&(!F.grp||SC[r.sc].g===F.grp));
+  $("lexcl").innerHTML=`<summary><b>${ex.length} checked and not counted</b> (new batches, renames, revamps, degrees, or launch not datable)</summary>
+    <div class="mini" style="margin:0 14px 14px">${ex.map(r=>`<div class="pr" style="cursor:default;grid-template-columns:70px minmax(0,1fr)"><span class="sch">${esc(SC[r.sc].l)}</span>
+      <span><div class="pn">${r.u?`<a class="ext" href="${esc(r.u)}" target="_blank" rel="noopener">${esc(r.n)}</a>`:esc(r.n)}</div><div class="pm">${esc(r.why)}</div></span></div>`).join("")}</div>`;
+}
+$("lwin").addEventListener("click",e=>{const b=e.target.closest("[data-w]");if(!b)return;lWin=b.dataset.w;
+  $("lwin").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));launches();});
+$("lsort").addEventListener("change",launches);
+$("lconf").addEventListener("change",launches);
+$("ltable").addEventListener("click",e=>{const b=e.target.closest("[data-li]"); if(b) openLaunch(lList[+b.dataset.li]);});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-lsc]"); if(!b)return;
+  F.sc=b.dataset.lsc; F.grp=""; update(); document.getElementById("launches").scrollIntoView({behavior:"smooth"});});
+function openLaunch(r){
+  const row=(k,v)=>`<div><dt>${k}</dt><dd class="${v&&!/^not published$/i.test(v)?"":"none"}">${v?esc(v):"not published"}</dd></div>`;
+  const same=D.progs.filter(p=>p.sc===r.sc&&words(r.n.replace(/\(.*?\)/g,"")).filter(w=>w.length>3).every(w=>p.n.toLowerCase().includes(w)));
+  dList=[];
+  openDrawer(esc(r.n),`<span class="sch">${esc(SC[r.sc].n)}</span>${r.prob?'<span class="ptag">probable</span>':""}`,
+    `<dl class="dl">${row("Launch date",r.ld?(r.ld.length===7?fmtM(r.ld):fmtD(r.ld)):"")}${row("First cohort",r.fc)}${row("Format",r.f)}
+      ${row("Duration",r.dur)}${row("Fee (as published)",r.fee)}${row("Delivery partner",r.pt)}</dl>
+     <div class="blk"><div class="lbl">Launch evidence</div><p>${esc(r.ev)}</p>
+       ${r.prob?`<p class="note">Probable: the school marks it new (Batch 1, New, or no earlier run on record) but has not published when it was announced. Included in the counts.</p>`:""}</div>
+     ${same.length?`<div class="blk"><div class="lbl">In our catalogue</div>${plist(same,"")}</div>`:""}
+     <div class="blk">${r.u?`<a class="ext" href="${esc(r.u)}" target="_blank" rel="noopener">Open the programme page or launch article ↗</a>`:""}</div>`);
+}
+
 /* ---------------- what's new ---------------- */
 function newsItems(){
   const c=D.changes||{added:[],dropped:[],repriced:[],calls:[]}, out=[];
@@ -536,6 +630,9 @@ function newsItems(){
     d:l.slice(0,2).map(x=>x[1]).join(" · "),list:["Dropped by "+(SC[s]?SC[s].l:s),l]}));
   if(c.repriced.length) out.push({cc:"var(--ink-3)",t:`${c.repriced.length} programme${c.repriced.length>1?"s":""} repriced`,
     d:c.repriced.slice(0,2).map(x=>x[1]).join(" · "),list:["Repriced",c.repriced]});
+  // newest peer launches from the register (last 30 days before it was compiled)
+  if(D.launches) D.launches.rows.filter(r=>r.eff&&r.eff>=addM(D.launches.asof,-1)).sort((a,b)=>a.eff<b.eff?1:-1)
+    .forEach(r=>out.push({cc:"var(--c-lead)",t:`${SC[r.sc].l} launched ${r.n}`,d:fmtD(r.eff)+(r.basis==="first cohort"?" (first cohort)":""),launch:r}));
   D.whatsnew.log.forEach(e=>out.push({cc:e.scope==="isb"?"var(--accent)":"var(--ink-3)",t:e.headline,d:fmtD(e.date),log:e}));
   return out;
 }
@@ -561,6 +658,7 @@ $("wn").addEventListener("click",e=>{
 });
 function openNewsItem(n){
   if(n.topic) return openTopic(n.topic);
+  if(n.launch) return openLaunch(n.launch);
   if(n.prog){const p=D.progs.find(q=>q.sc===n.prog[0]&&q.n===n.prog[1]); if(p) return openProg(p);}
   if(n.list){ dList=[]; const ps=n.list[1].map(x=>D.progs.find(q=>q.sc===x[0]&&q.n===x[1])).filter(Boolean);
     const rest=n.list[1].filter(x=>!D.progs.some(q=>q.sc===x[0]&&q.n===x[1]));
@@ -631,14 +729,18 @@ function peerMoves(progs){
       <span class="dot" style="left:${X(r.b)};background:var(--ink-3)"></span>
       <span class="dot" style="left:${X(r.a)};background:var(--accent)"></span></span>
       <span class="gapv">${g>0?"+":""}${g.toFixed(1)}</span></div>`;}).join("");
-  // new launches by topic
-  const nw=peers.filter(p=>p.nw);
-  const byT={}; nw.forEach(p=>(byT[p.t]=byT[p.t]||[]).push(p));
-  const top=Object.entries(byT).sort((a,b)=>b[1].length-a[1].length).slice(0,9);
-  const who=[...new Set(nw.map(p=>SC[p.sc].l))];
-  $("nsub").textContent=nw.length?`${nw.length} products across ${who.length} schools (${who.join(", ")}). Only these schools flag new launches, so absence elsewhere is not evidence.`:"No flagged launches under these filters.";
-  $("newl").innerHTML=top.map(([tid,l])=>`<button type="button" class="nrow" data-topic="${tid}">
-    <span>${esc(T[tid].n)} <span style="color:var(--ink-3)">· ${[...new Set(l.map(p=>SC[p.sc].l))].join(", ")}</span></span><span class="v">${l.length}</span></button>`).join("");
+  // new launches per school, from the verified register
+  if(D.launches){
+    const LR=D.launches.rows, ls=LAUNCH_SCHOOLS();
+    const mL=Math.max(1,...ls.map(s=>LR.filter(r=>r.sc===s).length));
+    $("nsub").innerHTML=`${LR.length} launches by 10 peers, ${fmtD(D.launches.from)} to ${fmtD(D.launches.asof)}. Lighter bar = probable (no published launch date). <a href="#launches" class="lnk">See the list ↓</a>`;
+    $("newl").innerHTML=ls.map(s=>{const l=LR.filter(r=>r.sc===s), c=l.filter(r=>!r.prob).length;
+      return `<button type="button" class="hrow lrow" data-lsc="${s}" style="width:100%;border:0;background:none;cursor:pointer;text-align:left">
+        <span class="lb">${esc(SC[s].l)}</span><span style="display:flex;height:14px">
+        <span class="hbar" style="width:${(100*c/mL).toFixed(1)}%;border-radius:0"></span>
+        <span class="hbar" style="width:${(100*(l.length-c)/mL).toFixed(1)}%;opacity:.25;border-radius:0 4px 4px 0"></span></span>
+        <span class="v">${l.length}</span></button>`;}).join("");
+  } else $("nsub").textContent="No launch register loaded.";
   // AI-era share by school
   const rowsA=D.schools.map(s=>{const l=progs.filter(p=>p.sc===s.s);
     return {s,n:l.length,v:l.length?100*l.filter(p=>T[p.t].ai!=="Stable").length/l.length:0};})
@@ -820,7 +922,7 @@ document.addEventListener("click",e=>{
 function render(){
   const progs=D.progs.filter(p=>progOK(p));
   $("fcount").textContent=`${progs.length} programmes match`;
-  board(); peerMoves(progs); coverage(progs); table(progs);
+  board(); peerMoves(progs); launches(); coverage(progs); table(progs);
 }
 function update(){shown=60;syncControls();writeHash();render();}
 
