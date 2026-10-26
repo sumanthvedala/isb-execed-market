@@ -124,6 +124,7 @@ h2 .call{font-size:15px;padding:7px 14px;vertical-align:4px}
 /* search */
 .hero{max-width:980px}
 .hero h1{margin-bottom:8px}
+.about{font:400 clamp(19px,2.2vw,22px)/1.45 var(--serif);color:var(--ink);border-left:4px solid var(--isb);padding:2px 0 2px 16px;margin:0 0 28px;max-width:860px}
 .big{display:flex;gap:10px;margin:22px 0 14px}
 .big input{flex:1;min-width:0;font-size:18px;padding:14px 18px;border:2px solid var(--isb);border-radius:14px;background:var(--paper)}
 .btn{appearance:none;border:0;cursor:pointer;background:var(--isb);color:var(--paper);font-weight:600;font-size:16px;padding:0 24px;border-radius:14px}
@@ -533,8 +534,9 @@ function search(q){
   const o=(l,v)=>l.map(([k,n])=>`<option value="${esc(k)}" ${v===k?"selected":""}>${esc(n)}</option>`).join("");
   const latest=D.launches?D.launches.rows.filter(r=>r.eff).sort((a,b)=>a.eff<b.eff?1:-1).slice(0,5):[];
   $("view").innerHTML=`<div class="hero">
+      <p class="about">ISB Executive Education's view of the market: every open programme sold by ISB and ${D.schools.length-1} other business schools and platforms (${D.progs.length.toLocaleString("en-IN")} in all), what they charge, what they have just launched, and what published research says employers need. Updated every month.</p>
       <h1>Search executive programmes</h1>
-      <p class="lead" style="color:var(--ink-2)">${D.progs.length} programmes from ISB and ${D.schools.length-1} other schools and platforms. Search by topic, role, school or keyword, then open any programme to compare it with the closest alternatives.</p>
+      <p style="font-size:17px;color:var(--ink-2);margin:0">Check what already exists before launching, revamping or pricing a programme. Search by topic, role, school or keyword, then open any programme to see its closest alternatives and how ISB compares.</p>
       <form class="big" id="bigf" role="search" onsubmit="return false">
         <input type="search" id="pq" placeholder="Try “CFO”, “AI for boards” or “IIM Ahmedabad”" value="${esc(PF.q)}" aria-label="Search programmes" autocomplete="off">
         <button type="submit" class="btn">Search</button>
