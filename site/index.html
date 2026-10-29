@@ -111,6 +111,9 @@ a.ext::after{content:"↗";display:inline-block;margin-left:3px;font-size:.72em;
 .golinks{display:flex;gap:10px 20px;flex-wrap:wrap;align-items:center;margin:6px 0 20px;font-size:15px}
 .golinks a.go1{text-decoration:none;background:var(--isb);color:var(--paper);font-weight:600;padding:10px 20px;border-radius:999px}
 .golinks a.go1:hover{filter:brightness(1.12)}
+/* a programme whose page is gone or that has no future run: kept, but marked */
+.mark.gone{font:600 12px var(--sans);color:var(--deepen)}
+.explain.gone{border-left:3px solid var(--deepen)}
 .r .n{font-weight:500;line-height:1.35;font-size:16px}
 .r .s{font-size:var(--t4);color:var(--ink-3);margin-top:2px}
 .r .c{font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
@@ -267,6 +270,7 @@ const LINKS={lu:"Landing page",u:"Programme page",bu:"Brochure"};
 const links=p=>Object.keys(LINKS).filter(k=>p[k]).map(k=>[LINKS[k],p[k]]);
 const ext=(u,t,cls="ext")=>`<a class="${cls}" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`;
 const nameLink=p=>{const l=links(p)[0];return l?ext(l[1],esc(p.n)):esc(p.n);};
+const goneTag=p=>p.gone?`<span class="mark gone" title="${esc(p.gone)}">likely discontinued</span>`:"";
 const callLine=t=>t.call?`${pill(t.call)} ${CALLSAYS[t.call]}`:`No call yet: not enough demand evidence or activity by other schools to make one.`;
 // "demand" said in words: the score is how much published research says
 // employers and executives need this (2 per independent report up to 5,
@@ -318,7 +322,7 @@ const COMPACT="--cols:minmax(0,1fr) 92px 78px 70px";
 function progRow(p,opt={}){
   const s=SC[p.sc];
   return `<div class="r ${p.sc==="isb"?"isbrow":""}" data-go="#/p/${p.i}" tabindex="0" style="${opt.compact?COMPACT:""}">
-    <span><div class="n">${nameLink(p)}${newTag(p.launch)}${p.new?'<span class="mark">added this month</span>':""}</div>
+    <span><div class="n">${nameLink(p)}${newTag(p.launch)}${p.new?'<span class="mark">added this month</span>':""}${goneTag(p)}</div>
       <div class="s">${esc(s.l)}${p.pt?` · with ${esc(p.pt)}`:""}${opt.topic?` · ${esc(T[p.t].n)}`:""}</div></span>
     <span class="c hm">${esc(p.f==="Self-paced Online"?"Self-paced":p.f)}</span><span class="c hm">${wk(p.w)}</span>
     <span class="c">${p.inr?lakh(p.inr):"—"}</span>${opt.compact?"":`<span class="c hm">${p.ns?fmtD(p.ns):"—"}</span>`}</div>`;
@@ -409,6 +413,7 @@ function programme(i){
   $("view").innerHTML=`<p class="meta"><span class="${p.sc==="isb"?"isb":""}">${esc(SC[p.sc].n)}</span> · <a href="#/topic/${p.t}">${esc(t.n)}</a></p>
     <h1 class="read">${nameLink(p)}</h1>
     <p class="golinks">${links(p).map(([k,u],j)=>ext(u,`${k} ↗`,j?"":"go1")).join("")||`<span class="meta">No landing page, programme page or brochure on record yet.</span>`}</p>
+    ${p.gone?`<p class="explain gone read"><b>Likely discontinued:</b> ${esc(p.gone)}. It still counts in topic and fee comparisons until a refresh confirms it, so check before quoting it.</p>`:""}
     ${p.inr&&med&&f.length>=3?`<p class="lead read">${lakh(p.inr)}, ${p.inr>med?`${Math.round(100*(p.inr/med-1))}% above`:`${Math.round(100*(1-p.inr/med))}% below`} the typical fee of the ${f.length} most similar programmes at other schools.</p>`:""}
     <dl class="facts">${row("Format",esc(p.f))}${row("Length",esc(p.dr||(p.w?wk(p.w):"")))}${row("Fee as published",esc(p.fr))}
       ${row("Level",esc(LV(p.lv)))}${row("Next start",p.ns?fmtD(p.ns):"")}${row("Delivered with",esc(p.pt))}${row("Includes",feats.join(", "))}${row("Topic call",t.call?CALL[t.call]:"")}</dl>
@@ -456,7 +461,7 @@ function portfolio(){
       <p class="meta" style="margin-top:8px">A positive gap means other schools put more of their catalogue there than ISB does, in percentage points.</p></section>
     <section id="price"><header><h2>How ISB is priced</h2><span class="meta">each ISB programme against the typical fee of the most similar programmes at other schools</span></header>
       <div class="rows"><div class="r hd" style="--cols:minmax(0,1fr) 100px 120px 70px"><span>ISB programme</span><span>ISB fee</span><span>Typical fee elsewhere</span><span>Gap</span></div>
-      ${pp.map(x=>`<div class="r isbrow" data-go="#/p/${x.p.i}" tabindex="0" style="--cols:minmax(0,1fr) 100px 120px 70px"><span class="n">${nameLink(x.p)}</span>
+      ${pp.map(x=>`<div class="r isbrow" data-go="#/p/${x.p.i}" tabindex="0" style="--cols:minmax(0,1fr) 100px 120px 70px"><span class="n">${nameLink(x.p)}${goneTag(x.p)}</span>
         <span class="c">${lakh(x.p.inr)}</span><span class="c hm">${lakh(x.med)} <span class="meta">(${x.n})</span></span><span class="c">${x.gap>0?"+":""}${Math.round(x.gap)}%</span></div>`).join("")}</div>
       <p class="meta" style="margin-top:8px">Fees in other currencies are converted at fixed planning rates (${Object.entries(D.fx).map(([k,v])=>k+" "+v).join(", ")}), not live rates.</p></section>
     <section><header><h2>Who sells what</h2><span class="meta">programmes by theme; click a theme for its sub-themes</span></header>
@@ -563,7 +568,7 @@ const launchLink=r=>{const l=r.p&&links(r.p)[0];return l?l[1]:r.u;};
 const launchName=r=>launchLink(r)?ext(launchLink(r),esc(r.n)):esc(r.n);
 const lDate=r=>r.basis==="launch"?fmtD(r.ld):fmtD(r.eff);
 const newTag=r=>r?`<span class="newtag ${r.prob?"prob":""}">${r.prob?"New, launch date not published":"New launch, "+lDate(r)}</span>`:"";
-const PF={q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",nw:false}; let pSort="best", pShown=60, pList=[];
+const PF={q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",nw:false,hd:false}; let pSort="best", pShown=60, pList=[];
 const FEE=[["","Any fee"],["0-100000","Under ₹1 lakh"],["100000-250000","₹1 to 2.5 lakh"],["250000-500000","₹2.5 to 5 lakh"],["500000-1000000","₹5 to 10 lakh"],["1000000-1e12","₹10 lakh and over"],["none","Fee not published"]];
 const LEN=[["","Any length"],["0-1","Up to a week"],["1-4.3","1 week to a month"],["4.3-13","1 to 3 months"],["13-26","3 to 6 months"],["26-1e9","6 months and over"]];
 const inR=(v,r)=>{const [a,b]=r.split("-").map(Number);return v!=null&&v>=a&&v<b;};
@@ -598,6 +603,7 @@ function search(q){
       <select class="pill" id="pfee" aria-label="Fee">${o(FEE,PF.fee)}</select>
       <select class="pill" id="plen" aria-label="Length">${o(LEN,PF.len)}</select>
       <label class="pillck ${PF.nw?"on":""}" id="pnwl"><input type="checkbox" id="pnw" ${PF.nw?"checked":""}> New launches only</label>
+      <label class="pillck ${PF.hd?"on":""}" id="phdl"><input type="checkbox" id="phd" ${PF.hd?"checked":""}> Hide likely discontinued</label>
       <button type="button" class="lnk" id="preset">Clear all</button>
     </div>
     <div class="tools"><label>Sort by <select id="psort">${o([["best","Best match, ISB first"],["feeup","Fee, low to high"],["feedown","Fee, high to low"],["len","Length, shortest first"],["start","Next start, soonest first"],["school","School, A to Z"]],pSort)}</select></label>
@@ -611,12 +617,13 @@ function search(q){
   bind("pth","th");bind("pf","f");bind("plv","lv");bind("pfee","fee");bind("plen","len");
   $("pg").onchange=e=>{const v=e.target.value;PF.sc=v.startsWith("s:")?v.slice(2):v==="isb"?"isb":"";PF.g=v.startsWith("s:")||v==="isb"?"":v;pShown=60;mark();drawProgs();};
   $("pnw").onchange=e=>{PF.nw=e.target.checked;$("pnwl").classList.toggle("on",PF.nw);pShown=60;drawProgs();};
+  $("phd").onchange=e=>{PF.hd=e.target.checked;$("phdl").classList.toggle("on",PF.hd);pShown=60;drawProgs();};
   $("psort").onchange=e=>{pSort=e.target.value;drawProgs();};
   let tm; const run=()=>{if(!$("plist"))return;PF.q=$("pq").value.trim();pShown=60;drawProgs();};
   $("pq").oninput=()=>{clearTimeout(tm);tm=setTimeout(run,180);};
   $("bigf").onsubmit=e=>{e.preventDefault();clearTimeout(tm);run();$("ptitle").scrollIntoView({behavior:"smooth"});return false;};
   $("try").onclick=e=>{const b=e.target.closest("[data-q]");if(!b)return;$("pq").value=b.dataset.q;run();$("ptitle").scrollIntoView({behavior:"smooth"});};
-  $("preset").onclick=()=>{Object.assign(PF,{q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",nw:false});search({});};
+  $("preset").onclick=()=>{Object.assign(PF,{q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",nw:false,hd:false});search({});};
   $("pmore").onclick=()=>{pShown+=200;drawProgs();};
   $("pcsv").onclick=csv;
   mark(); drawProgs();
@@ -624,7 +631,7 @@ function search(q){
 function drawProgs(){
   const ok=p=>{const t=T[p.t];
     if(PF.sc&&p.sc!==PF.sc)return false; if(PF.g&&SC[p.sc].g!==PF.g)return false;
-    if(PF.th&&t.th!==PF.th)return false; if(PF.nw&&!p.launch)return false;
+    if(PF.th&&t.th!==PF.th)return false; if(PF.nw&&!p.launch)return false; if(PF.hd&&p.gone)return false;
     if(PF.f&&p.f!==PF.f)return false; if(PF.lv&&LV(p.lv)!==PF.lv)return false;
     if(PF.fee){if(PF.fee==="none"){if(p.inr!=null)return false;}else if(!inR(p.inr,PF.fee))return false;}
     if(PF.len&&!inR(p.w,PF.len))return false;
@@ -635,11 +642,11 @@ function drawProgs(){
     len:p=>p.w??1e9,start:p=>p.ns?Date.parse(p.ns):1e15,school:p=>SC[p.sc].n+" "+p.n};
   const k=K[pSort];
   pList=D.progs.filter(ok).sort((a,b)=>{const x=k(a),y=k(b);return x<y?-1:x>y?1:0;});
-  const isbN=pList.filter(p=>p.sc==="isb").length, nwN=pList.filter(p=>p.launch).length;
-  const filtered=PF.q||PF.sc||PF.g||PF.th||PF.f||PF.lv||PF.fee||PF.len||PF.nw;
+  const isbN=pList.filter(p=>p.sc==="isb").length, nwN=pList.filter(p=>p.launch).length, gnN=pList.filter(p=>p.gone).length;
+  const filtered=PF.q||PF.sc||PF.g||PF.th||PF.f||PF.lv||PF.fee||PF.len||PF.nw||PF.hd;
   if($("latest")) $("latest").hidden=!!filtered;
   $("ptitle").textContent=PF.q?`Programmes matching “${PF.q}”`:filtered?"Programmes matching your filters":"All programmes";
-  $("pcount").textContent=`${pList.length} found${isbN?` · ${isbN} at ISB`:""}${nwN?` · ${nwN} new launches`:""}`;
+  $("pcount").textContent=`${pList.length} found${isbN?` · ${isbN} at ISB`:""}${nwN?` · ${nwN} new launches`:""}${gnN?` · ${gnN} likely discontinued`:""}`;
   // topics that match the words, with their call: the "so what" of a search
   const tops=PF.q?D.topics.filter(t=>hit([t.n,t.st].join(" ").toLowerCase(),PF.q)).slice(0,3):[];
   $("ptopics").innerHTML=tops.length?`<div class="explain" style="max-width:none">${tops.map(t=>`<div style="padding:4px 0"><a href="#/topic/${t.id}"><b>${esc(t.n)}</b></a> ${pill(t.call)} <span class="meta">${demText(t)} · ${t.peers?plural(t.peers,"other school"):"no other school"} · ISB: ${t.isb||"none"}</span></div>`).join("")}</div>`:"";
@@ -651,7 +658,8 @@ function csv(){
   const cols=[["school",p=>SC[p.sc].n],["programme",p=>p.n],["theme",p=>T[p.t].th],["sub_theme",p=>T[p.t].st],["topic",p=>T[p.t].n],["call",p=>T[p.t].call],
     ["format",p=>p.f],["level",p=>p.lv],["weeks",p=>p.w],["fee_as_published",p=>p.fr],["fee_inr",p=>p.inr],["next_start",p=>p.ns],
     ["new_launch",p=>p.launch?(p.launch.ld||"probable"):""],["partner",p=>p.pt],
-    ["link",p=>(links(p)[0]||[])[1]],["landing_page",p=>p.lu],["programme_page",p=>p.u],["brochure",p=>p.bu]];
+    ["link",p=>(links(p)[0]||[])[1]],["landing_page",p=>p.lu],["programme_page",p=>p.u],["brochure",p=>p.bu],
+    ["status",p=>p.gone?"likely discontinued: "+p.gone:""]];
   const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
   const body=[cols.map(c=>c[0]).join(",")].concat(pList.map(p=>cols.map(c=>q(c[1](p))).join(","))).join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+body],{type:"text/csv"}));a.download="exec-ed-programmes.csv";a.click();

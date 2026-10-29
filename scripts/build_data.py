@@ -104,6 +104,8 @@ for p in prog:
         # the name links to the first of these the page has: landing page, programme page, brochure
         'lu': specific(g(p, 'landing_url')), 'u': specific(p['url']), 'bu': specific(g(p, 'brochure_url')),
         'conf': p['match_confidence'], 'cat': clip(p['school_category'], 100),
+        # why the programme looks discontinued; blank while it is on sale
+        'gone': g(p, 'status_note') if g(p, 'status') else '',
         'prov': g(p, 'provenance'), 'lvf': g(p, 'last_verified')[:10], 'runs': int(p['scheduled_runs'] or 1)})
 
 topics = []
@@ -192,6 +194,7 @@ d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'quality': {'queue': len(q), 'noFee': sum(1 for p in progs if p['inr'] is None),
                  'noStart': sum(1 for p in progs if not p['ns']),
                  'fromSheet': sum(1 for p in progs if p['prov'] == 'team-sheet'),
+                 'gone': sum(1 for p in progs if p['gone']),
                  'signals': len(L('data/demand_all.csv'))}}
 (R / 'site' / 'data.json').write_text(json.dumps(d, separators=(',', ':'), ensure_ascii=False), encoding='utf-8')
 print('site/data.json written:', len(json.dumps(d)), 'bytes;', len(progs), 'programmes')

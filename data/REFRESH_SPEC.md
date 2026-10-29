@@ -19,7 +19,8 @@ school websites. This task is the part that does, and it only fetches what is mi
    - If `url` is a school home page, catalogue index or calendar, replace it with the programme's own page; fill
      `landing_url` and `brochure_url` when the page links to them (public URLs only).
 3. If the page is gone and the school's catalogue no longer lists the programme, delete the
-   row. If you are unsure, leave it and write the reason in `source_note`.
+   row. If you are unsure, keep it: set `status` to `likely discontinued` and say why, with the
+   date, in `status_note`; the dashboard marks it. Clear both if the programme turns out to be on sale.
 4. New programmes on a school's catalogue page that we do not hold: add a row with
    `provenance=catalogue-capture` and today's `last_verified`.
 5. Never invent a fee, date or topic. Blank beats a guess.
