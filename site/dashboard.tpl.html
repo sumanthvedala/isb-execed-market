@@ -88,7 +88,14 @@ section>header h2{font-size:22px}
 .rows{border-top:1px solid var(--rule)}
 .r{display:grid;grid-template-columns:var(--cols,minmax(0,1fr) 110px 110px 90px 90px);gap:14px;align-items:baseline;
   padding:10px 0;border-bottom:1px solid var(--rule);text-decoration:none}
-a.r:hover{background:var(--wash)}
+a.r:hover,.r[data-go]:hover{background:var(--wash)}
+.r[data-go]{cursor:pointer}
+/* a programme's name opens its own page at the school, in a new tab */
+a.ext{text-decoration-color:currentColor;text-decoration-thickness:1px}
+a.ext::after{content:"↗";display:inline-block;margin-left:3px;font-size:.72em;color:var(--ink-3);text-decoration:none}
+.golinks{display:flex;gap:10px 20px;flex-wrap:wrap;align-items:center;margin:6px 0 20px;font-size:15px}
+.golinks a.go1{text-decoration:none;background:var(--isb);color:var(--paper);font-weight:600;padding:10px 20px;border-radius:999px}
+.golinks a.go1:hover{filter:brightness(1.12)}
 .r .n{font-weight:500;line-height:1.35;font-size:16px}
 .r .s{font-size:var(--t4);color:var(--ink-3);margin-top:2px}
 .r .c{font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
@@ -236,6 +243,12 @@ const CALLSAYS={
   WATCH:"Many other schools sell this, but little research shows demand.",
   REVIEW:"ISB sells this, but little research shows demand and few other schools sell it. Check enrolments before deciding."};
 const pill=c=>c?`<span class="call cl-${c}">${CALL[c]}</span>`:"";
+// where a programme's name takes you: its landing page, else its page in the
+// school's catalogue, else its brochure
+const LINKS={lu:"Landing page",u:"Programme page",bu:"Brochure"};
+const links=p=>Object.keys(LINKS).filter(k=>p[k]).map(k=>[LINKS[k],p[k]]);
+const ext=(u,t,cls="ext")=>`<a class="${cls}" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`;
+const nameLink=p=>{const l=links(p)[0];return l?ext(l[1],esc(p.n)):esc(p.n);};
 const callLine=t=>t.call?`${pill(t.call)} ${CALLSAYS[t.call]}`:`No call yet: not enough demand evidence or activity by other schools to make one.`;
 // "demand" said in words: the score is how much published research says
 // employers and executives need this (2 per independent report up to 5,
@@ -286,11 +299,11 @@ function strip(list,mark){
 const COMPACT="--cols:minmax(0,1fr) 92px 78px 70px";
 function progRow(p,opt={}){
   const s=SC[p.sc];
-  return `<a class="r ${p.sc==="isb"?"isbrow":""}" href="#/p/${p.i}" style="${opt.compact?COMPACT:""}">
-    <span><div class="n">${esc(p.n)}${newTag(p.launch)}${p.new?'<span class="mark">added this month</span>':""}</div>
+  return `<div class="r ${p.sc==="isb"?"isbrow":""}" data-go="#/p/${p.i}" tabindex="0" style="${opt.compact?COMPACT:""}">
+    <span><div class="n">${nameLink(p)}${newTag(p.launch)}${p.new?'<span class="mark">added this month</span>':""}</div>
       <div class="s">${esc(s.l)}${p.pt?` · with ${esc(p.pt)}`:""}${opt.topic?` · ${esc(T[p.t].n)}`:""}</div></span>
     <span class="c hm">${esc(p.f==="Self-paced Online"?"Self-paced":p.f)}</span><span class="c hm">${wk(p.w)}</span>
-    <span class="c">${p.inr?lakh(p.inr):"—"}</span>${opt.compact?"":`<span class="c hm">${p.ns?fmtD(p.ns):"—"}</span>`}</a>`;
+    <span class="c">${p.inr?lakh(p.inr):"—"}</span>${opt.compact?"":`<span class="c hm">${p.ns?fmtD(p.ns):"—"}</span>`}</div>`;
 }
 const progHead=(c)=>c?`<div class="r hd" style="${COMPACT}"><span>Programme</span><span>Format</span><span>Length</span><span>Fee</span></div>`
   :`<div class="r hd"><span>Programme</span><span>Format</span><span>Length</span><span>Fee</span><span>Next start</span></div>`;
@@ -376,7 +389,8 @@ function programme(i){
   const row=(k,v)=>`<div><dt>${k}</dt><dd class="${v?"":"none"}">${v||"not published"}</dd></div>`;
   const feats=[p.cap==="Yes"&&"capstone",p.imm==="Yes"&&"campus immersion",p.iv==="Yes"&&"industry visit"].filter(Boolean);
   $("view").innerHTML=`<p class="meta"><span class="${p.sc==="isb"?"isb":""}">${esc(SC[p.sc].n)}</span> · <a href="#/topic/${p.t}">${esc(t.n)}</a></p>
-    <h1 class="read">${esc(p.n)}</h1>
+    <h1 class="read">${nameLink(p)}</h1>
+    <p class="golinks">${links(p).map(([k,u],j)=>ext(u,`${k} ↗`,j?"":"go1")).join("")||`<span class="meta">No landing page, programme page or brochure on record yet.</span>`}</p>
     ${p.inr&&med&&f.length>=3?`<p class="lead read">${lakh(p.inr)}, ${p.inr>med?`${Math.round(100*(p.inr/med-1))}% above`:`${Math.round(100*(1-p.inr/med))}% below`} the typical fee of the ${f.length} most similar programmes at other schools.</p>`:""}
     <dl class="facts">${row("Format",esc(p.f))}${row("Length",esc(p.dr||(p.w?wk(p.w):"")))}${row("Fee as published",esc(p.fr))}
       ${row("Level",esc(LV(p.lv)))}${row("Next start",p.ns?fmtD(p.ns):"")}${row("Delivered with",esc(p.pt))}${row("Includes",feats.join(", "))}${row("Topic call",t.call?CALL[t.call]:"")}</dl>
@@ -385,7 +399,7 @@ function programme(i){
     ${strip([p,...peers])}
     <section><header><h2>Most similar programmes at other schools</h2><span class="meta">matched on topic, then format, level and length</span></header>
       ${peers.length?`<div class="rows">${progHead()}${peers.map(q=>progRow(q)).join("")}</div>`:`<p class="meta">No other school sells a programme in the same topic or sub-theme.</p>`}</section>
-    <p class="meta" style="margin-top:28px">${p.u?`<a href="${esc(p.u)}" target="_blank" rel="noopener">Source page</a> · `:""}${
+    <p class="meta" style="margin-top:28px">${
       p.prov==="team-sheet"?"From the team's competitor sheet"+(p.lvf?`, confirmed ${fmtD(p.lvf)}`:", not yet confirmed on a live page"):`Captured from the school's catalogue${p.lvf?`, verified ${fmtD(p.lvf)}`:""}`}.${
       p.conf==="low"||p.conf==="fallback"?" Topic matched on a broad keyword; check it before quoting.":""}</p>`;
 }
@@ -424,8 +438,8 @@ function portfolio(){
       <p class="meta" style="margin-top:8px">A positive gap means other schools put more of their catalogue there than ISB does, in percentage points.</p></section>
     <section id="price"><header><h2>How ISB is priced</h2><span class="meta">each ISB programme against the typical fee of the most similar programmes at other schools</span></header>
       <div class="rows"><div class="r hd" style="--cols:minmax(0,1fr) 100px 120px 70px"><span>ISB programme</span><span>ISB fee</span><span>Typical fee elsewhere</span><span>Gap</span></div>
-      ${pp.map(x=>`<a class="r isbrow" href="#/p/${x.p.i}" style="--cols:minmax(0,1fr) 100px 120px 70px"><span class="n">${esc(x.p.n)}</span>
-        <span class="c">${lakh(x.p.inr)}</span><span class="c hm">${lakh(x.med)} <span class="meta">(${x.n})</span></span><span class="c">${x.gap>0?"+":""}${Math.round(x.gap)}%</span></a>`).join("")}</div>
+      ${pp.map(x=>`<div class="r isbrow" data-go="#/p/${x.p.i}" tabindex="0" style="--cols:minmax(0,1fr) 100px 120px 70px"><span class="n">${nameLink(x.p)}</span>
+        <span class="c">${lakh(x.p.inr)}</span><span class="c hm">${lakh(x.med)} <span class="meta">(${x.n})</span></span><span class="c">${x.gap>0?"+":""}${Math.round(x.gap)}%</span></div>`).join("")}</div>
       <p class="meta" style="margin-top:8px">Fees in other currencies are converted at fixed planning rates (${Object.entries(D.fx).map(([k,v])=>k+" "+v).join(", ")}), not live rates.</p></section>
     <section><header><h2>Who sells what</h2><span class="meta">programmes by theme; click a theme for its sub-themes</span></header>
       <div class="scroll"><table class="cov" style="width:100%;border-collapse:collapse" id="cov"></table></div></section>`;
@@ -473,7 +487,7 @@ function launches(q){
       <div class="r hd" style="${LCOLS}"><span>Launched</span><span>Programme</span><span>School</span><span>First cohort</span><span>Fee</span></div>
       ${list.map(r=>`<details class="r ${r.prob?"prob":""}" style="${LCOLS}"><summary>
         <span class="c">${r.basis==="launch"?fmtD(r.ld):r.basis==="first cohort"?fmtD(r.eff)+'<div class="s">first cohort ran</div>':'<span class="meta">not published</span>'}</span>
-        <span><div class="n">${esc(r.n)}${r.prob?'<span class="mark">probable</span>':""}</div><div class="s">${esc(r.ev)}</div></span>
+        <span><div class="n">${launchName(r)}${r.prob?'<span class="mark">probable</span>':""}</div><div class="s">${esc(r.ev)}</div></span>
         <span class="c">${esc(SC[r.sc].l)}</span><span class="c hm">${esc(r.fc)}</span><span class="c hm">${esc(r.fee)}</span></summary>
         <dl class="facts" style="margin:10px 0 6px">
           <div><dt>Format</dt><dd>${esc(r.f)}</dd></div><div><dt>Duration</dt><dd>${esc(r.dur)}</dd></div>
@@ -523,8 +537,12 @@ if(D.launches) D.launches.rows.forEach(r=>{
   D.progs.forEach(p=>{if(p.sc!==r.sc||p.launch) return; const b=ltok(p.n);
     const miss=[...a].filter(w=>!b.has(w)).length, extra=[...b].filter(w=>!a.has(w)).length;
     if(miss===0&&extra<=1&&extra<bd){best=p;bd=extra;}});
-  if(best) best.launch=r;
+  if(best){best.launch=r;r.p=best;}
 });
+// a launch's name goes to the programme's own page where the catalogue holds it,
+// else to the register's source (programme page or launch article)
+const launchLink=r=>{const l=r.p&&links(r.p)[0];return l?l[1]:r.u;};
+const launchName=r=>launchLink(r)?ext(launchLink(r),esc(r.n)):esc(r.n);
 const lDate=r=>r.basis==="launch"?fmtD(r.ld):fmtD(r.eff);
 const newTag=r=>r?`<span class="newtag ${r.prob?"prob":""}">${r.prob?"New, launch date not published":"New launch, "+lDate(r)}</span>`:"";
 const PF={q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",nw:false}; let pSort="best", pShown=60, pList=[];
@@ -551,8 +569,8 @@ function search(q){
       <div class="chips" id="try"><span>Popular:</span>${TRY.map(t=>`<button type="button" class="chip" data-q="${esc(t)}">${esc(t)}</button>`).join("")}</div>
     </div>
     ${latest.length?`<section style="margin-top:36px" id="latest"><header><h2>Just launched by other schools</h2><a href="#/launches" style="font-size:15px">See all ${D.launches.rows.length} new launches →</a></header>
-      <div class="rows">${latest.map(r=>`<a class="r" href="#/launches?q=${encodeURIComponent(r.n.split(/[(:]/)[0].trim())}" style="--cols:minmax(0,1fr) 90px 130px">
-        <span><div class="n">${esc(r.n)}</div><div class="s">${esc(r.ev)}</div></span><span class="c">${esc(SC[r.sc].l)}</span><span class="c">${lDate(r)}</span></a>`).join("")}</div></section>`:""}
+      <div class="rows">${latest.map(r=>`<div class="r" data-go="#/launches?q=${encodeURIComponent(r.n.split(/[(:]/)[0].trim())}" tabindex="0" style="--cols:minmax(0,1fr) 90px 130px">
+        <span><div class="n">${launchName(r)}</div><div class="s">${esc(r.ev)}</div></span><span class="c">${esc(SC[r.sc].l)}</span><span class="c">${lDate(r)}</span></div>`).join("")}</div></section>`:""}
     <section style="margin-top:40px"><header><h2 id="ptitle">All programmes</h2><span class="meta" id="pcount"></span></header>
     <div class="tools" style="gap:8px">
       <select class="pill" id="pg" aria-label="School">${o([["","All schools"],["isb","ISB only"],["India","Indian schools"],["Global","Global schools"],["Platform","Platforms"],...D.schools.filter(s=>s.s!=="isb").map(s=>["s:"+s.s,s.n])],PF.sc==="isb"?"isb":PF.sc?"s:"+PF.sc:PF.g)}</select>
@@ -614,7 +632,8 @@ function drawProgs(){
 function csv(){
   const cols=[["school",p=>SC[p.sc].n],["programme",p=>p.n],["theme",p=>T[p.t].th],["sub_theme",p=>T[p.t].st],["topic",p=>T[p.t].n],["call",p=>T[p.t].call],
     ["format",p=>p.f],["level",p=>p.lv],["weeks",p=>p.w],["fee_as_published",p=>p.fr],["fee_inr",p=>p.inr],["next_start",p=>p.ns],
-    ["new_launch",p=>p.launch?(p.launch.ld||"probable"):""],["partner",p=>p.pt],["url",p=>p.u]];
+    ["new_launch",p=>p.launch?(p.launch.ld||"probable"):""],["partner",p=>p.pt],
+    ["link",p=>(links(p)[0]||[])[1]],["landing_page",p=>p.lu],["programme_page",p=>p.u],["brochure",p=>p.bu]];
   const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
   const body=[cols.map(c=>c[0]).join(",")].concat(pList.map(p=>cols.map(c=>q(c[1](p))).join(","))).join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+body],{type:"text/csv"}));a.download="exec-ed-programmes.csv";a.click();
@@ -698,7 +717,7 @@ function testResult(v){
       ${isbHere.length||isbNear.length?`<div class="rows">${progHead(1)}${[...isbHere,...isbNear].map(p=>progRow(p,{compact:1})).join("")}</div>
         <p class="meta" style="margin-top:6px">${isbOn(t.id).sold.length?"Same topic: check for overlap before launching.":isbHere.length?"These teach the topic as a module; a dedicated programme would sit next to them.":"Same sub-theme, different topic: a natural place to extend from."}</p>`:`<p class="meta">ISB sells nothing in this topic or its sub-theme.</p>`}</section>
     <section><header><h2>Similar launches by other schools in the last year</h2></header>
-      ${recent.length?`<div class="rows">${recent.map(r=>`<a class="r ${r.prob?"prob":""}" href="${esc(r.u)}" target="_blank" rel="noopener" style="--cols:minmax(0,1fr) 80px 120px">
+      ${recent.length?`<div class="rows">${recent.map(r=>`<a class="r ${r.prob?"prob":""}" href="${esc(launchLink(r))}" target="_blank" rel="noopener" style="--cols:minmax(0,1fr) 80px 120px">
         <span><div class="n">${esc(r.n)}</div><div class="s">${esc(r.ev)}</div></span><span class="c">${esc(SC[r.sc].l)}</span><span class="c">${r.ld?fmtD(r.ld):r.prob?"probable":fmtD(r.eff)}</span></a>`).join("")}</div>
         <p class="meta" style="margin-top:6px">Matched on shared words in the title and description, so check each one.</p>`:`<p class="meta">None of the ${L?L.rows.length:0} launches by other schools in the last year shares two or more key words with this idea.</p>`}</section>`;
 }
@@ -707,7 +726,7 @@ function testResult(v){
 function updates(){
   const c=D.changes;
   const lst=(h,l)=>l&&l.length?`<section><header><h2>${h}</h2><span class="meta">${l.length}</span></header><div class="rows">${l.map(x=>{const p=D.progs.find(q=>q.sc===x[0]&&q.n===x[1]);
-    return `<${p?`a href="#/p/${p.i}"`:"div"} class="r" style="--cols:80px minmax(0,1fr)"><span class="c">${esc(SC[x[0]]?SC[x[0]].l:x[0])}</span><span class="n">${esc(x[1])}${x[2]&&x[3]?` <span class="meta">${esc(x[2])} → ${esc(x[3])}</span>`:""}</span></${p?"a":"div"}>`;}).join("")}</div></section>`:"";
+    return `<div class="r" ${p?`data-go="#/p/${p.i}" tabindex="0"`:""} style="--cols:80px minmax(0,1fr)"><span class="c">${esc(SC[x[0]]?SC[x[0]].l:x[0])}</span><span class="n">${p?nameLink(p):esc(x[1])}${x[2]&&x[3]?` <span class="meta">${esc(x[2])} → ${esc(x[3])}</span>`:""}</span></div>`;}).join("")}</div></section>`:"";
   $("view").innerHTML=`<h1 class="read">Updates</h1>
     <p class="lead read">The catalogue refreshes on the 1st of each month and is compared with the month before. Last refresh ${esc(D.whatsnew.ran)}; next ${esc(D.whatsnew.next)}.</p>
     ${c?lst(`Added since ${fmtD(c.since)}`,c.added)+lst("Dropped",c.dropped)+lst("Repriced",c.repriced)+
@@ -758,6 +777,9 @@ function route(){
   if(q.at&&$(q.at)) $(q.at).scrollIntoView(); else window.scrollTo(0,0);
 }
 window.addEventListener("hashchange",route);
+// a row opens the programme's comparison page; the name inside it goes to the school's own page
+document.addEventListener("click",e=>{const r=e.target.closest("[data-go]");if(r&&!e.target.closest("a,button,input,select,summary"))location.hash=r.dataset.go;});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.go)location.hash=e.target.dataset.go;});
 $("foot").innerHTML=`<p>Built from ${D.schools.length} schools' and platforms' own catalogues, ${D.quality.signals} published demand signals and the Product Team's register of new launches. ISB's programmes are checked against live pages; other schools' catalogues are captured in bulk and tagged by keyword, so their counts are indicative. There is no ISB enrolment, revenue or feedback data here yet. Fees in other currencies use fixed planning rates set on ${esc(D.fxDate)}. Out of scope: degree programmes, custom programmes, Coursera and edX.</p>
   <p><a href="#/updates">Updates</a> · refreshed ${esc(D.whatsnew.ran)}</p>`;
 route();

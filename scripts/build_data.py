@@ -2,7 +2,7 @@
 """Builds site/data.json from the analysis outputs. Run after analyse.py and
 demand_index.py. Keeping this separate from the page means a refresh rewrites
 one JSON file and the HTML diff stays empty."""
-import csv, json, glob, collections, pathlib, datetime, re
+import csv, json, glob, collections, pathlib, datetime, re, urllib.parse
 R = pathlib.Path(__file__).resolve().parent.parent
 L = lambda p: list(csv.DictReader(open(R / p, encoding='utf-8')))
 num = lambda v: float(v) if re.fullmatch(r'\d+(\.\d+)?', (v or '').strip()) else None
@@ -25,6 +25,23 @@ clip = lambda s, n: (s[:n] + '…') if len(s) > n else s
 
 def g(p, k):
     return ((raw.get((p['school_slug'], p['programme_name'].strip())) or {}).get(k, '') or '').strip()
+
+
+_shared = collections.Counter(p['url'].strip() for p in prog)
+
+
+def specific(u):
+    """a link that names one programme, not a school's home page, catalogue
+    index or calendar; a URL several programmes share is an index too"""
+    u = (u or '').strip()
+    if not u.startswith('http') or _shared[u] >= 3:
+        return ''
+    path = urllib.parse.urlparse(u).path.strip('/').lower()
+    if path in ('', 'index.php', 'index.html', 'en', 'programmes', 'programs', 'courses', 'partner-programmes',
+                'for-individuals', 'executive-education', 'view-all-programs', 'all-programs') \
+            or re.search(r'course-calend[ae]r|universities-and-institutes/[^/]+$', path):
+        return ''
+    return u
 
 
 def inr(p):
@@ -82,7 +99,9 @@ for p in prog:
         'ns': first_date(g(p, 'next_start'), future=True), 'ls': first_date(g(p, 'last_known_start')),
         'cap': g(p, 'capstone'), 'imm': g(p, 'campus_immersion'), 'iv': g(p, 'industry_visit'),
         'ta': clip(g(p, 'target_audience'), 200), 'kt': clip(g(p, 'key_topics'), 300),
-        'u': p['url'], 'conf': p['match_confidence'], 'cat': clip(p['school_category'], 100),
+        # the name links to the first of these the page has: landing page, programme page, brochure
+        'lu': specific(g(p, 'landing_url')), 'u': specific(p['url']), 'bu': specific(g(p, 'brochure_url')),
+        'conf': p['match_confidence'], 'cat': clip(p['school_category'], 100),
         'prov': g(p, 'provenance'), 'lvf': g(p, 'last_verified')[:10], 'runs': int(p['scheduled_runs'] or 1)})
 
 topics = []

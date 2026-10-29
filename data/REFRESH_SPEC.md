@@ -16,6 +16,8 @@ school websites. This task is the part that does, and it only fetches what is mi
    - `duration` → `duration_raw` verbatim, plus `duration_days` (campus) or `duration_weeks`.
    - `next_start` → ISO date of the next cohort that has not started yet.
    - Set `last_verified` to today's date on every row you open, whether or not you changed it.
+   - If `url` is a school home page, catalogue index or calendar, replace it with the programme's own page; fill
+     `landing_url` and `brochure_url` when the page links to them (public URLs only).
 3. If the page is gone and the school's catalogue no longer lists the programme, delete the
    row. If you are unsure, leave it and write the reason in `source_note`.
 4. New programmes on a school's catalogue page that we do not hold: add a row with

@@ -48,7 +48,9 @@ CAT_FIELDS = ['school', 'school_slug', 'region', 'programme_name', 'url', 'schoo
               'source_note', 'channel', 'mark',
               # added with the team-sheet merge
               'last_known_start', 'end_date', 'capstone', 'campus_immersion', 'industry_visit',
-              'total_modules', 'alumni_status', 'eligibility', 'provenance', 'last_verified']
+              'total_modules', 'alumni_status', 'eligibility', 'provenance', 'last_verified',
+              # where a programme name links to, best first: landing page, url, brochure
+              'landing_url', 'brochure_url']
 FILLABLE = ['url', 'format', 'duration_raw', 'duration_days', 'duration_weeks', 'fee_raw', 'fee_currency',
             'fee_amount', 'level', 'target_audience', 'next_start', 'last_known_start', 'end_date',
             'capstone', 'campus_immersion', 'industry_visit', 'total_modules', 'alumni_status', 'eligibility']
