@@ -28,13 +28,15 @@ def g(p, k):
 
 
 _shared = collections.Counter(p['url'].strip() for p in prog)
+_AGGREGATORS = r'shiksha|careers360|collegedunia|collegedekho|riseupp|iimjobs|coursereport|careervira|scribd'
 
 
 def specific(u):
     """a link that names one programme, not a school's home page, catalogue
-    index or calendar; a URL several programmes share is an index too"""
+    index or calendar; a URL several programmes share is an index too, and a
+    course aggregator's listing is not the programme's own page"""
     u = (u or '').strip()
-    if not u.startswith('http') or _shared[u] >= 3:
+    if not u.startswith('http') or _shared[u] >= 3 or re.search(_AGGREGATORS, urllib.parse.urlparse(u).netloc):
         return ''
     path = urllib.parse.urlparse(u).path.strip('/').lower()
     if path in ('', 'index.php', 'index.html', 'en', 'programmes', 'programs', 'courses', 'partner-programmes',
