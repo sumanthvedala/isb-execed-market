@@ -1,11 +1,11 @@
 name: Refresh theme map
 on:
   schedule:
-    - cron: '0 2 1 * *'      # 02:00 UTC on the 1st of each month
+    - cron: '0 2 * * 1'      # every Monday, 02:00 UTC (07:30 IST)
   workflow_dispatch:          # and on demand from the Actions tab
-  push:                       # and whenever the monthly Claude refresh commits catalogue fixes
+  push:                       # and whenever a refresh session commits catalogue fixes
     branches: [main]
-    paths: ['data/**', 'scripts/**', 'site/dashboard.tpl.html', '.github/workflows/**']
+    paths: ['data/**', 'scripts/**', 'site/dashboard.tpl.html', 'site/fonts/**', 'site/brand/**', '.github/workflows/**']
 permissions:
   contents: write
   pages: write
@@ -25,6 +25,7 @@ jobs:
           python scripts/analyse.py
           python scripts/demand_index.py
           python scripts/refresh_queue.py
+          python scripts/link_audit.py
           python scripts/build_data.py
           python scripts/build_site.py
       - name: Guardrail - fail if any school's product count moved more than 10%
@@ -34,7 +35,7 @@ jobs:
           git config user.name "theme-map-bot"
           git config user.email "actions@github.com"
           git add -A
-          git diff --staged --quiet || git commit -m "Monthly refresh $(date -u +%Y-%m-%d)"
+          git diff --staged --quiet || git commit -m "Weekly refresh $(date -u +%Y-%m-%d)"
           git push
       - uses: actions/upload-pages-artifact@v3
         with: {path: site}
