@@ -12,12 +12,15 @@ today=datetime.date.today().strftime('%Y-%m')
 prev=[p for p in sorted(snapdir.glob('20??-??.json')) if p.stem<today]
 old=json.loads(prev[-1].read_text()) if prev else {}
 (snapdir/f'{today}.json').write_text(json.dumps(dict(cur),indent=1))
-# programme-level snapshot: next month's build diffs against it to show what
-# peers added, dropped or repriced (build_data.py reads these)
-with open(snapdir/f'programmes-{today}.csv','w',newline='',encoding='utf-8') as f:
-    w=csv.writer(f,quoting=csv.QUOTE_ALL); w.writerow(['school_slug','programme_name','topic_id','format','fee_currency','fee_amount'])
-    for r in csv.DictReader(open(ROOT/'programmes_tagged.csv',encoding='utf-8')):
-        w.writerow([r['school_slug'],r['programme_name'],r['topic_id'],r['format'],r['fee_currency'],r['fee_amount']])
+# programme-level snapshots: the next build diffs against them to show what
+# peers added, dropped or repriced (build_data.py reads these). One per month,
+# kept for the record, and one per ISO week, which the weekly brief compares with.
+iso=datetime.date.today().isocalendar()
+for name in (f'programmes-{today}.csv', f'programmes-{iso[0]}-W{iso[1]:02d}.csv'):
+    with open(snapdir/name,'w',newline='',encoding='utf-8') as f:
+        w=csv.writer(f,quoting=csv.QUOTE_ALL); w.writerow(['school_slug','programme_name','topic_id','format','fee_currency','fee_amount'])
+        for r in csv.DictReader(open(ROOT/'programmes_tagged.csv',encoding='utf-8')):
+            w.writerow([r['school_slug'],r['programme_name'],r['topic_id'],r['format'],r['fee_currency'],r['fee_amount']])
 # the call on each topic, so next month's "What's new" can say which calls moved
 with open(snapdir/f'calls-{today}.csv','w',newline='',encoding='utf-8') as f:
     w=csv.writer(f,quoting=csv.QUOTE_ALL); w.writerow(['topic_id','call'])

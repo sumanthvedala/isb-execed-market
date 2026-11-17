@@ -58,6 +58,30 @@ def cxo(p):
     return 1 if _CXO_NAME.search(p['programme_name']) or _CXO_CAT.search(p['school_category'] or '') else 0
 
 
+# Programme type: the grouping every school page, tile, filter and median uses.
+# Each programme has exactly one type, so a C-suite programme never appears again
+# under its format. Topic-focused programmes (TFP, ISB's own term) are short
+# programmes on one topic: up to two weeks of contact on campus, or under 12
+# weeks online. Longer online programmes, live or cohort-based, count as live online.
+TYPES = ['C-suite', 'Blended', 'Live online', 'TFP campus', 'TFP online', 'Long campus', 'Self-paced', 'Not published']
+
+
+def ptype(p, fmt, w):
+    if cxo(p):
+        return 'C-suite'
+    if fmt == 'Blended':
+        return 'Blended'
+    if fmt == 'Online':                      # cohort-based online courses are short unless they say otherwise
+        return 'Live online' if w is not None and w >= 12 else 'TFP online'
+    if fmt == 'Live Online':
+        return 'TFP online' if w is not None and w < 12 else 'Live online'
+    if fmt == 'Campus':
+        return 'Long campus' if w is not None and w > 2 else 'TFP campus'
+    if fmt == 'Self-paced Online':
+        return 'Self-paced'
+    return 'Not published'
+
+
 def inr(p):
     a, c = num(p['fee_amount']), p['fee_currency']
     return round(a * fx[c]) if a and c in fx else None
@@ -115,6 +139,7 @@ for p in prog:
         'ta': clip(g(p, 'target_audience'), 200), 'kt': clip(g(p, 'key_topics'), 300),
         # the name links to the first of these the page has: landing page, programme page, brochure
         'lu': page(g(p, 'landing_url')), 'u': page(p['url']), 'bu': brochure(p), 'cx': cxo(p),
+        'ty': ptype(p, p['format'].split(';')[0].strip(), weeks(p)),
         'conf': p['match_confidence'], 'cat': clip(p['school_category'], 100),
         # why the programme looks discontinued; blank while it is on sale
         'gone': g(p, 'status_note') if g(p, 'status') else '',
@@ -134,14 +159,32 @@ for t in tax:
         # keyword phrases, so the page can match a typed programme idea to topics
         'kw': [k.strip().lower() for k in t['keywords'].split(';') if k.strip()]})
 
-# programme-level change since the latest snapshot from an earlier month
-this_month = datetime.date.today().strftime('%Y-%m')
-snaps = [p for p in sorted((R / 'snapshots').glob('programmes-*.csv')) if p.stem[-7:] < this_month]
+# programme-level change since the latest snapshot taken before this week began.
+# Snapshots are weekly (programmes-YYYY-Www.csv, dated by their Monday) and, from
+# before the weekly refresh, monthly (programmes-YYYY-MM.csv, dated by the month's end).
+_monday = datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())
+
+
+def _snap_date(path):
+    k = path.stem[len('programmes-'):]
+    m = re.fullmatch(r'(\d{4})-W(\d{2})', k)
+    if m:
+        return datetime.date.fromisocalendar(int(m.group(1)), int(m.group(2)), 1), k
+    m = re.fullmatch(r'(\d{4})-(\d{2})', k)
+    if m:
+        y, mo = int(m.group(1)), int(m.group(2))
+        return (datetime.date(y + mo // 12, mo % 12 + 1, 1) - datetime.timedelta(days=1)), k
+    return None, k
+
+
+snaps = sorted((d, k, p) for p in (R / 'snapshots').glob('programmes-*.csv') for d, k in [_snap_date(p)] if d and d < _monday)
 changes = None
 if snaps:
-    old = {(r['school_slug'], r['programme_name']): r for r in csv.DictReader(open(snaps[-1], encoding='utf-8'))}
+    sdate, skey, spath = snaps[-1]
+    old = {(r['school_slug'], r['programme_name']): r for r in csv.DictReader(open(spath, encoding='utf-8'))}
     cur = {(p['school_slug'], p['programme_name']): p for p in prog}
-    changes = {'since': snaps[-1].stem[-7:],
+    # a weekly snapshot is labelled by its Monday, a monthly one by its month
+    changes = {'since': sdate.isoformat() if 'W' in skey else skey, 'weekly': 'W' in skey,
                'added': [[s, n, cur[(s, n)]['topic_id']] for (s, n) in cur.keys() - old.keys()],
                'dropped': [[s, n, old[(s, n)]['topic_id']] for (s, n) in old.keys() - cur.keys()],
                'repriced': [[s, n, old[(s, n)]['fee_amount'], cur[(s, n)]['fee_amount']]
@@ -204,7 +247,8 @@ if changes:
         if (p['sc'], p['n']) in _added:
             p['new'] = 1
 d = {'asof': datetime.date.today().strftime('%d %b %Y'),
-     'schools': [{'s': s['slug'], 'l': s['label'], 'g': s['group'], 'n': s['school']} for s in schools],
+     'schools': [{'s': s['slug'], 'l': s['label'], 'g': s['group'], 'n': s['school'], 'r': s['region']} for s in schools],
+     'types': TYPES,
      'themes': list(dict.fromkeys(t['theme'] for t in tax)),
      'topics': topics, 'progs': progs, 'changes': changes, 'whatsnew': whatsnew, 'launches': launches,
      'fx': {k: v for k, v in fx.items() if k != 'INR'}, 'fxDate': L('data/fx.csv')[0]['set_on'],
