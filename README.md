@@ -80,8 +80,10 @@ Type: Inter (variable "Inter V", SIL Open Font License) for text and Reckless (D
 variable) for headings, both served from `site/fonts/` as WOFF2, so the page calls no font
 host except Google Fonts for the Newsreader fallback. `build_site.py` reads whatever
 Reckless and Inter files are in that folder. It ignores macOS `._` stubs and any file with
-"trial" in its name: a foundry's trial font is for evaluation, not a public website. A logo
-at `site/brand/logo.svg` (for a dark ground) replaces the text mark in the masthead.
+"trial" in its name: a foundry's trial font is for evaluation, not a public website.
+
+Logos are in `site/brand/`: the white ISB Executive Education lockup in the masthead, and
+the colour one for light backgrounds. The ISB 25 mark is not used here.
 
 This repo and its Pages site are public. Anyone can download the font files from either.
 Check that ISB's Reckless licence covers that.

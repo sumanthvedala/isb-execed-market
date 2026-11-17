@@ -40,10 +40,9 @@ button,input,select,textarea{font:inherit;color:inherit;border-radius:0}
 /* masthead: a flat deep-blue bar; the open tab is underlined in teal */
 header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--isb);color:#fff}
 .mast{display:flex;align-items:center;gap:6px 22px;padding-block:12px 0;flex-wrap:wrap}
-.brand{font:400 19px/1.2 var(--serif);color:#fff;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:10px}
-.brand b{font:700 13px/1 var(--sans);letter-spacing:.08em;background:#fff;color:var(--isb);padding:6px 7px}
-.brand img{height:30px;width:auto;display:block}
-.brand span{opacity:.85}
+.brand{font:400 19px/1.2 var(--serif);color:#fff;text-decoration:none;white-space:nowrap;display:flex;align-items:center;gap:16px}
+.brand img{height:36px;width:auto;display:block}
+.brand span{padding-left:16px;border-left:1px solid rgba(255,255,255,.4);line-height:30px}
 nav.main{order:3;flex-basis:100%;display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
 nav.main a{text-decoration:none;font-size:15px;font-weight:500;color:#fff;padding:10px 14px 9px;border-bottom:4px solid transparent;transition:background .12s}
 nav.main a:hover{background:rgba(255,255,255,.12)}
@@ -60,7 +59,7 @@ body.home .find{visibility:hidden}
 .hits a span{display:block;font-size:12px;color:var(--ink-3)}
 @media (max-width:760px){header.top{position:static}.find{order:2;flex-basis:100%;max-width:none;margin-left:0}
   body.home .find{display:none}
-  .brand{font-size:15px;max-width:100%;overflow:hidden}
+  .brand{font-size:15px;max-width:100%;overflow:hidden;gap:12px}.brand img{height:28px}.brand span{padding-left:12px;line-height:24px}
   nav.main{flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;max-width:100%}nav.main a{font-size:14px;padding:9px 12px 8px}.find kbd{display:none}}
 
 main{padding-block:0 80px}
@@ -230,7 +229,7 @@ footer a{color:#fff;text-decoration-color:var(--teal)}
 
 <header class="top">
   <div class="wrap mast">
-    <a class="brand" href="#/"><b>ISB</b><span>Executive Education · Market intelligence</span></a>
+    <a class="brand" href="#/" aria-label="ISB Executive Education, market intelligence"><img src="brand/logo-white.webp" alt="ISB Executive Education" width="640" height="146"><span>Market intelligence</span></a>
     <nav class="main" id="nav">
       <a href="#/">Search programmes</a><a href="#/schools/india">Indian schools</a><a href="#/schools/global">Global schools</a>
       <a href="#/launches">New launches</a><a href="#/test">Test a programme idea</a><a href="#/brief">Monthly brief</a>
