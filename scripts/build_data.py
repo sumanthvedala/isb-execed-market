@@ -201,7 +201,7 @@ log = sorted(L('data/changelog.csv'), key=lambda r: r['date'], reverse=True) \
     if (R / 'data/changelog.csv').exists() else []
 today = datetime.date.today()
 # the refresh runs every Monday (.github/workflows/refresh.yml)
-whatsnew = {'ran': today.strftime('%d %b %Y'),
+whatsnew = {'ran': today.strftime('%d %b %Y'), 'iso': today.isoformat(),
             'next': (today + datetime.timedelta(days=(7 - today.weekday()) or 7)).strftime('%d %b %Y'),
             'log': log[:12]}
 

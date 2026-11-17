@@ -25,7 +25,15 @@ this order, and the refresh is not finished until both are done.
    date, in `status_note`; the dashboard marks it. Clear both if the programme turns out to be on sale.
 4. New programmes on a school's catalogue page that we do not hold: add a row with
    `provenance=catalogue-capture` and today's `last_verified`.
-5. Never invent a fee, date or topic. Blank beats a guess.
+5. New launches, for the Weekly brief: when a school announces a programme it has never run, marks one as
+   new, or opens its first cohort, and the programme is not in `data/peer_launches.csv`, add a row there:
+   `launch_date` (the announcement or page-publish date, ISO), `evidence` (what said so, and when),
+   `first_cohort` and `first_cohort_date` if known, `format`, `duration`, `fee`, `partner`, `url` (the
+   programme's own page) and `source_url` (the announcement). Set `probable` to Y if the school marks it new
+   but gives no date. Renames, revamps, new batches and degrees are not launches. Then set `asof` in
+   `data/peer_launches_meta.json` to today. The Weekly brief lists launches dated in the last 7 and 30 days,
+   so a launch not recorded here does not appear in it.
+6. Never invent a fee, date or topic. Blank beats a guess.
 
 ## Pass 2: make every name open the programme's own page
 

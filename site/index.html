@@ -398,49 +398,31 @@ const progHead=(c)=>c?`<div class="r hd" style="${COMPACT}"><span>Programme</spa
   :`<div class="r hd"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span><span>Next start</span></div>`;
 
 /* ---------- the brief ---------- */
-function pricePositions(){
-  return D.progs.filter(p=>p.sc==="isb"&&p.inr).map(p=>{const f=feePeers(p,"India").map(q=>q.inr).filter(Boolean);
-    return f.length>=3?{p,med:median(f),n:f.length,gap:100*(p.inr/median(f)-1)}:null;}).filter(Boolean);
-}
+/* ---------- the weekly brief: what was launched, nothing else ---------- */
+const addD=(iso,n)=>{const x=new Date(iso.slice(0,10)+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10);};
 function brief(){
-  const L=D.launches, out=[];
-  if(L){
-    const r3=L.rows.filter(r=>r.eff&&r.eff>=addM(L.asof,-3));
-    const ai=r3.filter(r=>isAI(r.n)).length, th=count(r3,r=>r.th).slice(0,2);
-    const who=[...new Set(r3.map(r=>SC[r.sc].l))];
-    out.push({h:`Other schools launched <b>${plural(r3.length,"new programme")}</b> in the three months to ${fmtD(L.asof)}${th.length?`, most of them in ${andList(th.map(([t,n])=>`${esc(t)} (${n})`))}`:""}.`,
-      d:`${who.join(", ")}.${ai?` ${ai} of the ${r3.length} name AI in the title.`:""}`,go:["#/launches?w=3","See the launches"]});
-  }
-  const isb=D.progs.filter(p=>p.sc==="isb");
-  const open=D.topics.filter(t=>!t.isb&&!isbOn(t.id).part.length&&t.dem>=13).sort((a,b)=>b.dem-a.dem||a.peers-b.peers), o1=open[0];
-  if(o1) out.push({h:`The strongest demand ISB does not serve is <b>${esc(o1.n)}</b>: ${plural(o1.srcs,"independent report")} say employers need it, and ${o1.peers?`${plural(o1.peers,"other school")} ${o1.peers===1?"sells":"sell"} it`:"no school we track sells it"}.`,
-    d:`${open.length-1} more topics show strong demand and have no ISB programme.`,go:[`#/topic/${o1.id}`,"Open the topic"]});
-  const def=D.topics.filter(t=>t.isb).sort((a,b)=>b.peers-a.peers)[0];
-  if(def) out.push({h:`ISB's most contested ground is <b>${esc(def.n)}</b>: ${plural(def.isb,"ISB programme")} against ${def.peers} other schools.`,
-    d:`Published research shows ${DEM(def).toLowerCase()} demand for it (${plural(def.srcs,"independent report")}).`,go:[`#/topic/${def.id}`,"See who sells it"]});
-  const zero=D.themes.filter(th=>!isb.some(p=>T[p.t].th===th));
-  if(zero.length){const n=D.progs.filter(p=>zero.includes(T[p.t].th)).length;
-    out.push({h:`ISB sells nothing in <b>${zero.join("; ").replace(/; ([^;]*)$/," or $1")}</b>, where other schools sell ${n} programmes.`,
-      d:`Every other theme has at least one ISB programme.`,go:[`#/?th=${encodeURIComponent(zero[0])}`,"See who sells there"]});}
-  const pp=pricePositions().sort((a,b)=>b.gap-a.gap);
-  if(pp.length){const above=pp.filter(x=>x.gap>0).length;
-    out.push({h:`On <b>${above} of ${pp.length}</b> ISB programmes with a published fee, ISB charges more than the median of its closest Indian peers.`,
-      d:`Widest gap: ${esc(pp[0].p.n)}, ${Math.round(pp[0].gap)}% above.`,go:["#/school/isb","See ISB's programmes"]});}
-  const c=D.changes;
-  if(c){const isbA=c.added.filter(x=>x[0]==="isb").length, pa=c.added.length-isbA;
-    const bits=[isbA&&`ISB added ${isbA} programmes`,pa&&`other schools added ${pa}`,c.dropped.length&&`${c.dropped.length} dropped`,c.repriced.length&&`${c.repriced.length} repriced`].filter(Boolean);
-    out.push({h:`Since ${fmtD(c.since)}: ${bits.length?bits.join(", "):"no catalogue changes"}.`,d:`The catalogue refreshes every Monday. Next: ${esc(D.whatsnew.next)}.`,go:["#/updates","See all updates"]});}
+  const L=D.launches, end=D.whatsnew.iso, c=D.changes;
+  const inWin=from=>L?L.rows.filter(r=>r.eff&&r.eff>=from&&r.eff<=end).sort((a,b)=>a.eff<b.eff?1:-1):[];
+  const w0=addD(end,-6), m0=addD(end,-29), week=inWin(w0), month=inWin(m0);
+  const lrow=r=>`<div class="r ${r.prob?"prob":""}" data-go="#/launches?q=${encodeURIComponent(r.n.split(/[(:]/)[0].trim())}" tabindex="0" style="--cols:minmax(0,1fr) 90px 120px 120px">
+      <span><div class="n">${launchName(r)}</div><div class="s">${[r.th,r.lv!=="Unknown"?r.lv:"",r.f].filter(Boolean).map(esc).join(" · ")}</div></span>
+      <span class="c">${esc(SC[r.sc].l)}</span><span class="c">${lDate(r)}</span><span class="c hm">${esc(r.fee||"")}</span></div>`;
+  const head=`<div class="r hd" style="--cols:minmax(0,1fr) 90px 120px 120px"><span>Programme</span><span>School</span><span>Launched</span><span>Fee</span></div>`;
+  const sec=(h,from,list,empty)=>`<section><header><h2>${h}</h2><span class="meta">${fmtD(from)} to ${fmtD(end)} · ${plural(list.length,"launch","launches")}</span></header>
+    ${list.length?`<div class="rows">${head}${list.map(lrow).join("")}</div>`:`<p class="meta" style="font-size:15px">${empty}</p>`}</section>`;
+  // programmes that appeared in schools' catalogues since last week's snapshot
+  const added=c&&c.weekly?c.added.map(x=>D.progs.find(p=>p.sc===x[0]&&p.n===x[1])).filter(Boolean):[];
+  const latest=L?L.rows.filter(r=>r.eff).sort((a,b)=>a.eff<b.eff?1:-1).slice(0,6):[];
   $("view").innerHTML=band(`<h1>Weekly brief</h1>
-    <p class="lead">What changed in the market and what it means for ISB. ${D.progs.length.toLocaleString("en-IN")} programmes from ISB and ${D.schools.length-1} other schools and platforms, refreshed ${esc(D.whatsnew.ran)}.</p>`)+
-  `<div class="read">
-    ${out.map((s,i)=>`<div class="st ${i?"":"first"}"><p class="say">${s.h}</p><p class="meta">${s.d}</p><a class="go" href="${s.go[0]}">${s.go[1]} →</a></div>`).join("")}
-  </div>
-  <div class="doors">
-    <a href="#/"><b>Search programmes</b><span>Find any of ${D.progs.length.toLocaleString("en-IN")} programmes by topic, role, school or keyword.</span></a>
-    <a href="#/schools/india"><b>Indian schools</b><span>Each school's full catalogue: C-suite, blended, live online and topic-focused programmes.</span></a>
-    <a href="#/schools/global"><b>Global schools</b><span>The same view for the eight global schools we track.</span></a>
-    <a href="#/test"><b>Test a programme idea</b><span>See who already sells something similar, at what price, and whether there is demand.</span></a>
-  </div>`;
+    <p class="lead">What other schools launched this week and this month. Refreshed ${esc(D.whatsnew.ran)}; next refresh ${esc(D.whatsnew.next)}.</p>`)+
+    sec("This week",w0,week,"No launch recorded in the last seven days.")+
+    sec("This month",m0,month,"No launch recorded in the last 30 days.")+
+    (c&&c.weekly?`<section><header><h2>New in school catalogues</h2><span class="meta">since ${fmtD(c.since)} · ${plural(added.length,"programme")}</span></header>
+      ${added.length?`<div class="rows">${progHead()}${added.map(p=>progRow(p,{topic:1})).join("")}</div>`:`<p class="meta" style="font-size:15px">No programme appeared in a school catalogue since last week.</p>`}
+      <p class="meta" style="margin-top:6px">New to our tracking. Some may be older programmes found for the first time, so they are listed apart from confirmed launches.</p></section>`:"")+
+    (!week.length&&!month.length&&latest.length?`<section><header><h2>Latest launches on record</h2><span class="meta">for context, as nothing was recorded in the last 30 days</span></header>
+      <div class="rows">${head}${latest.map(lrow).join("")}</div></section>`:"")+
+    `<p class="meta" style="margin-top:26px">Launches come from the Product Team's register${L?`, last compiled ${fmtD(L.asof)}`:""}, and from the weekly refresh, which adds programmes that schools announce or mark as new. A launch is dated by its announcement, or by its first cohort where that has already run. Renames, revamps, new batches and degrees are not counted. <a href="#/launches">See all ${L?L.rows.length:0} launches of the last 12 months →</a></p>`;
 }
 
 /* ---------- topic ---------- */
