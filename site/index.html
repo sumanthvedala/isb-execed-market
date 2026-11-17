@@ -258,7 +258,7 @@ footer a{color:#fff;text-decoration-color:var(--teal)}
     <a class="brand" href="#/" aria-label="ISB Executive Education, market intelligence"><img src="brand/logo-white.webp" alt="ISB Executive Education" width="640" height="146"><span>Market intelligence</span></a>
     <nav class="main" id="nav">
       <a href="#/">Search programmes</a><a href="#/schools/india">Indian schools</a><a href="#/schools/global">Global schools</a>
-      <a href="#/launches">New launches</a><a href="#/test">Test a programme idea</a><a href="#/brief">Weekly brief</a>
+      <a href="#/launches">New launches</a><a href="#/test">Test a programme idea</a>
     </nav>
     <div class="find" role="search">
       <input type="search" id="find" placeholder="Find a topic, programme or school" aria-label="Find" autocomplete="off">
@@ -396,34 +396,6 @@ function progRow(p,opt={}){
 }
 const progHead=(c)=>c?`<div class="r hd" style="${COMPACT}"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span></div>`
   :`<div class="r hd"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span><span>Next start</span></div>`;
-
-/* ---------- the brief ---------- */
-/* ---------- the weekly brief: what was launched, nothing else ---------- */
-const addD=(iso,n)=>{const x=new Date(iso.slice(0,10)+"T00:00:00Z");x.setUTCDate(x.getUTCDate()+n);return x.toISOString().slice(0,10);};
-function brief(){
-  const L=D.launches, end=D.whatsnew.iso, c=D.changes;
-  const inWin=from=>L?L.rows.filter(r=>r.eff&&r.eff>=from&&r.eff<=end).sort((a,b)=>a.eff<b.eff?1:-1):[];
-  const w0=addD(end,-6), m0=addD(end,-29), week=inWin(w0), month=inWin(m0);
-  const lrow=r=>`<div class="r ${r.prob?"prob":""}" data-go="#/launches?q=${encodeURIComponent(r.n.split(/[(:]/)[0].trim())}" tabindex="0" style="--cols:minmax(0,1fr) 90px 120px 120px">
-      <span><div class="n">${launchName(r)}</div><div class="s">${[r.th,r.lv!=="Unknown"?r.lv:"",r.f].filter(Boolean).map(esc).join(" · ")}</div></span>
-      <span class="c">${esc(SC[r.sc].l)}</span><span class="c">${lDate(r)}</span><span class="c hm">${esc(r.fee||"")}</span></div>`;
-  const head=`<div class="r hd" style="--cols:minmax(0,1fr) 90px 120px 120px"><span>Programme</span><span>School</span><span>Launched</span><span>Fee</span></div>`;
-  const sec=(h,from,list,empty)=>`<section><header><h2>${h}</h2><span class="meta">${fmtD(from)} to ${fmtD(end)} · ${plural(list.length,"launch","launches")}</span></header>
-    ${list.length?`<div class="rows">${head}${list.map(lrow).join("")}</div>`:`<p class="meta" style="font-size:15px">${empty}</p>`}</section>`;
-  // programmes that appeared in schools' catalogues since last week's snapshot
-  const added=c&&c.weekly?c.added.map(x=>D.progs.find(p=>p.sc===x[0]&&p.n===x[1])).filter(Boolean):[];
-  const latest=L?L.rows.filter(r=>r.eff).sort((a,b)=>a.eff<b.eff?1:-1).slice(0,6):[];
-  $("view").innerHTML=band(`<h1>Weekly brief</h1>
-    <p class="lead">What other schools launched this week and this month. Refreshed ${esc(D.whatsnew.ran)}; next refresh ${esc(D.whatsnew.next)}.</p>`)+
-    sec("This week",w0,week,"No launch recorded in the last seven days.")+
-    sec("This month",m0,month,"No launch recorded in the last 30 days.")+
-    (c&&c.weekly?`<section><header><h2>New in school catalogues</h2><span class="meta">since ${fmtD(c.since)} · ${plural(added.length,"programme")}</span></header>
-      ${added.length?`<div class="rows">${progHead()}${added.map(p=>progRow(p,{topic:1})).join("")}</div>`:`<p class="meta" style="font-size:15px">No programme appeared in a school catalogue since last week.</p>`}
-      <p class="meta" style="margin-top:6px">New to our tracking. Some may be older programmes found for the first time, so they are listed apart from confirmed launches.</p></section>`:"")+
-    (!week.length&&!month.length&&latest.length?`<section><header><h2>Latest launches on record</h2><span class="meta">for context, as nothing was recorded in the last 30 days</span></header>
-      <div class="rows">${head}${latest.map(lrow).join("")}</div></section>`:"")+
-    `<p class="meta" style="margin-top:26px">Launches come from the Product Team's register${L?`, last compiled ${fmtD(L.asof)}`:""}, and from the weekly refresh, which adds programmes that schools announce or mark as new. A launch is dated by its announcement, or by its first cohort where that has already run. Renames, revamps, new batches and degrees are not counted. <a href="#/launches">See all ${L?L.rows.length:0} launches of the last 12 months →</a></p>`;
-}
 
 /* ---------- topic ---------- */
 function topic(id){
@@ -940,8 +912,8 @@ function route(){
     :at==="school"&&SC[parts[1]]?tabOf(SC[parts[1]])[0].slice(2):at==="programmes"?"":at;
   document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#/"+tab));
   document.body.classList.toggle("home",at===""||at==="programmes");
-  ({"":()=>search(q),programmes:()=>search(q),brief,launches:()=>launches(q),test:()=>test(q),updates,
-    schools:()=>schools(parts[1]),school:()=>school(parts[1],q),portfolio:()=>location.replace("#/brief"),
+  ({"":()=>search(q),programmes:()=>search(q),brief:()=>location.replace("#/launches"),launches:()=>launches(q),test:()=>test(q),updates,
+    schools:()=>schools(parts[1]),school:()=>school(parts[1],q),portfolio:()=>location.replace("#/"),
     topic:()=>topic(parts[1]),p:()=>programme(parts[1])}[at]||notFound)();
   if(q.at&&$(q.at)) $(q.at).scrollIntoView(); else window.scrollTo(0,0);
 }
