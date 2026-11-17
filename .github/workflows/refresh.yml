@@ -21,6 +21,7 @@ jobs:
       - name: Rebuild taxonomy, classify, analyse, score demand
         run: |
           python scripts/build_taxonomy.py
+          python scripts/update_launches.py
           python scripts/classify.py
           python scripts/analyse.py
           python scripts/demand_index.py
