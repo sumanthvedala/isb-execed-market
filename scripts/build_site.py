@@ -106,13 +106,6 @@ if css:
 print('Inter: %s | Reckless: %s' % ('site/fonts' if inter else 'not found, system sans',
       f'{len(faces)} face(s) from site/fonts' if faces else 'not found, headings use the fallback serif'))
 
-# the ISB logo, when the brand team has supplied one for a dark ground
-for name in ('logo.svg', 'logo.png'):
-    if (ROOT / 'site' / 'brand' / name).exists():
-        body_part = body_part.replace('<b>ISB</b>', f'<img src="brand/{name}" alt="ISB">', 1)
-        print(f'logo: site/brand/{name}')
-        break
-
 doc = f"""<!doctype html>
 <html lang="en">
 <head>
