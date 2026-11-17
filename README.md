@@ -56,8 +56,13 @@ tile per school that opens its whole portfolio (CXO programmes first, then blend
 online, campus, self-paced) under the same filters as the search page; new launches by
 other schools, by theme and level; a test for a programme idea; and a brief.
 
-A CXO programme is one named for a C-suite role, or filed under C-suite by the school,
-whatever its format. The rule is in `scripts/build_data.py`.
+Every programme has one programme type, so nothing is counted twice: C-suite (named for a
+C-suite role, or filed under C-suite by the school, whatever its format), Blended, Live
+online (12 weeks or more online), TFP campus and TFP online (topic-focused programmes, ISB's
+term: up to two weeks on campus or under 12 weeks online), Long campus, Self-paced. Tiles and
+school pages give the median fee per type. ISB has two tiles: in-house and with partners.
+Fee comparisons for a programme idea, and for ISB against its peers, use Indian programmes
+only. The rules are in `scripts/build_data.py`.
 
 ## Links
 

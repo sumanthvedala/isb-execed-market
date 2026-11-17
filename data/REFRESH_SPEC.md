@@ -13,7 +13,10 @@ this order, and the refresh is not finished until both are done.
 2. Work down the queue. For each row, open `url` and fill **only** the fields named in
    `fetch`, in that school's catalogue CSV. Do not touch other fields.
    - `fee` → `fee_raw` verbatim, `fee_currency`, `fee_amount` (number, no commas).
-   - `format` → Campus | Blended | Live Online | Self-paced Online.
+   - `format` → Campus | Blended | Live Online | Online | Self-paced Online, by the format rules in
+     data/CATALOGUE_SPEC.md. A cohort course with weekly deadlines is Online, never Self-paced. ISB rows take
+     ISB's own label from its page; ISB runs no self-paced programmes.
+   - For a new programme, read the format from its page, not from the school's listing card.
    - `duration` → `duration_raw` verbatim, plus `duration_days` (campus) or `duration_weeks`.
    - `next_start` → ISO date of the next cohort that has not started yet.
    - Set `last_verified` to today's date on every row you open, whether or not you changed it.
