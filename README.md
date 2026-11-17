@@ -69,12 +69,22 @@ writes `outputs/link_queue.csv`, the list the refresh's second pass works throug
 
 ## Brand
 
-Colours and type follow silverjubilee.isb.edu: Reckless for headings, Inter for the rest.
-Reckless is a licensed typeface and is not in this repo. Put the webfont files in
-`site/fonts/` (named with their weight, e.g. `Reckless-Regular.woff2`) and the next build
-serves them; without them headings fall back to Newsreader. A logo at `site/brand/logo.svg`
-(for a dark ground) replaces the text mark in the masthead. This repo and its Pages site
-are public: check that ISB's font licence covers the site's address before adding the files.
+Colours are the ISB colour sheet (`Colour_palette.pdf`, ISB page): Legacy Blue `#192890`,
+Innovation Blue `#245bff`, Future Green `#80edd9`, Ivory `#f4f8fa`, the three grays
+(`#e6ebee`, `#95a9b4`, `#5d6f7a`, `#2e3b42`). Spirited Coral and Uplift Yellow from the PGP
+page mark warnings only. Shape follows silverjubilee.isb.edu. The sheet's printed hex and RGB
+disagree on three colours by a few units (Innovation Blue, State Gray, Light Gray); the page
+uses the hex.
+
+Type: Inter (variable "Inter V", SIL Open Font License) for text and Reckless (Displaay,
+variable) for headings, both served from `site/fonts/` as WOFF2, so the page calls no font
+host except Google Fonts for the Newsreader fallback. `build_site.py` reads whatever
+Reckless and Inter files are in that folder. It ignores macOS `._` stubs and any file with
+"trial" in its name: a foundry's trial font is for evaluation, not a public website. A logo
+at `site/brand/logo.svg` (for a dark ground) replaces the text mark in the masthead.
+
+This repo and its Pages site are public. Anyone can download the font files from either.
+Check that ISB's Reckless licence covers that.
 
 ## The two files a human edits
 

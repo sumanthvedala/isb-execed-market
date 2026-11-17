@@ -13,25 +13,33 @@
   img{max-width:100%}
   [hidden]{display:none!important}
 </style>
-
+<link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/Inter-V.woff2">
+<link rel="preload" as="font" type="font/woff2" crossorigin href="fonts/RecklessGX.woff2">
+<style>
+@font-face{font-family:"Inter V";font-weight:100 900;font-style:normal;font-display:swap;src:url(fonts/Inter-V.woff2) format('woff2')}
+@font-face{font-family:Reckless;font-weight:100 900;font-style:normal;font-display:swap;src:url(fonts/RecklessGX.woff2) format('woff2')}
+</style>
 <title>ISB Executive Education · Market intelligence</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&family=Newsreader:opsz,wght@6..72,400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400..700&display=swap">
 <style>
-/* ISB brand, read off silverjubilee.isb.edu (Nov 2026):
-   type    Reckless for headings at regular weight, Inter for everything else.
-           Reckless is licensed: build_site.py adds its @font-face only when the
-           files are in site/fonts/. Until then headings fall back to Newsreader.
-   colour  deep blue #192890, bright blue #005FFF, light blue #D1E3FF and
-           #A7C9FF, off-white #F5F5F5, slate text #253C44; teal #00F2D7 and
-           orange #F3B171 as small accents only.
-   shape   square corners, flat blocks of colour, plain geometry. No shadows. */
+/* ISB brand. Colours are the ISB colour sheet (Colour_palette.pdf, page 1), hex as printed:
+     Innovation Blue #245bff, Legacy Blue #192890, Future Green #80edd9, Ivory #f4f8fa,
+     Light Gray #e6ebee, Silver Gray #95a9b4, Mattle Gray #5d6f7a, State Gray #2e3b42.
+   The warm colours come from the PGP sheet (page 2), used only to flag things:
+     Spirited Coral #ffb172, Uplift Yellow #ffd866.
+   Type: Inter (the variable "Inter V" in site/fonts) for text, Reckless for headings.
+     Reckless is licensed: build_site.py serves it when its files are in site/fonts/,
+     and until then headings fall back to Newsreader.
+   Shape follows silverjubilee.isb.edu: square corners, flat blocks of colour, plain
+     geometry, no shadows. */
 :root{
-  --isb:#192890; --blue:#005FFF; --blue-2:#5192FF; --sky:#D1E3FF; --sky-2:#A7C9FF; --mist:#EEF4FF;
-  --teal:#00F2D7; --orange:#F3B171; --off:#F5F5F5;
-  --paper:#FFFFFF; --ink:#253C44; --ink-2:#3F555E; --ink-3:#5A707B; --rule:#D3DDEA; --wash:var(--mist);
-  --warn:#9A4A00; --prob:#FFF3DF;
+  --isb:#192890; --blue:#245bff; --teal:#80edd9; --coral:#ffb172; --yellow:#ffd866;
+  --ivory:#f4f8fa; --lgray:#e6ebee; --silver:#95a9b4; --mattle:#5d6f7a; --state:#2e3b42;
+  --sky:var(--lgray); --sky-2:var(--silver); --mist:var(--ivory); --off:var(--ivory);
+  --paper:#FFFFFF; --ink:var(--state); --ink-2:var(--mattle); --ink-3:var(--mattle); --rule:var(--lgray); --wash:var(--ivory);
+  --warn:#9A4A00; --prob:#FFF6DC;
   --serif:Reckless,Newsreader,"Iowan Old Style",Georgia,serif;
   --sans:"Inter V",Inter,-apple-system,"Segoe UI",sans-serif;
   --t1:clamp(36px,5vw,56px); --t2:clamp(24px,2.8vw,30px); --t3:16px; --t4:13px;
@@ -92,7 +100,7 @@ section>header{border-top:2px solid var(--isb);padding-top:12px;margin-bottom:18
 .band h1{max-width:760px}
 .band .lead{max-width:740px}
 .band .crumb{font-size:14px;color:var(--isb);margin-bottom:14px}
-.band .crumb a{text-decoration-color:var(--blue-2)}
+.band .crumb a{text-decoration-color:var(--blue)}
 @media (max-width:1100px){.band .motif{display:none}}
 
 .lead{font:400 clamp(17px,1.9vw,19px)/1.45 var(--sans);margin:0 0 8px;text-wrap:pretty}
@@ -105,7 +113,7 @@ section>header{border-top:2px solid var(--isb);padding-top:12px;margin-bottom:18
 .st.first .say{font-size:clamp(27px,3.4vw,36px);line-height:1.15;color:var(--isb)}
 /* a link that asks to be followed: serif, bold, underlined in orange */
 a.go{display:inline-block;font:700 16px/1.2 var(--serif);letter-spacing:.01em;color:var(--isb);text-decoration:none;
-  border-bottom:3px solid var(--orange);padding-bottom:3px;margin-top:4px}
+  border-bottom:3px solid var(--coral);padding-bottom:3px;margin-top:4px}
 a.go:hover{color:var(--blue)}
 .doors{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0;margin-top:48px}
 .doors a{text-decoration:none;display:block;padding:22px 20px;background:var(--mist);border-top:6px solid var(--blue)}
@@ -121,7 +129,7 @@ a.go:hover{color:var(--blue)}
 a.r:hover,.r[data-go]:hover{background:var(--mist)}
 .r[data-go]{cursor:pointer}
 /* a programme's name opens its own page at the school, in a new tab */
-a.ext{text-decoration-color:var(--blue-2);text-decoration-thickness:1px}
+a.ext{text-decoration-color:var(--blue);text-decoration-thickness:1px}
 a.ext::after{content:"↗";display:inline-block;margin-left:3px;font-size:.72em;color:var(--blue);text-decoration:none}
 .golinks{display:flex;gap:10px 20px;flex-wrap:wrap;align-items:center;margin:6px 0 20px;font-size:15px}
 .golinks a.go1{text-decoration:none;background:var(--isb);color:#fff;font-weight:600;padding:11px 20px}
@@ -129,7 +137,7 @@ a.ext::after{content:"↗";display:inline-block;margin-left:3px;font-size:.72em;
 .golinks a.go1::after{color:var(--teal)}
 /* a programme whose page is gone or that has no future run: kept, but marked */
 .mark.gone{font:600 12px var(--sans);color:var(--warn)}
-.explain.gone{border-left:4px solid var(--orange)}
+.explain.gone{border-left:4px solid var(--coral)}
 .r .n{font-weight:500;line-height:1.35;font-size:16px}
 .r .s{font-size:var(--t4);color:var(--ink-3);margin-top:2px}
 .r .c{font-size:14px;color:var(--ink-2);font-variant-numeric:tabular-nums}
@@ -163,7 +171,7 @@ label.ck{display:inline-flex;gap:6px;align-items:center;color:var(--ink-2)}
 label.pillck{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--rule);padding:7px 12px;font-size:14px;cursor:pointer}
 label.pillck.on{border-color:var(--isb);background:var(--sky);color:var(--isb);font-weight:500}
 .newtag{display:inline-block;font:600 11.5px/1 var(--sans);color:var(--isb);background:var(--teal);padding:4px 7px;margin-left:8px;vertical-align:2px;white-space:nowrap}
-.newtag.prob{background:var(--orange)}
+.newtag.prob{background:var(--coral)}
 .explain{font-size:14px;color:var(--ink-2);background:var(--mist);border-left:4px solid var(--blue);padding:12px 16px;margin:14px 0;max-width:760px}
 .steps{display:flex;gap:10px 26px;flex-wrap:wrap;margin:14px 0 0;font-size:15px}
 .steps span b{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--isb);color:#fff;font-size:13px;margin-right:8px}
@@ -187,22 +195,22 @@ label.pillck.on{border-color:var(--isb);background:var(--sky);color:var(--isb);f
 /* school tiles */
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
 .tile{display:flex;flex-direction:column;gap:12px;text-decoration:none;background:var(--paper);border:1px solid var(--rule);border-top:8px solid var(--blue);padding:20px 20px 18px;transition:background .12s}
-.tile:hover{background:var(--mist);border-color:var(--blue-2);border-top-color:var(--isb)}
+.tile:hover{background:var(--mist);border-color:var(--blue);border-top-color:var(--isb)}
 .tile.home{border-top-color:var(--isb);background:var(--mist)}
 .tile h3{font:400 26px/1.08 var(--serif);color:var(--isb);margin:0}
 .tile .big-n{font:400 15px/1.3 var(--sans);color:var(--ink-2)}
 .tile .big-n b{font:400 34px/1 var(--serif);color:var(--blue);margin-right:6px}
 .tile .foc{font-size:14px;color:var(--ink-2);margin:0}
 .tile .foc b{font-weight:600;color:var(--ink)}
-.tile .open{margin-top:auto;font:700 15px/1.2 var(--serif);color:var(--isb);border-bottom:3px solid var(--orange);align-self:flex-start;padding-bottom:2px}
+.tile .open{margin-top:auto;font:700 15px/1.2 var(--serif);color:var(--isb);border-bottom:3px solid var(--coral);align-self:flex-start;padding-bottom:2px}
 /* how a catalogue splits by delivery: one flat bar, labelled underneath */
 .mixbar{display:flex;height:12px;background:var(--off)}
 .mixbar i{display:block;height:100%}
 .mixkey{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--ink-2)}
 .mixkey span{white-space:nowrap}
 .mixkey i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
-.k-cxo{background:var(--isb)}.k-Blended{background:var(--blue)}.k-LiveOnline{background:var(--blue-2)}
-.k-Campus{background:var(--sky-2)}.k-Self-pacedOnline{background:var(--teal)}.k-Unknown{background:#C9D2DC}
+.k-cxo{background:var(--isb)}.k-Blended{background:var(--blue)}.k-LiveOnline{background:var(--mattle)}
+.k-Campus{background:var(--silver)}.k-Self-pacedOnline{background:var(--teal)}.k-Unknown{background:var(--lgray)}
 
 /* a ranked list of bars: themes on a school page, themes and levels of launches */
 .bars{display:grid;gap:0}
@@ -315,13 +323,13 @@ const DEM_EXPLAIN=`<b>What “demand” means here.</b> How strongly published r
 /* the geometry that sits on the right of every page's opening band: flat
    squares, quarter circles, a diamond grid and a dot grid in the brand blues */
 const MOTIF=`<svg class="motif" viewBox="0 0 270 300" aria-hidden="true">
-  <rect x="0" y="0" width="150" height="150" fill="#A7C9FF"/>
-  <path d="M150 150a150 150 0 0 1-150 150V150z" fill="#005FFF"/>
+  <rect x="0" y="0" width="150" height="150" fill="#95a9b4"/>
+  <path d="M150 150a150 150 0 0 1-150 150V150z" fill="#245bff"/>
   <rect x="150" y="150" width="120" height="150" fill="#192890"/>
-  <path d="M150 0h120v120a120 120 0 0 1-120-120z" fill="#005FFF"/>
-  <g fill="#F5F5F5">${[0,1,2].map(i=>[0,1].map(j=>`<path d="M${36+i*36} ${22+j*36}l16 16-16 16-16-16z"/>`).join("")).join("")}</g>
-  <g fill="#F3B171">${[0,1,2].map(i=>[0,1].map(j=>`<circle cx="${20+i*15}" cy="${118+j*15}" r="3.6"/>`).join("")).join("")}</g>
-  <g fill="#00F2D7">${[0,1,2].map(i=>[0,1,2].map(j=>`<circle cx="${188+i*15}" cy="${196+j*15}" r="3.6"/>`).join("")).join("")}</g>
+  <path d="M150 0h120v120a120 120 0 0 1-120-120z" fill="#245bff"/>
+  <g fill="#f4f8fa">${[0,1,2].map(i=>[0,1].map(j=>`<path d="M${36+i*36} ${22+j*36}l16 16-16 16-16-16z"/>`).join("")).join("")}</g>
+  <g fill="#ffb172">${[0,1,2].map(i=>[0,1].map(j=>`<circle cx="${20+i*15}" cy="${118+j*15}" r="3.6"/>`).join("")).join("")}</g>
+  <g fill="#80edd9">${[0,1,2].map(i=>[0,1,2].map(j=>`<circle cx="${188+i*15}" cy="${196+j*15}" r="3.6"/>`).join("")).join("")}</g>
 </svg>`;
 const band=h=>`<div class="band">${MOTIF}${h}</div>`;
 

@@ -1,0 +1,6 @@
+Inter-V.woff2   Inter V (variable). Copyright (c) 2020 The Inter Project Authors.
+                SIL Open Font License 1.1, https://openfontlicense.org (the full notice is in the font's own name table).
+                Converted from TrueType to WOFF2; the font itself is unchanged.
+RecklessGX.woff2  Reckless (variable). Copyright (c) 2017 Martin Vacha, Displaay Type Foundry, displaay.net.
+                Commercial typeface, used here under ISB's own licence. Converted from TrueType to WOFF2; the font itself is unchanged.
+                Not licensed by this repo's authors for any other use.
