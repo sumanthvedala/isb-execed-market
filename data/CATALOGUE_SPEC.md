@@ -3,7 +3,7 @@
 Snapshot date: 2026-09-24. Scope: OPEN-ENROLMENT executive education only (anything an individual or company can buy off a public catalogue). Exclude degree programmes (MBA, EMBA, PhD, PGP, PGPX, MBA-equivalent 1-yr programmes), custom/company-specific programmes, and events/conferences.
 INCLUDE: campus short programmes, long general-management / leadership programmes, live-online certificate programmes, blended programmes, self-paced online courses sold under the school's name, and partner-delivered programmes (Emeritus, Jaro, TimesPro, upGrad, Imarticus, Coursera, GetSmarter, etc.) sold under the school's brand. Mark the partner.
 
-Network note: the shell (Bash/curl/python requests) CANNOT reach external websites — egress is blocked. Use WebFetch and WebSearch only. WebFetch summarises pages through a small model, so always ask it to "list EVERY programme on this page as a table with ... do not summarise or skip any". Paginated/filtered finders: fetch each page/category separately. If a site exposes a JSON search/listing endpoint, try fetching it with WebFetch.
+Network note: from some environments the shell (Bash/curl/python requests) cannot reach external websites. Where curl works (see data/REFRESH_SPEC.md) prefer it for reading a page; otherwise use WebFetch and WebSearch. WebFetch summarises pages through a small model, so always ask it to "list EVERY programme on this page as a table with ... do not summarise or skip any". Paginated/filtered finders: fetch each page/category separately. If a site exposes a JSON search/listing endpoint, try fetching it with WebFetch.
 
 Write ONE CSV per school to /home/claude/research/catalogues/<school_slug>.csv (UTF-8, comma separated, quote every field) with EXACTLY these columns:
 

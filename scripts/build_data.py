@@ -193,6 +193,10 @@ if (R / 'data/peer_launches.csv').exists():
 
 q = L('outputs/refresh_queue.csv') if (R / 'outputs/refresh_queue.csv').exists() else []
 lq = L('outputs/link_queue.csv') if (R / 'outputs/link_queue.csv').exists() else []
+# programmes the second pass looked for a page for, in the last 90 days, and found the school publishes none
+_cut = (datetime.date.today() - datetime.timedelta(days=90)).isoformat()
+nopage = sum(1 for r in (L('data/link_checks.csv') if (R / 'data/link_checks.csv').exists() else [])
+             if r['checked_on'][:10] >= _cut)
 # programmes that appeared since last month's snapshot get a "new" mark in place
 if changes:
     _added = {(s_, n_) for s_, n_, _t in changes['added']}
@@ -204,7 +208,7 @@ d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'themes': list(dict.fromkeys(t['theme'] for t in tax)),
      'topics': topics, 'progs': progs, 'changes': changes, 'whatsnew': whatsnew, 'launches': launches,
      'fx': {k: v for k, v in fx.items() if k != 'INR'}, 'fxDate': L('data/fx.csv')[0]['set_on'],
-     'quality': {'queue': len(q), 'links': len(lq), 'noFee': sum(1 for p in progs if p['inr'] is None),
+     'quality': {'queue': len(q), 'links': len(lq), 'noPage': nopage, 'noFee': sum(1 for p in progs if p['inr'] is None),
                  'noStart': sum(1 for p in progs if not p['ns']),
                  'fromSheet': sum(1 for p in progs if p['prov'] == 'team-sheet'),
                  'gone': sum(1 for p in progs if p['gone']),

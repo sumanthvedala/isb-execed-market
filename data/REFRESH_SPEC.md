@@ -74,6 +74,19 @@ Stop pass 1 after 150 page fetches in one run and leave the rest of the queue fo
 Keep 50 fetches back for pass 2: a wrong link on the page is worse than a blank fee.
 Both queues are ordered so the programmes that matter most come first.
 
+## How pass 2 was done the first time (17 Nov 2026), so it can be repeated
+
+- The shell reaches most school sites through the session's proxy: `curl -sSL -A "Mozilla/5.0 ..."` worked for
+  iimk.ac.in, iiml.ac.in, london.edu, imarticus.org, exed.iima.ac.in and emeritus.org. www.isb.edu and
+  execed.isb.edu return 403; use search results for those. Talentedge pages return 530 and cannot be checked.
+- IIM-K and IIM-L publish a calendar and a brochure PDF per short programme, not a page. Parse the calendar
+  (IIM-K: `/academic-programmes/OPEN-MDP/course-calender`, `E-MDP`, `A-MDP`; IIM-L: `/admission/mdp/mdpCalendar`),
+  match each row's name to the programme name exactly once batch numbers and filler words are dropped, and fill
+  `brochure_url` only on an exact match. A looser match linked a CPO programme to a CPAIO brochure.
+- For one-offs, search for the title, then fetch the candidate and check that its `<title>` or `<h1>` names the
+  programme before writing it. Guessing an address that happens to return 200 is not verification.
+- A programme that is on a school's calendar with no brochure and no page is a dead end, not a gap: log it.
+
 ## Network
 
 The environment running this task must be allowed to reach the schools' domains:

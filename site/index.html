@@ -884,7 +884,7 @@ function updates(){
     <p class="lead">The catalogue refreshes every Monday and is compared with the month before. Last refresh ${esc(D.whatsnew.ran)}; next ${esc(D.whatsnew.next)}.</p>`)+
     `${c?lst(`Added since ${fmtD(c.since)}`,c.added)+lst("Dropped",c.dropped)+lst("Repriced",c.repriced):""}
     <section><header><h2>Log</h2></header><div class="rows">${D.whatsnew.log.map(e=>`<div class="r" style="--cols:110px minmax(0,1fr)"><span class="c">${fmtD(e.date)}</span><span><div class="n">${esc(e.headline)}</div><div class="s">${esc(e.detail)}</div></span></div>`).join("")}</div></section>
-    <p class="meta" style="margin-top:22px">Queued for the next refresh: ${D.quality.queue} programmes with a missing fee, length or start date, and ${D.quality.links} whose name cannot yet be linked to the programme's own page.</p>`;
+    <p class="meta" style="margin-top:22px">Queued for the next refresh: ${D.quality.queue} programmes with a missing fee, length or start date${D.quality.links?`, and ${D.quality.links} whose name cannot yet be linked to a page of its own`:""}. A further ${D.quality.noPage} were searched for a programme page and have none to link: their schools publish a calendar or a brochure instead, so the name opens the brochure where there is one.</p>`;
 }
 function notFound(){$("view").innerHTML=band(`<h1>Not found</h1><p><a class="go" href="#/">Back to search →</a></p>`);}
 
