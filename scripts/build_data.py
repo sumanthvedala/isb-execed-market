@@ -3,6 +3,7 @@
 demand_index.py. Keeping this separate from the page means a refresh rewrites
 one JSON file and the HTML diff stays empty."""
 import csv, json, glob, collections, pathlib, datetime, re, urllib.parse
+from linkkind import kind, LABEL
 R = pathlib.Path(__file__).resolve().parent.parent
 L = lambda p: list(csv.DictReader(open(R / p, encoding='utf-8')))
 num = lambda v: float(v) if re.fullmatch(r'\d+(\.\d+)?', (v or '').strip()) else None
@@ -12,7 +13,6 @@ S = [s['slug'] for s in schools]
 fx = {r['currency']: float(r['inr_per_unit']) for r in L('data/fx.csv')}
 prog = L('programmes_tagged.csv'); tax = L('data/taxonomy.csv')
 tp = {r['topic_id']: r for r in L('outputs/matrix_topic_full.csv')}
-gap = {r['topic_id']: r for r in L('outputs/gap_register.csv')}
 di = {r['topic_id']: r for r in L('outputs/demand_index.csv')}
 
 # the richer per-programme fields live in the catalogues, keyed by school + name
@@ -28,22 +28,34 @@ def g(p, k):
 
 
 _shared = collections.Counter(p['url'].strip() for p in prog)
-_AGGREGATORS = r'shiksha|careers360|collegedunia|collegedekho|riseupp|iimjobs|coursereport|careervira|scribd'
 
 
-def specific(u):
-    """a link that names one programme, not a school's home page, catalogue
-    index or calendar; a URL several programmes share is an index too, and a
-    course aggregator's listing is not the programme's own page"""
+def page(u):
+    """a link that opens one programme's own page: not a news article, a
+    course-listing site, a home page, catalogue index or calendar, a short
+    link or a document (scripts/linkkind.py). A URL several programmes share
+    is an index too."""
     u = (u or '').strip()
-    if not u.startswith('http') or _shared[u] >= 3 or re.search(_AGGREGATORS, urllib.parse.urlparse(u).netloc):
-        return ''
-    path = urllib.parse.urlparse(u).path.strip('/').lower()
-    if path in ('', 'index.php', 'index.html', 'en', 'programmes', 'programs', 'courses', 'partner-programmes',
-                'for-individuals', 'executive-education', 'view-all-programs', 'all-programs') \
-            or re.search(r'course-calend[ae]r|universities-and-institutes/[^/]+$', path):
-        return ''
-    return u
+    return u if kind(u) == 'page' and _shared[u] < 3 else ''
+
+
+def brochure(p):
+    """the brochure column if it holds a usable link; failing that, a PDF that
+    was captured into the programme-page column"""
+    b = g(p, 'brochure_url')
+    if kind(b) in ('brochure', 'page'):
+        return b
+    return p['url'].strip() if kind(p['url']) == 'brochure' else ''
+
+
+# CXO programmes: named for a C-suite role, or filed under C-suite by the
+# school, whatever the format. The school pages list these first.
+_CXO_NAME = re.compile(r'\bchief\b|\bc[- ]?suite\b|\bcxos?\b|\b(ceo|cfo|cto|cmo|chro|coo|cio)s?\b', re.I)
+_CXO_CAT = re.compile(r'c[- ]?suite|\bcxo', re.I)
+
+
+def cxo(p):
+    return 1 if _CXO_NAME.search(p['programme_name']) or _CXO_CAT.search(p['school_category'] or '') else 0
 
 
 def inr(p):
@@ -102,7 +114,7 @@ for p in prog:
         'cap': g(p, 'capstone'), 'imm': g(p, 'campus_immersion'), 'iv': g(p, 'industry_visit'),
         'ta': clip(g(p, 'target_audience'), 200), 'kt': clip(g(p, 'key_topics'), 300),
         # the name links to the first of these the page has: landing page, programme page, brochure
-        'lu': specific(g(p, 'landing_url')), 'u': specific(p['url']), 'bu': specific(g(p, 'brochure_url')),
+        'lu': page(g(p, 'landing_url')), 'u': page(p['url']), 'bu': brochure(p), 'cx': cxo(p),
         'conf': p['match_confidence'], 'cat': clip(p['school_category'], 100),
         # why the programme looks discontinued; blank while it is on sale
         'gone': g(p, 'status_note') if g(p, 'status') else '',
@@ -110,7 +122,7 @@ for p in prog:
 
 topics = []
 for t in tax:
-    m, c, d = tp.get(t['topic_id'], {}), gap.get(t['topic_id'], {}), di.get(t['topic_id'], {})
+    m, d = tp.get(t['topic_id'], {}), di.get(t['topic_id'], {})
     topics.append({
         'id': t['topic_id'], 'n': t['topic'], 'th': t['theme'], 'st': t['subtheme'], 'ai': t['ai_era_flag'],
         'dem': int(m.get('demand_score') or 0), 'srcs': int(m.get('demand_sources') or 0),
@@ -119,7 +131,6 @@ for t in tax:
         'why2': d.get('outlook_rationale', ''), 'sig': d.get('best_signal', ''),
         'isb': int(m.get('isb') or 0), 'peers': int(m.get('peers_present') or 0),
         'resid': m.get('supply_is_residual_bucket') == 'Y',
-        'call': c.get('call', ''), 'why': c.get('why', ''),
         # keyword phrases, so the page can match a typed programme idea to topics
         'kw': [k.strip().lower() for k in t['keywords'].split(';') if k.strip()]})
 
@@ -142,20 +153,13 @@ if snaps:
     changes['filled'] = sum(1 for k in cur.keys() & old.keys()
                             if not old[k]['fee_amount'] and cur[k]['fee_amount'])
 
-# calls that moved since the last month's snapshot
-csnaps = [p for p in sorted((R / 'snapshots').glob('calls-*.csv')) if p.stem[-7:] < this_month]
-if csnaps and changes is not None:
-    oldc = {r['topic_id']: r['call'] for r in csv.DictReader(open(csnaps[-1], encoding='utf-8'))}
-    newc = {t['id']: t['call'] for t in topics if t['call']}
-    changes['calls'] = [[tid, oldc.get(tid, ''), newc.get(tid, '')] for tid in sorted(set(oldc) | set(newc))
-                        if oldc.get(tid, '') != newc.get(tid, '')]
-
 # "What's new": the latest refresh plus the hand-written changelog, newest first
 log = sorted(L('data/changelog.csv'), key=lambda r: r['date'], reverse=True) \
     if (R / 'data/changelog.csv').exists() else []
 today = datetime.date.today()
+# the refresh runs every Monday (.github/workflows/refresh.yml)
 whatsnew = {'ran': today.strftime('%d %b %Y'),
-            'next': (today.replace(day=1) + datetime.timedelta(days=32)).replace(day=1).strftime('%d %b %Y'),
+            'next': (today + datetime.timedelta(days=(7 - today.weekday()) or 7)).strftime('%d %b %Y'),
             'log': log[:12]}
 
 # peer new-launch register (Product Team, hand-verified). The date a launch is
@@ -165,7 +169,13 @@ launches = None
 if (R / 'data/peer_launches.csv').exists():
     meta = json.loads((R / 'data/peer_launches_meta.json').read_text(encoding='utf-8'))
     rows = []
+    tag = {(r['school_slug'], r['programme']): r for r in L('outputs/launches_tagged.csv')} \
+        if (R / 'outputs/launches_tagged.csv').exists() else {}
     for r in L('data/peer_launches.csv'):
+        tg = tag.get((r['school_slug'], r['programme']), {})
+        # url is the programme's own page and nothing else; the article or
+        # brochure that evidences the launch is the source
+        src = (r.get('source_url') or '').strip() or (r['url'] if kind(r['url']) != 'page' else '')
         ld, fc = r['launch_date'], r['first_cohort_date']
         if ld:
             eff, basis = (ld if len(ld) == 10 else ld + '-01'), 'launch'
@@ -175,11 +185,14 @@ if (R / 'data/peer_launches.csv').exists():
             eff, basis = '', ''
         rows.append({'sc': r['school_slug'], 'n': r['programme'], 'ld': ld, 'ev': r['evidence'], 'fc': r['first_cohort'],
                      'fcd': fc, 'f': r['format'], 'dur': r['duration'], 'fee': r['fee'], 'pt': r['partner'],
-                     'u': r['url'], 'prob': r['probable'] == 'Y', 'eff': eff, 'basis': basis})
+                     'u': r['url'] if kind(r['url']) == 'page' else '', 'src': src, 'srck': LABEL[kind(src)],
+                     'th': tg.get('theme', ''), 'tid': tg.get('topic_id', ''), 'lv': tg.get('level', 'Unknown'),
+                     'lvb': tg.get('level_basis', ''), 'prob': r['probable'] == 'Y', 'eff': eff, 'basis': basis})
     launches = dict(meta, rows=rows, excluded=[{'sc': r['school_slug'], 'n': r['programme'], 'why': r['why_not_counted'],
                                                 'u': r['source']} for r in L('data/peer_launches_not_counted.csv')])
 
 q = L('outputs/refresh_queue.csv') if (R / 'outputs/refresh_queue.csv').exists() else []
+lq = L('outputs/link_queue.csv') if (R / 'outputs/link_queue.csv').exists() else []
 # programmes that appeared since last month's snapshot get a "new" mark in place
 if changes:
     _added = {(s_, n_) for s_, n_, _t in changes['added']}
@@ -191,7 +204,7 @@ d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'themes': list(dict.fromkeys(t['theme'] for t in tax)),
      'topics': topics, 'progs': progs, 'changes': changes, 'whatsnew': whatsnew, 'launches': launches,
      'fx': {k: v for k, v in fx.items() if k != 'INR'}, 'fxDate': L('data/fx.csv')[0]['set_on'],
-     'quality': {'queue': len(q), 'noFee': sum(1 for p in progs if p['inr'] is None),
+     'quality': {'queue': len(q), 'links': len(lq), 'noFee': sum(1 for p in progs if p['inr'] is None),
                  'noStart': sum(1 for p in progs if not p['ns']),
                  'fromSheet': sum(1 for p in progs if p['prov'] == 'team-sheet'),
                  'gone': sum(1 for p in progs if p['gone']),
