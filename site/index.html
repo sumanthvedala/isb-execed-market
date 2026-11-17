@@ -746,7 +746,7 @@ function school(slug){
   const fact=(k,v)=>`<div><dt>${k}</dt><dd>${v}</dd></div>`;
   $("view").innerHTML=band(`<p class="crumb"><a href="${tab[0]}">${tab[1]}</a></p>
     <h1>${esc(s.n)}</h1>
-    <p class="lead">${all.length?`<b>${plural(all.length,"programme")}</b> on sale that we track: ${andList(kc.map(([k,n])=>`${n} ${say[k[0]](n)}`))}.`:"No programmes on record."}</p>
+    <p class="lead">${all.length?`<b>${plural(all.length,"programme")}</b> tracked: ${andList(kc.map(([k,n])=>`${n} ${say[k[0]](n)}`))}.${gone?` ${gone} of them look discontinued and are marked in the list.`:""}`:"No programmes on record."}</p>
     <div style="max-width:760px;margin-top:16px">${all.length?mixBar(all):""}</div>`)+
   `<dl class="facts">
       ${fact("Typical fee",fees.length?`${lakh(median(fees))} <span class="meta">(median of ${fees.length} published fees)</span>`:"no fees published")}
