@@ -370,8 +370,8 @@ function progRow(p,opt={}){
     <span class="c hm">${esc({"Self-paced Online":"Self-paced","Online":"Online cohort"}[p.f]||p.f)}</span><span class="c hm">${wk(p.w)}</span>
     <span class="c">${p.inr?lakh(p.inr):"—"}</span>${opt.compact?"":`<span class="c hm">${p.ns?fmtD(p.ns):"—"}</span>`}</div>`;
 }
-const progHead=(c)=>c?`<div class="r hd" style="${COMPACT}"><span>Programme</span><span>Format</span><span>Length</span><span>Fee</span></div>`
-  :`<div class="r hd"><span>Programme</span><span>Format</span><span>Length</span><span>Fee</span><span>Next start</span></div>`;
+const progHead=(c)=>c?`<div class="r hd" style="${COMPACT}"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span></div>`
+  :`<div class="r hd"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span><span>Next start</span></div>`;
 
 /* ---------- the brief ---------- */
 function pricePositions(){
@@ -458,12 +458,12 @@ function programme(i){
     <p class="golinks">${links(p).map(([k,u],j)=>ext(u,`${k} ↗`,j?"":"go1")).join("")||`<span class="meta">No landing page, programme page or brochure on record yet.</span>`}</p>
     ${p.inr&&med&&f.length>=3?`<p class="lead">${lakh(p.inr)}, ${p.inr>med?`${Math.round(100*(p.inr/med-1))}% above`:`${Math.round(100*(1-p.inr/med))}% below`} the typical fee of the ${f.length} most similar programmes at other ${reg==="India"?"Indian":"global"} schools.</p>`:""}`)+
     `${p.gone?`<p class="explain gone read"><b>Likely discontinued:</b> ${esc(p.gone)}. It still counts in topic and fee comparisons until a refresh confirms it, so check before quoting it.</p>`:""}
-    <dl class="facts">${row("Format",esc(p.f))}${row("Length",esc(p.dr||(p.w?wk(p.w):"")))}${row("Fee as published",esc(p.fr))}
+    <dl class="facts">${row("Format",esc(p.f))}${row("Duration",esc(p.dr||(p.w?wk(p.w):"")))}${row("Fee as published",esc(p.fr))}
       ${row("Level",esc(LV(p.lv)))}${row("Next start",p.ns?fmtD(p.ns):"")}${row("Delivered with",esc(p.pt))}${row("Includes",feats.join(", "))}${row("Theme",esc(t.th))}</dl>
     ${p.ta?`<p class="read"><span class="meta">For </span>${esc(p.ta)}</p>`:""}
     ${p.kt?`<p class="read"><span class="meta">Teaches </span>${esc(p.kt.split(";").map(x=>x.trim()).filter(Boolean).join(", "))}</p>`:""}
     ${strip([p,...rp])}
-    <section><header><h2>Most similar programmes at other schools</h2><span class="meta">matched on topic, then format, level and length</span></header>
+    <section><header><h2>Most similar programmes at other schools</h2><span class="meta">matched on topic, then format, level and duration</span></header>
       ${peers.length?`<div class="rows">${progHead()}${peers.map(q=>progRow(q)).join("")}</div>`:`<p class="meta">No other school sells a programme in the same topic or sub-theme.</p>`}</section>
     <p class="meta" style="margin-top:28px">${
       p.prov==="team-sheet"?"From the team's competitor sheet"+(p.lvf?`, confirmed ${fmtD(p.lvf)}`:", not yet confirmed on a live page"):`Captured from the school's catalogue${p.lvf?`, verified ${fmtD(p.lvf)}`:""}`}.${
@@ -605,7 +605,7 @@ const newTag=r=>r?`<span class="newtag ${r.prob?"prob":""}">${r.prob?"New, launc
 const blankF=()=>({q:"",sc:"",g:"",f:"",lv:"",th:"",fee:"",len:"",nw:false,hd:false});
 const PF=blankF(), SF=blankF(); let pSort="best", pShown=60, pList=[];
 const FEE=[["","Any fee"],["0-100000","Under ₹1 lakh"],["100000-250000","₹1 to 2.5 lakh"],["250000-500000","₹2.5 to 5 lakh"],["500000-1000000","₹5 to 10 lakh"],["1000000-1e12","₹10 lakh and over"],["none","Fee not published"]];
-const LEN=[["","Any length"],["0-1","Up to a week"],["1-4.3","1 week to a month"],["4.3-13","1 to 3 months"],["13-26","3 to 6 months"],["26-1e9","6 months and over"]];
+const LEN=[["","Any duration"],["0-1","Up to a week"],["1-4.3","1 week to a month"],["4.3-13","1 to 3 months"],["13-26","3 to 6 months"],["26-1e9","6 months and over"]];
 const inR=(v,r)=>{const [a,b]=r.split("-").map(Number);return v!=null&&v>=a&&v<b;};
 const opts=(l,v)=>l.map(([k,n])=>`<option value="${esc(k)}" ${v===k?"selected":""}>${esc(n)}</option>`).join("");
 const anyFilter=F=>!!(F.q||F.sc||F.g||F.th||F.f||F.lv||F.fee||F.len||F.nw||F.hd);
@@ -627,7 +627,7 @@ const filterBar=(F,first)=>`<div class="tools" style="gap:8px">${first}
     <select class="pill" id="pf" aria-label="Programme type">${opts([["","Any programme type"],...KINDS.map(k=>[k[0],k[2]])],F.f)}</select>
     <select class="pill" id="plv" aria-label="Level">${opts([["","Any level"],...LEVELS.map(x=>[x,x])],F.lv)}</select>
     <select class="pill" id="pfee" aria-label="Fee">${opts(FEE,F.fee)}</select>
-    <select class="pill" id="plen" aria-label="Length">${opts(LEN,F.len)}</select>
+    <select class="pill" id="plen" aria-label="Duration">${opts(LEN,F.len)}</select>
     <label class="pillck ${F.nw?"on":""}" id="pnwl"><input type="checkbox" id="pnw" ${F.nw?"checked":""}> New launches only</label>
     <label class="pillck ${F.hd?"on":""}" id="phdl"><input type="checkbox" id="phd" ${F.hd?"checked":""}> Hide likely discontinued</label>
     <button type="button" class="lnk" id="preset">Clear all</button>
@@ -669,7 +669,7 @@ function search(q){
         <span><div class="n">${launchName(r)}</div><div class="s">${[r.th,r.lv!=="Unknown"?r.lv:""].filter(Boolean).map(esc).join(" · ")}</div></span><span class="c">${esc(SC[r.sc].l)}</span><span class="c">${lDate(r)}</span></div>`).join("")}</div></section>`:""}
     <section style="margin-top:40px"><header><h2 id="ptitle">All programmes</h2><span class="meta" id="pcount"></span></header>
     ${filterBar(PF,`<select class="pill" id="pg" aria-label="School">${opts([["","All schools"],["isb","ISB only"],["India","Indian schools"],["Global","Global schools"],["Platform","Platforms"],...D.schools.filter(s=>s.s!=="isb").map(s=>["s:"+s.s,s.n])],PF.sc==="isb"?"isb":PF.sc?"s:"+PF.sc:PF.g)}</select>`)}
-    ${sortBar([["best","Best match, ISB first"],["feeup","Fee, low to high"],["feedown","Fee, high to low"],["len","Length, shortest first"],["start","Next start, soonest first"],["school","School, A to Z"]],pSort)}
+    ${sortBar([["best","Best match, ISB first"],["feeup","Fee, low to high"],["feedown","Fee, high to low"],["len","Duration, shortest first"],["start","Next start, soonest first"],["school","School, A to Z"]],pSort)}
     <div id="ptopics"></div>
     <div class="rows" id="plist"></div>
     <p style="margin-top:16px"><button type="button" class="btn" id="pmore" style="padding:12px 22px;font-size:15px"></button></p></section>`;
@@ -772,7 +772,7 @@ function school(slug,q={}){
     <section><header><h2 id="ptitle"></h2><span class="meta" id="pcount"></span></header>
       <div class="tools"><input type="search" id="pq" placeholder="Search ${esc(s.l)}'s programmes" value="${esc(SF.q)}" aria-label="Search this school's programmes" autocomplete="off" style="flex:1 1 260px;max-width:420px;padding:10px 12px;font-size:15px"></div>
       ${filterBar(SF,`<select class="pill" id="pg" aria-label="School">${opts(sw,slug+(d?`?d=${d}`:""))}</select>`)}
-      ${sortBar([["best","Best match"],["feeup","Fee, low to high"],["feedown","Fee, high to low"],["len","Length, shortest first"],["start","Next start, soonest first"],["name","Name, A to Z"]],sSort)}
+      ${sortBar([["best","Best match"],["feeup","Fee, low to high"],["feedown","Fee, high to low"],["len","Duration, shortest first"],["start","Next start, soonest first"],["name","Name, A to Z"]],sSort)}
       <div id="slist"></div>
       <p class="meta" style="margin-top:22px">${TYDEF}</p></section>`;
   bindFilters(SF,drawSchool,()=>{Object.assign(SF,blankF());school(slug,q);});
@@ -823,7 +823,7 @@ function test(q){
         <label>What it teaches<textarea id="td" rows="3">${esc(v.d)}</textarea></label>
         <div class="two"><label>Format<select id="tfm">${o(FORMATS,v.f||"Blended")}</select></label>
           <label>Level<select id="tlv">${o(LEVELS,v.lv||"Mid-career")}</select></label></div>
-        <div class="two"><label>Length, weeks<input type="number" id="tw" min="0.2" step="0.1" value="${esc(v.w)}"></label>
+        <div class="two"><label>Duration, weeks<input type="number" id="tw" min="0.2" step="0.1" value="${esc(v.w)}"></label>
           <label>Fee, ₹ lakh<input type="number" id="tfee" min="0" step="0.05" value="${esc(v.fee)}"></label></div>
         <label>Topic<select id="ttop"></select></label>
         <p class="meta" id="tex">${v.ex?"This is an example. Replace it with your idea.":""}</p>
@@ -866,7 +866,7 @@ function testResult(v){
     <dl class="facts">
       <div><dt>Market demand</dt><dd>${demText(t)}</dd></div>
       <div><dt>Your fee</dt><dd>${fee?lakh(fee)+(fees.length?`; ${fee>med?"above":"below"} the typical ${lakh(med)} of ${fees.length} similar ${compsIN.same?TYL[me.ty][2]+" ":""}programmes at Indian schools${compsIN.same?"":" (fewer than three of the same type, so all types are compared)"}`:""):"not set"}</dd></div>
-      <div><dt>Your length</dt><dd>${w?wk(w)+(mlen?`; similar Indian programmes typically run ${wk(mlen)}`:""):"not set"}</dd></div>
+      <div><dt>Your duration</dt><dd>${w?wk(w)+(mlen?`; similar Indian programmes typically run ${wk(mlen)}`:""):"not set"}</dd></div>
       <div><dt>How similar programmes are taught</dt><dd>${Object.entries(fmts).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`${n} ${k.toLowerCase()}`).join(", ")||"none"}</dd></div>
     </dl>
     ${strip(compsIN,fee)}
@@ -891,7 +891,7 @@ function updates(){
     <p class="lead">The catalogue refreshes every Monday and each refresh is compared with the previous week. Last refresh ${esc(D.whatsnew.ran)}; next ${esc(D.whatsnew.next)}.</p>`)+
     `${c?lst(`Added since ${fmtD(c.since)}`,c.added)+lst("Dropped",c.dropped)+lst("Repriced",c.repriced):""}
     <section><header><h2>Log</h2></header><div class="rows">${D.whatsnew.log.map(e=>`<div class="r" style="--cols:110px minmax(0,1fr)"><span class="c">${fmtD(e.date)}</span><span><div class="n">${esc(e.headline)}</div><div class="s">${esc(e.detail)}</div></span></div>`).join("")}</div></section>
-    <p class="meta" style="margin-top:22px">Queued for the next refresh: ${D.quality.queue} programmes with a missing fee, length or start date${D.quality.links?`, and ${D.quality.links} whose name cannot yet be linked to a page of its own`:""}. A further ${D.quality.noPage} were searched for a programme page and have none to link: their schools publish a calendar or a brochure instead, so the name opens the brochure where there is one.</p>`;
+    <p class="meta" style="margin-top:22px">Queued for the next refresh: ${D.quality.queue} programmes with a missing fee, duration or start date${D.quality.links?`, and ${D.quality.links} whose name cannot yet be linked to a page of its own`:""}. A further ${D.quality.noPage} were searched for a programme page and have none to link: their schools publish a calendar or a brochure instead, so the name opens the brochure where there is one.</p>`;
 }
 function notFound(){$("view").innerHTML=band(`<h1>Not found</h1><p><a class="go" href="#/">Back to search →</a></p>`);}
 
