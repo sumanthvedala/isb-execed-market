@@ -4,6 +4,20 @@ The GitHub Action runs every Monday and recomputes everything from `data/catalog
 It cannot read school websites. This task is the part that does. It makes two passes, in
 this order, and the refresh is not finished until both are done.
 
+## Pass 0: find programmes we do not hold yet
+
+The dashboard can only show programmes that are in the catalogues, so every refresh starts here.
+
+1. For each school in `data/catalogue_index.csv`, open its listing pages (programme finder, calendar,
+   "all programmes" page). Where a school has no listing recorded, find it and add it to the file.
+2. Compare what is listed with the school's catalogue CSV. For each programme we do not hold, add a row
+   with `provenance=catalogue-capture` and today's `last_verified`, filled from its own page by the format
+   rules in `data/CATALOGUE_SPEC.md`. Set `is_new_2025_26` to Y if the page says it is new or announces its
+   first cohort.
+3. A listed programme we already hold under a slightly different name is the same programme: update its
+   name only if the school has renamed it, and say so in `source_note`.
+4. Up to 40 fetches. Record `last_checked` for each listing you opened.
+
 ## Pass 1: fill what is missing
 
 1. Pull `main`. Run `python scripts/refresh_queue.py`. It writes `outputs/refresh_queue.csv`:
@@ -25,13 +39,11 @@ this order, and the refresh is not finished until both are done.
    date, in `status_note`; the dashboard marks it. Clear both if the programme turns out to be on sale.
 4. New programmes on a school's catalogue page that we do not hold: add a row with
    `provenance=catalogue-capture` and today's `last_verified`.
-5. New launches: when a school announces a programme it has never run, marks one as
-   new, or opens its first cohort, and the programme is not in `data/peer_launches.csv`, add a row there:
-   `launch_date` (the announcement or page-publish date, ISO), `evidence` (what said so, and when),
-   `first_cohort` and `first_cohort_date` if known, `format`, `duration`, `fee`, `partner`, `url` (the
-   programme's own page) and `source_url` (the announcement). Set `probable` to Y if the school marks it new
-   but gives no date. Renames, revamps, new batches and degrees are not launches. Then set `asof` in
-   `data/peer_launches_meta.json` to today. A launch not recorded here does not appear on the New launches tab.
+5. New launches are recorded automatically. For every programme you add in Pass 0, and any you open
+   here, set `is_new_2025_26` to Y when its page says it is new, announces its first cohort, or the school
+   has announced it. `scripts/update_launches.py` then adds it to `data/peer_launches.csv` on the next
+   build, dated by the day it was first seen, and it appears under New launches. If you find the
+   announcement date, add it to `status_note`.
 6. Never invent a fee, date or topic. Blank beats a guess.
 
 ## Pass 2: make every name open the programme's own page
@@ -80,7 +92,7 @@ mandatory on every refresh, including the links pass 1 has just written.
 
 ## Budget
 
-Stop pass 1 after 150 page fetches in one run and leave the rest of the queue for next week.
+Spend up to 40 fetches on pass 0. Stop pass 1 after 150 page fetches in one run and leave the rest of the queue for next week.
 Keep 50 fetches back for pass 2: a wrong link on the page is worse than a blank fee.
 Both queues are ordered so the programmes that matter most come first.
 

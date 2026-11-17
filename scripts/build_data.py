@@ -226,6 +226,8 @@ if (R / 'data/peer_launches.csv').exists():
             eff, basis = fc, 'first cohort'
         else:
             eff, basis = '', ''
+        if eff and eff < meta['from']:
+            continue                          # older than the rolling 12-month window
         rows.append({'sc': r['school_slug'], 'n': r['programme'], 'ld': ld, 'ev': r['evidence'], 'fc': r['first_cohort'],
                      'fcd': fc, 'f': r['format'], 'dur': r['duration'], 'fee': r['fee'], 'pt': r['partner'],
                      'u': r['url'] if kind(r['url']) == 'page' else '', 'src': src, 'srck': LABEL[kind(src)],
