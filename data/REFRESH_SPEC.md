@@ -1,7 +1,7 @@
 # Weekly refresh (for the Claude refresh session)
 
 The GitHub Action runs every Monday and recomputes everything from `data/catalogues/*.csv`.
-It cannot read school websites. This task is the part that does. It makes four passes, in
+It cannot read school websites. This task is the part that does. It makes five passes, in
 this order, and the refresh is not finished until all are done.
 
 ## Pass 0: find programmes we do not hold yet
@@ -34,7 +34,9 @@ The dashboard can only show programmes that are in the catalogues, so every refr
    - `duration` → `duration_raw` verbatim, plus `duration_days` (campus) or `duration_weeks`.
    - `next_start` → ISO date of the next cohort that has not started yet.
    - Set `last_verified` to today's date on every row you open, whether or not you changed it.
-3. If the page is gone and the school's catalogue no longer lists the programme, delete the
+3. A page that is gone or forwards elsewhere may be a rename, not a programme withdrawn: check
+   `outputs/rename_candidates.csv` for it first and settle it in pass 4. If it is not a rename and
+   the page is gone and the school's catalogue no longer lists the programme, delete the
    row. If you are unsure, keep it: set `status` to `likely discontinued` and say why, with the
    date, in `status_note`; the dashboard marks it. Clear both if the programme turns out to be on sale.
 4. New programmes on a school's catalogue page that we do not hold: add a row with
@@ -111,6 +113,30 @@ programmes each week, so every programme is re-read every two weeks.
 7. Never record a change you have not seen on the school's own page or its delivery partner's.
    A fee that differs only because one source quotes it with GST and the other without is not a
    change: keep the row as it is and say so in `note`.
+
+## Pass 4: confirm renames
+
+Schools rename programmes. The old page goes or forwards to a new one and most details stay
+the same; left alone, the old name reads as discontinued and the new one as a second programme.
+
+1. Run `python scripts/rename_candidates.py`. It writes `outputs/rename_candidates.csv`: each
+   programme that looks gone (marked `likely discontinued`, or removed in the last year) with up
+   to two live programmes at the same school that could be its new name, scored on whether the old
+   page forwards to it, shared words in the name, and matching fee, length, modules, format,
+   partner and level. Work down it, high confidence first.
+2. Confirm a rename only on the school's or its partner's own evidence: the old page forwards to
+   the new one; the school says so ("formerly", "previously known as", "now called"); or the old
+   and new brochures or pages show the same programme (same director, same modules or structure)
+   under a new name. A likeness of name, fee or length alone is not enough.
+3. Record every decision in `data/renames.csv`, one line per pair: `school_slug`, `old_name` and
+   `new_name` exactly as in the catalogue, `decision` (`renamed` or `not a rename`), `decided_on`
+   (today), `evidence` (what you saw, with the page), `decided_by` ("weekly refresh"). A `not a
+   rename` line stops the pair being proposed again.
+4. Do not edit the catalogue for a rename. `scripts/apply_renames.py` runs on every build: it
+   removes the old row when the new name is already held, or gives the old row the new name and
+   clears its likely-discontinued mark, and What changed shows the programme as renamed.
+5. ISB's own renames come from the Product & Content Strategy team and are already recorded;
+   do not override them.
 
 ## Finish
 

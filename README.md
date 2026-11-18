@@ -42,8 +42,8 @@ The team's competitor sheet (the Power BI source) is merged in with
 
 Every Monday at 02:00 UTC, and on any push that touches the data or scripts:
 
-`build_taxonomy.py` → `classify.py` → `analyse.py` → `demand_index.py` → `refresh_queue.py` → `link_audit.py`
-→ `what_changed.py` → `build_data.py` → `build_site.py` → `check_drift.py`
+`build_taxonomy.py` → `apply_renames.py` → `classify.py` → `analyse.py` → `demand_index.py` → `refresh_queue.py` → `link_audit.py`
+→ `what_changed.py` → `rename_candidates.py` → `build_data.py` → `build_site.py` → `check_drift.py`
 
 `check_drift.py` fails the build if any school's product count moved more than 10% against
 last month's snapshot, so a broken capture cannot silently rewrite the numbers. Changes on
@@ -71,6 +71,14 @@ programme is newly listed or gone; a value we filled in or corrected is ours and
 unless the reader includes corrections. Pass 3 of the weekly refresh re-reads half of all
 programmes each week (`scripts/recheck_queue.py`: IIMs first, then the global schools, then
 SP Jain, then ISB and the platforms). The hand-written log sits at the bottom of the tab.
+
+Renamed programmes: when a school renames a programme, the old name reads as discontinued
+and the new one as a second programme. `scripts/rename_candidates.py` scores every programme
+that looks gone against the live programmes at its school (old page forwarding to it, shared
+name words, matching fee, length, modules, format, partner and level) and writes
+`outputs/rename_candidates.csv`; pass 4 of the weekly refresh confirms each on the school's own
+pages and records the decision in `data/renames.csv`. `scripts/apply_renames.py` applies the
+confirmed ones on every build, and What changed shows them as renamed.
 
 Every programme has one programme type, so nothing is counted twice: C-suite (named for a
 C-suite role, or filed under C-suite by the school, whatever its format), Blended, Live

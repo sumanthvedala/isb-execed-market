@@ -20,7 +20,14 @@ record (basis 'school' or 'ours'):
   - a link is always ours;
   - the likely-discontinued mark, and a programme no longer listed, are the school's;
   - a programme newly listed is the school's when it came from the school's own
-    listing (provenance catalogue-capture), ours when it came from a workbook or sheet.
+    listing (provenance catalogue-capture), ours when it came from a workbook or sheet;
+  - a rename confirmed in data/renames.csv (scripts/apply_renames.py) is one change,
+    'renamed', on the programme's new name, not the old one gone and a new one listed.
+    The old name's earlier changes (a likely-discontinued mark, say) stay in the log
+    but are left out of outputs/what_changed.csv, since they were the rename.
+
+A programme no longer listed keeps its last recorded details in
+data/history/removed.csv, so scripts/rename_candidates.py can still compare it.
 
 History starts on 30 Sep 2026, when the team's competitor sheet was merged in;
 scripts/backfill_history.py rebuilt the changes from then to 18 Nov 2026 from
@@ -131,9 +138,22 @@ def recheck_changes():
     return out
 
 
-def diff(old, new, date, rechecked=None):
+def renames():
+    """confirmed renames: (school, old key) -> (school, new key, old name, new name, evidence)"""
+    p = R / 'data' / 'renames.csv'
+    out = {}
+    if p.exists():
+        for r in csv.DictReader(open(p, encoding='utf-8')):
+            if clean(r.get('decision')).lower() == 'renamed':
+                out[(r['school_slug'], product_key(r['old_name']))] = (
+                    r['school_slug'], product_key(r['new_name']), clean(r['old_name']), clean(r['new_name']), clean(r.get('evidence')))
+    return out
+
+
+def diff(old, new, date, rechecked=None, renamed=None):
     """the changes between two states, dated `date`"""
     rechecked = rechecked or {}
+    renamed = renamed or {}
     d0 = (datetime.date.fromisoformat(date) - datetime.timedelta(days=8)).isoformat()
     ev = []
 
@@ -141,14 +161,24 @@ def diff(old, new, date, rechecked=None):
         ev.append(dict(date=date, school_slug=k[0], key=k[1], name=s['name'], field=field, kind=kind,
                        before=before, after=after, basis=basis, note=note))
 
-    for k in sorted(new.keys() - old.keys()):
+    # a confirmed rename: the old name gone and the new one present is one change
+    gone, fresh = old.keys() - new.keys(), new.keys() - old.keys()
+    for k in sorted(gone):
+        rn = renamed.get(k)
+        if rn and (rn[0], rn[1]) in new:
+            nk = (rn[0], rn[1])
+            ev.append(dict(date=date, school_slug=nk[0], key=nk[1], name=new[nk]['name'], field='listed', kind='renamed',
+                           before=old[k]['name'], after=new[nk]['name'], basis='school', note=rn[4]))
+            gone = gone - {k}
+            fresh = fresh - {nk}
+    for k in sorted(fresh):
         s = new[k]
         launch = s['is_new'] == 'Y'
         add(k, s, 'listed', 'added', '', s['name'],
             'school' if s['provenance'] in ('catalogue-capture', '') else 'ours',
             'new launch' if launch else ('from the school\'s listing' if s['provenance'] in ('catalogue-capture', '')
                                          else f"from {s['provenance'].replace('-', ' ')}"))
-    for k in sorted(old.keys() - new.keys()):
+    for k in sorted(gone):
         add(k, old[k], 'listed', 'removed', old[k]['name'], '', 'school', 'no longer in the catalogue')
     for k in sorted(old.keys() & new.keys()):
         a, b = old[k], new[k]
@@ -186,6 +216,22 @@ def write_state(st):
         w.writerows(st[k] for k in sorted(st))
 
 
+def keep_removed(old, events):
+    """the last recorded details of every programme no longer listed"""
+    gone = [e for e in events if e['field'] == 'listed' and e['kind'] == 'removed']
+    if not gone:
+        return
+    p = HIST / 'removed.csv'
+    new = not p.exists()
+    with open(p, 'a', newline='', encoding='utf-8') as f:
+        w = csv.DictWriter(f, fieldnames=['removed_on'] + STATE_COLS, quoting=csv.QUOTE_ALL, lineterminator='\n',
+                           extrasaction='ignore')
+        if new:
+            w.writeheader()
+        for e in gone:
+            w.writerow(dict(old[(e['school_slug'], e['key'])], removed_on=e['date']))
+
+
 def append_log(events, fresh=False):
     HIST.mkdir(parents=True, exist_ok=True)
     p = HIST / 'changes.csv'
@@ -207,9 +253,10 @@ def main():
         print('what changed: no recorded state; this run is the starting point')
         events = []
     else:
-        events = diff(old, cur, today, recheck_changes())
+        events = diff(old, cur, today, recheck_changes(), renames())
         if events:
             append_log(events)
+            keep_removed(old, events)
         write_state(cur)
 
     # each change with the dashboard programme it belongs to (programmes_tagged.csv)
@@ -217,7 +264,10 @@ def main():
     for r in csv.DictReader(open(R / 'programmes_tagged.csv', encoding='utf-8')):
         if r['theme'] != 'UNCLASSIFIED':
             tagged[(r['school_slug'], product_key(r['programme_name']))] = r
-    log = list(csv.DictReader(open(HIST / 'changes.csv', encoding='utf-8')))
+    # changes under a name later confirmed as renamed were the rename: leave them out
+    old_names = set(renames())
+    log = [e for e in csv.DictReader(open(HIST / 'changes.csv', encoding='utf-8'))
+           if (e['school_slug'], e['key']) not in old_names]
     out = R / 'outputs' / 'what_changed.csv'
     cols = LOG_COLS + ['programme', 'tile']
     with open(out, 'w', newline='', encoding='utf-8') as f:
