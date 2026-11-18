@@ -169,6 +169,14 @@ def level_of(ta):
     return 'Unknown'
 
 
+# The first amount in a fee. Commas group digits in any pattern (Indian 3,50,000 or
+# 350,000). A space, no-break space, narrow no-break space or apostrophe groups them
+# only when exactly three digits follow, as in HEC's "55 300 €" or "CHF 9'500", so
+# "2 programmes" is never read as part of a number.
+AMOUNT = re.compile(r"\d[\d,]*(?:[   '’]\d{3}(?!\d))*(?:\.\d+)?")
+THOUSANDS = re.compile(r"[,   '’]")
+
+
 def fee_of(raw, slug):
     s = clean(raw)
     if not s or re.search(r'free', s, re.I):
@@ -176,10 +184,10 @@ def fee_of(raw, slug):
     ccy = ('GBP' if '£' in s else 'SGD' if 'S$' in s else 'EUR' if ('€' in s or 'EUR' in s.upper())
            else 'USD' if ('$' in s or 'USD' in s.upper()) else
            'INR' if re.search(r'₹|rs|inr', s, re.I) else HOME_CCY.get(slug, 'INR'))
-    m = re.search(r'\d[\d,]*(?:\.\d+)?', s)
+    m = AMOUNT.search(s)
     if not m:
         return s, '', ''
-    amt = float(m.group(0).replace(',', ''))
+    amt = float(THOUSANDS.sub('', m.group(0)))
     return s, ccy, str(int(amt)) if amt == int(amt) else str(amt)
 
 
