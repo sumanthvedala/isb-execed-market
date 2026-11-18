@@ -1,8 +1,8 @@
 # Weekly refresh (for the Claude refresh session)
 
 The GitHub Action runs every Monday and recomputes everything from `data/catalogues/*.csv`.
-It cannot read school websites. This task is the part that does. It makes two passes, in
-this order, and the refresh is not finished until both are done.
+It cannot read school websites. This task is the part that does. It makes four passes, in
+this order, and the refresh is not finished until all are done.
 
 ## Pass 0: find programmes we do not hold yet
 
@@ -81,12 +81,44 @@ mandatory on every refresh, including the links pass 1 has just written.
    started, and it must show no `news`, `aggregator`, `shortener`, `private` or `broken`
    rows unless the changelog line says why each one is still there.
 
+## Pass 3: re-check what we already hold
+
+The What changed tab can only show a school raising a fee, adding modules or changing a
+programme's length if someone re-reads the page. This pass does that for half of all
+programmes each week, so every programme is re-read every two weeks.
+
+1. Run `python scripts/recheck_queue.py`. It writes `outputs/recheck_queue.csv`: this week's half,
+   never-checked and longest-unchecked first, in this order: IIM Ahmedabad, Bangalore, Calcutta,
+   Indore, Kozhikode, Lucknow, then the global schools alphabetically, then SP Jain, then ISB and
+   the platforms.
+2. For each row, open `page` (or find the programme's page as in pass 2) and read the current fee,
+   duration, number of modules, format, topics taught and next start. Where a school publishes a
+   calendar or fee table covering many programmes (IIM-K, IIM-L), read it once for all its rows.
+3. Where the page differs from the catalogue row, update the row: `fee_raw`, `fee_currency`,
+   `fee_amount`; `duration_raw` with `duration_days` or `duration_weeks`; `total_modules`; `format`
+   by the format rules in `data/CATALOGUE_SPEC.md`; `key_topics`; `next_start`. Set `last_verified`
+   to today on every row you open.
+4. Add one line per programme to `data/recheck_log.csv`, changed or not:
+   `checked_on` (today), `school_slug`, `programme_name` (exactly as in the catalogue), `outcome`
+   (`same`, `changed`, `page gone` or `unreachable`), `fields` (for `changed`: the fields that moved,
+   separated by semicolons, from `fee`, `duration`, `modules`, `format`, `topics`, `next_start`,
+   `level`, `partner`), `page` (the page you read) and `note` (anything a reader should know, such as
+   "early-bird fee now shown"). This line is what marks a change as the school's on the What changed
+   tab; a change without it shows as a correction to our record.
+5. A page that is gone: follow Pass 1 step 3 (mark `likely discontinued`, or delete the row if the
+   school's catalogue no longer lists it) and log `page gone`.
+6. A row that is also in the pass 1 queue: fill and re-check it in one visit.
+7. Never record a change you have not seen on the school's own page or its delivery partner's.
+   A fee that differs only because one source quotes it with GST and the other without is not a
+   change: keep the row as it is and say so in `note`.
+
 ## Finish
 
 1. Append one line to `data/changelog.csv` (date, scope isb|peers|data, headline, detail) saying
    what you filled, removed or added, and how many links pass 2 fixed and how many are still
-   queued. It shows on the dashboard's Updates page. Programme adds, drops and repricing are
-   detected automatically; do not log those by hand.
+   queued, and how many programmes pass 3 re-checked and found changed. It shows in the Log on the
+   dashboard's What changed tab. Programme adds, drops and repricing are detected automatically
+   (scripts/what_changed.py); do not log those by hand.
 2. Commit to `main` as "Weekly gap-fill YYYY-MM-DD". The push re-runs the Action, which
    rebuilds the dashboard and the drift check.
 
@@ -94,7 +126,9 @@ mandatory on every refresh, including the links pass 1 has just written.
 
 Spend up to 40 fetches on pass 0. Stop pass 1 after 150 page fetches in one run and leave the rest of the queue for next week.
 Keep 50 fetches back for pass 2: a wrong link on the page is worse than a blank fee.
-Both queues are ordered so the programmes that matter most come first.
+Pass 3 has its own budget: work down the whole re-check queue. If the session runs out of time,
+stop where you are; the rows not reached stay at the top of next week's queue.
+Every queue is ordered so the programmes that matter most come first.
 
 ## How pass 2 was done the first time (17 Nov 2026), so it can be repeated
 

@@ -248,22 +248,21 @@ if changes:
     for p in progs:
         if (p['sc'], p['n']) in _added:
             p['new'] = 1
-# What changed: before (the competitor sheet as fed in) vs after (today), per school
-# tile, from scripts/what_changed.py. A row points at its dashboard programme by
-# index; a programme no longer on the dashboard is named instead.
+# What changed: the change history (scripts/what_changed.py, data/history/), one
+# row per change, for the page to net out over the window the reader picks.
+# A row points at its dashboard programme by index; a programme not on the
+# dashboard is named instead. Link changes are always ours and stay out.
 wc = None
 if (R / 'outputs/what_changed.csv').exists():
     _at = {(p['sc'], p['n']): i for i, p in enumerate(progs)}
-    _num = lambda v: int(v) if str(v).isdigit() else v
-    wc = {'date': '2026-09-30',
-          'tiles': {(s['school_slug'] + ('|' + s['tile'] if s['tile'] else '')): {k: _num(v) for k, v in s.items()
-                    if k not in ('school_slug', 'tile') and _num(v)} for s in L('outputs/what_changed_schools.csv')},
-          'rows': []}
+    wc = {'start': '2026-09-30', 'today': datetime.date.today().isoformat(), 'rows': []}
     for c in L('outputs/what_changed.csv'):
-        i = _at.get((c['after_school'] or c['school_slug'], c['programme']), -1)
-        nm = c['before_name'] if (i < 0 or (c['before_name'] and c['before_name'] != c['programme'])) else ''
-        wc['rows'].append([c['school_slug'], c['tile'], c['change'], c['field'], c['kind'], i, nm,
-                           c['before_value'], c['after_value'], c['note']])
+        if c['field'] == 'link':
+            continue
+        i = _at.get((c['school_slug'], c['programme']), -1)
+        note = re.sub(r'(; )?commit [0-9a-f]+$', '', c['note'])
+        wc['rows'].append([c['date'], c['school_slug'], c['tile'], i, c['name'] if i < 0 else '', c['key'],
+                           c['field'], c['kind'], c['before'], c['after'], 1 if c['basis'] == 'school' else 0, note])
 d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'schools': [{'s': s['slug'], 'l': s['label'], 'g': s['group'], 'n': s['school'], 'r': s['region']} for s in schools],
      'types': TYPES,

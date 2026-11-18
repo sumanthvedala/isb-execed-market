@@ -47,7 +47,7 @@ Every Monday at 02:00 UTC, and on any push that touches the data or scripts:
 
 `check_drift.py` fails the build if any school's product count moved more than 10% against
 last month's snapshot, so a broken capture cannot silently rewrite the numbers. Changes on
-the week-on-week lists under What changed are still measured against the month before, not the week before.
+What changed is measured over whatever period the reader picks, from the change history.
 
 ## What the dashboard shows
 
@@ -56,16 +56,21 @@ tile per school that opens its whole portfolio (CXO programmes first, then blend
 online, campus, self-paced) under the same filters as the search page; new launches by
 other schools, by theme and level; a test for a programme idea; and What changed.
 
-What changed compares before (the competitor sheet as it was fed in on 30 Sep 2026) with
-after (the database today), one tile per school under an Indian and a Global button, in the
-same layout as the schools tabs. Each tile counts programmes added, removed, moved between a
-platform and its school, merged as duplicates or marked likely discontinued, and the fees,
-formats, durations, start dates, links, names and other details that differ; a school's page
-lists every change with its before and after value, and either downloads as CSV.
-`scripts/what_changed.py` traces each before programme with the same name matching the merge
-used and writes `outputs/what_changed.csv`; the tile counts reconcile, so before minus
-removed, moved out and merged, plus moved in and added, equals after. The week-on-week lists
-and the log sit at the bottom of the tab.
+What changed shows, school by school, what moved over a period the reader picks (last week,
+two weeks, month, quarter, six months or year), under an Indian and a Global button, in the
+same tile layout as the schools tabs. Each tile gives the count of programmes changed, a
+sentence saying what the school did, counts by kind (new programmes, gone or likely
+discontinued, fees raised and cut with the median move, duration, modules, format, topics
+taught) and the three changes worth seeing first. A school's page lists every change with
+the value before in the body colour, the value after in red, and the size of the change.
+`scripts/what_changed.py` compares the catalogues with the last run on every build and logs
+what moved, dated, to `data/history/changes.csv` (history from 30 Sep 2026, rebuilt from the
+repository by `scripts/backfill_history.py`). A change counts as the school's only when the
+weekly re-check logged that programme as changed (`data/recheck_log.csv`), or when a
+programme is newly listed or gone; a value we filled in or corrected is ours and hidden
+unless the reader includes corrections. Pass 3 of the weekly refresh re-reads half of all
+programmes each week (`scripts/recheck_queue.py`: IIMs first, then the global schools, then
+SP Jain, then ISB and the platforms). The hand-written log sits at the bottom of the tab.
 
 Every programme has one programme type, so nothing is counted twice: C-suite (named for a
 C-suite role, or filed under C-suite by the school, whatever its format), Blended, Live

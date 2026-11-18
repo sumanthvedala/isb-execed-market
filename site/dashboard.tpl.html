@@ -183,6 +183,19 @@ label.pillck.on{border-color:var(--isb);background:var(--sky);color:var(--isb);f
 .tile .big-n b{font:400 34px/1 var(--serif);color:var(--blue);margin-right:6px}
 .tile .foc{font-size:14px;color:var(--ink-2);margin:0}
 .tile .big-n .ba{display:block;font-size:11.5px;color:var(--ink-3);letter-spacing:.03em;text-transform:uppercase;margin-bottom:4px}
+/* what changed: before in the body colour, after in red, the size of the change in a chip */
+.was{color:var(--ink-2)}
+.now{color:#c62828;font-weight:600}
+.r .c.now{color:#c62828}
+.dlt{display:inline-block;font:600 11.5px/1.2 var(--sans);padding:4px 7px;white-space:nowrap}
+.dlt.up{background:#fde3e1;color:#9f1d1d}.dlt.down{background:#dcf2ea;color:#0a6449}.dlt.neu{background:var(--sky);color:var(--isb)}.dlt.gone{background:#f3e7d3;color:#7a4a00}
+.newtag.listed{background:var(--sky)}
+.ours{font:500 11px/1 var(--sans);color:var(--ink-3);border:1px solid var(--rule);padding:3px 6px;margin-left:8px;white-space:nowrap;vertical-align:2px}
+.struck{text-decoration:line-through;color:var(--ink-3)}
+.tile .say{font-size:14.5px;line-height:1.45;color:var(--ink);margin:0}
+.tile .hl{list-style:none;margin:0;padding:10px 0 0;border-top:1px solid var(--rule);display:flex;flex-direction:column;gap:7px;font-size:13px;color:var(--ink-2)}
+.tile .hl b{font-weight:600;color:var(--ink)}
+.wctl{margin-top:18px;gap:12px 22px;max-width:780px}.wctl select{font-size:15px;padding:8px 10px;max-width:300px}
 .tile .foc b{font-weight:600;color:var(--ink)}
 .tile .open{margin-top:auto;font:700 15px/1.2 var(--serif);color:var(--isb);border-bottom:3px solid var(--coral);align-self:flex-start;padding-bottom:2px}
 /* how a catalogue splits by delivery: one flat bar, labelled underneath */
@@ -859,125 +872,195 @@ function testResult(v){
         <p class="meta" style="margin-top:6px">Matched on shared words in the title and description, so check each one.</p>`:`<p class="meta">None of the ${L?L.rows.length:0} launches by other schools in the last year shares two or more key words with this idea.</p>`}</section>`;
 }
 
-/* ---------- what changed: before vs after, one tile per school ---------- */
-// Before is the programme data as first fed in (D.wc.date); after is the database today.
-// scripts/what_changed.py traces every before programme to the one it became, or says why it is gone.
+/* ---------- what changed: per school, over the period the reader picks ---------- */
+// scripts/what_changed.py logs every change to the catalogues since D.wc.start (data/history/changes.csv).
+// The page nets the log out over the chosen period: the value at its start against the value now.
+// A change is the school's (a re-check found the page changed, a programme newly listed or gone) or ours
+// (a value we filled in or corrected); ours are hidden unless the reader includes them.
 const W=D.wc;
-const WR=W?W.rows.map(r=>({sc:r[0],d:r[1],c:r[2],f:r[3],k:r[4],p:r[5]>=0?D.progs[r[5]]:null,bn:r[6],b:r[7],a:r[8],note:r[9]})):[];
-const WMOVE=[["added","Added","on the dashboard now, not in before"],["removed","Removed","in before, not on the dashboard now"],
-  ["moved_in","Moved in","listed under a platform before, under this school now"],["moved_out","Moved out","listed here before, under its own school now"],
-  ["merged","Merged","listed twice before, one programme now"],["discontinued","Likely discontinued","in before, still listed, marked as likely discontinued"]];
-const WFLD=[["fee","Fee"],["format","Format"],["duration","Duration"],["start","Start date"],["link","Link"],["name","Name"],
-  ["capstone","Capstone"],["campus_immersion","Campus immersion"],["industry_visit","Industry visit"],["alumni_status","Alumni status"],
-  ["total_modules","Modules"],["eligibility","Eligibility"],["target_audience","Target audience"]];
-const WMAIN=["fee","format","duration","start","link","name"];
-const WKIND={changed:"changed",filled:"added",cleared:"removed"};
-// ISB has a tile for what it delivers itself and one for what it delivers with partners
-const wKeys=(sc,d)=>sc==="isb"&&!d?["isb|own","isb|partner"]:[sc+(d?"|"+d:"")];
-const wTile=(sc,d)=>{const o={};wKeys(sc,d).forEach(k=>Object.entries(W.tiles[k]||{}).forEach(([x,n])=>{o[x]=(o[x]||0)+n;}));return o;};
-const wRows=(sc,d)=>WR.filter(r=>r.sc===sc&&(!d||r.d===d));
-const wOther=t=>WFLD.filter(([f])=>!WMAIN.includes(f)).reduce((a,[f])=>a+(t["f_"+f]||0),0);
-const wCount=l=>new Set(l.map(r=>r.p?"p"+r.p.i:"b"+r.bn)).size;
-const wGroup=G=>D.schools.filter(s=>G==="Global"?s.g==="Global":s.g!=="Global");
-const WNOTE=`<b>How before and after are compared.</b> Every before programme is traced to the programme it became, using the same name matching as the original merge. A detail counts as different only when the after value matches none of that programme's before cohorts. Fees are compared in their own currency; durations within 15% count as the same; a name differing only by “&” or “and”, Program or Programme, or a batch number does not count. A before link that was a file name or a title rather than a web address counts as a link added. Removed programmes are still in the database: they are out of scope (degree programmes, Coursera or edX courses) or could not be tagged to a topic, so the dashboard does not show them. Platform tiles mostly show programmes moved out, because a school-branded listing on Emeritus, TimesPro or Jaro now sits under its school.`;
+const WIN=[["7","Last week"],["14","Last two weeks"],["30","Last month"],["91","Last quarter"],["182","Last 6 months"],["365","Last year"]];
+const WE=W?W.rows.map(r=>({d:r[0],sc:r[1],t:r[2],p:r[3]>=0?D.progs[r[3]]:null,nm:r[4],k:r[5],f:r[6],kind:r[7],b:r[8],a:r[9],sch:!!r[10],note:r[11]})):[];
+const WLAB={listed:"Listing",fee:"Fee",duration:"Duration",modules:"Modules",format:"Format",topics:"Topics taught",next_start:"Next start",level:"Level",partner:"Delivery partner",capstone:"Capstone",campus_immersion:"Campus immersion",industry_visit:"Industry visit",alumni_status:"Alumni status",eligibility:"Eligibility",target_audience:"Target audience",status:"Status"};
+// a category's count in a sentence: "1 new programme", "3 fees raised"
+const WPH={new:["new programme","new programmes"],gone:["programme gone or likely discontinued","programmes gone or likely discontinued"],feeUp:["fee raised","fees raised"],
+  feeDown:["fee cut","fees cut"],fee:["fee added or restated","fees added or restated"],duration:["duration change","duration changes"],modules:["module change","module changes"],
+  format:["format change","format changes"],topics:["change to topics taught","changes to topics taught"],other:["other detail changed","other details changed"]};
+const WCATS=[["new","New programmes"],["gone","Gone or likely discontinued"],["feeUp","Fees raised"],["feeDown","Fees cut"],["fee","Fees added or restated"],["duration","Duration changed"],["modules","Modules changed"],["format","Format changed"],["topics","Topics taught changed"],["other","Other details"]];
+const wOpt=q=>({w:WIN.some(x=>x[0]===q.w)?q.w:"30",ours:q.ours==="1"});
+const wQS=(o,d)=>`?${d?`d=${d}&`:""}w=${o.w}${o.ours?"&ours=1":""}`;
+const wWin=o=>WIN.find(x=>x[0]===o.w)[1];
+const wFrom=days=>{const d=new Date(W.today+"T00:00:00Z");d.setUTCDate(d.getUTCDate()-(+days));return d.toISOString().slice(0,10);};
+const SYMB={INR:"₹",USD:"$",EUR:"€",GBP:"£",SGD:"S$",CHF:"CHF ",CNY:"CN¥"};
+const wFee=v=>{const m=(v||"").match(/^(\S+) ([\d.]+)$/);return m?[m[1],+m[2]]:null;};
+const wMoney=v=>{const x=wFee(v);return x?(SYMB[x[0]]??x[0]+" ")+x[1].toLocaleString(x[0]==="INR"?"en-IN":"en-US",{maximumFractionDigits:2}):v;};
+const wDur=v=>{const [raw,w]=(v||"").split("|");return {raw:raw||"",w:w?+w:null};};
+const wPct=c=>{const x=wFee(c.b),y=wFee(c.a);return c.f==="fee"&&c.kind==="changed"&&x&&y&&x[0]===y[0]&&x[1]?100*(y[1]-x[1])/x[1]:null;};
+const wPlain=(c,v)=>!v?"":c.f==="fee"?wMoney(v):c.f==="duration"?(wDur(v).raw||wk(wDur(v).w)):c.f==="next_start"&&/^\d{4}-\d\d-\d\d$/.test(v)?fmtD(v):v;
+const wShow=(c,v)=>!v?`<span class="meta">none</span>`:esc((s=>s.length>140?s.slice(0,140)+"…":s)(wPlain(c,v)));
+const wCat=c=>c.f==="listed"?(c.kind==="added"?"new":"gone"):c.f==="status"?(c.kind==="discontinued"?"gone":"other")
+  :c.f==="fee"?(wPct(c)==null||!c.sch?"fee":wPct(c)>0?"feeUp":"feeDown"):["duration","modules","format","topics"].includes(c.f)?c.f:"other";
+const wLaunch=c=>c.kind==="added"&&/new launch/.test(c.note);
+function wDelta(c){
+  const chip=(cls,t)=>`<span class="dlt ${cls}">${t}</span>`;
+  if(c.f==="listed") return c.kind==="added"?(wLaunch(c)?`<span class="newtag">New launch</span>`:`<span class="newtag listed">Newly listed</span>`):chip("gone","No longer listed");
+  if(c.f==="status") return c.kind==="discontinued"?chip("gone","Likely discontinued"):chip("neu","Listed again");
+  if(c.kind==="filled") return chip("neu","added to our record");
+  if(c.kind==="cleared") return chip("neu","removed from our record");
+  if(c.f==="fee"){const p=wPct(c);if(p==null) return chip("neu","currency changed");
+    const t=`${p>0?"▲":"▼"} ${Math.abs(p)<0.1?"under 0.1":Math.abs(p).toFixed(1)}% ${p>0?"increase":"decrease"}`;
+    // a correction of ours is not a price move: say so, and drop the percentage when it is a parsing fix
+    return c.sch?chip(p>0?"up":"down",t):chip("neu",Math.abs(p)>300?"record corrected":`${t}, record corrected`);}
+  if(c.f==="duration"){const x=wDur(c.b).w,y=wDur(c.a).w;return x&&y&&x!==y?chip(y>x?"up":"down",`${y>x?"▲":"▼"} ${wk(Math.abs(y-x))} ${y>x?"longer":"shorter"}`):chip("neu","restated");}
+  if(c.f==="modules"){const m=+c.a-+c.b;return isNaN(m)?"":chip(m>0?"up":"down",`${m>0?"▲ +":"▼ −"}${Math.abs(m)} ${Math.abs(m)===1?"module":"modules"}`);}
+  if(c.f==="topics"){const x=new Set(c.b.split("; ")),y=new Set(c.a.split("; ")),n=[...y].filter(t=>!x.has(t)).length,g=[...x].filter(t=>!y.has(t)).length;
+    return chip("neu",[n?`+${n} new`:"",g?`−${g} dropped`:""].filter(Boolean).join(", ")||"reworded");}
+  if(c.f==="format") return chip("neu",`now ${esc(c.a)}`);
+  return chip("neu","changed");
+}
+// plural phrases for what we did to our records
+const WPL={fee:["fee","fees"],format:["format","formats"],duration:["duration","durations"],modules:["module count","module counts"],topics:["topic list","topic lists"],
+  next_start:["start date","start dates"],level:["level","levels"],partner:["partner","partners"],eligibility:["eligibility note","eligibility notes"],target_audience:["audience note","audience notes"],
+  capstone:["capstone flag","capstone flags"],campus_immersion:["immersion flag","immersion flags"],industry_visit:["industry-visit flag","industry-visit flags"],alumni_status:["alumni flag","alumni flags"],
+  listed:["programme","programmes"],status:["status","statuses"]};
+const wPl=(f,n)=>(WPL[f]||[WLAB[f].toLowerCase(),WLAB[f].toLowerCase()])[n===1?0:1];
+const wDeltaText=c=>wDelta(c).replace(/<[^>]+>/g,"");
+const wOurs=`<span class="ours" title="We filled in or corrected our own record; the school did not necessarily change anything">our record</span>`;
 
-function wTileHTML(s,d){
-  const t=wTile(s.s,d), n=wCount(wRows(s.s,d));
-  const mv=WMOVE.filter(([k])=>t[k]).map(([k,l])=>`<span>${l}</span><b>${t[k]}</b><em></em>`).join("");
-  const fl=WFLD.filter(([f])=>WMAIN.includes(f)&&t["f_"+f]).map(([f,l])=>[l,t["f_"+f]]).concat(wOther(t)?[["Other details",wOther(t)]]:[]);
-  return `<a class="tile ${s.g==="ISB"?"home":""}" href="#/changes/${s.s}${d?`?d=${d}`:""}">
+// the net change per programme and field over the period
+function wNet(o){
+  const from=wFrom(o.w), g=new Map();
+  for(const e of WE){if(e.d<=from)continue;const id=e.sc+"|"+e.k+"|"+e.f;if(!g.has(id))g.set(id,[]);g.get(id).push(e);}
+  const all=[];
+  for(const l of g.values()){const f0=l[0], z=l[l.length-1], b=f0.b, a=z.a; if(b===a) continue;
+    const kind=f0.f==="listed"?(a?"added":"removed"):f0.f==="status"?(a?"discontinued":"relisted"):!b?"filled":!a?"cleared":"changed";
+    const p=l.map(e=>e.p).find(Boolean)||null;
+    all.push({sc:f0.sc,t:z.t||f0.t,p,nm:p?p.n:(z.nm||f0.nm||a||b),k:f0.k,f:f0.f,kind,b,a,sch:l.some(e=>e.sch),d:z.d,note:z.note});}
+  // a programme new in the period is one change, not one per field
+  const fresh=new Set(all.filter(c=>c.kind==="added").map(c=>c.sc+"|"+c.k));
+  const kept=all.filter(c=>c.f==="listed"||c.f==="status"||!fresh.has(c.sc+"|"+c.k));
+  return {list:kept.filter(c=>o.ours||c.sch), hid:o.ours?[]:kept.filter(c=>!c.sch), from};
+}
+const wOf=(l,sc,d)=>l.filter(c=>c.sc===sc&&(!d||c.t===d));
+const wProgs=l=>new Set(l.map(c=>c.sc+"|"+c.k)).size;
+// what the school did, in a sentence, then what we did to our records
+function wSay(l){
+  const sch=l.filter(c=>c.sch), by=k=>sch.filter(c=>wCat(c)===k), s=[], pc=v=>`${v>0?"+":""}${v.toFixed(1)}%`, med=a=>a.length===1?pc(wPct(a[0])):"median "+pc(median(a.map(wPct)));
+  const nw=by("new"), la=nw.filter(wLaunch);
+  if(la.length) s.push(`launched ${andList(la.slice(0,2).map(c=>`<b>${esc(c.nm)}</b>`))}${la.length>2?` and ${la.length-2} more`:""}`);
+  if(nw.length>la.length) s.push(`listed ${plural(nw.length-la.length,la.length?"other new programme":"new programme")}${la.length?"":`, including <b>${esc(nw.find(c=>!wLaunch(c)).nm)}</b>`}`);
+  const up=by("feeUp"), dn=by("feeDown");
+  if(up.length) s.push(`raised the fee on ${plural(up.length,"programme")} (${med(up)})`);
+  if(dn.length) s.push(`cut the fee on ${plural(dn.length,"programme")} (${med(dn)})`);
+  const du=by("duration"), mo=by("modules"), fm=by("format"), tp=by("topics"), gn=by("gone");
+  if(du.length) s.push(`changed the length of ${plural(du.length,"programme")}`);
+  if(mo.length) s.push(`changed the modules of ${plural(mo.length,"programme")}`);
+  if(fm.length) s.push(`changed the format of ${plural(fm.length,"programme")}${(f=>f?` (${f})`:"")(count(fm,c=>c.a).slice(0,2).map(([f,n])=>`${n} now ${esc(f)}`).join(", "))}`);
+  if(tp.length) s.push(`changed the topics taught in ${plural(tp.length,"programme")}`);
+  const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+  let out=s.length?cap(andList(s))+".":"";
+  if(gn.length) out+=` ${cap(plural(gn.length,"programme"))} ${gn.length===1?"is":"are"} gone or look discontinued.`;
+  const ours=l.filter(c=>!c.sch);
+  if(ours.length){const k=count(ours,c=>c.f+"|"+(c.kind==="filled"?"filled in":c.kind==="added"?"added":c.kind==="cleared"?"removed":"corrected"));
+    out+=` In our records: ${andList(k.slice(0,3).map(([x,n])=>{const [f,v]=x.split("|");return `${n} ${wPl(f,n)} ${v}`;}))}${k.length>3?" and more":""}.`;}
+  return out.trim()||"No change by the school in this period.";
+}
+// the changes worth seeing first: launches, the largest fee moves, then other edits
+const wRank=c=>wLaunch(c)?0:c.f==="listed"&&c.kind==="added"?1:wPct(c)!=null?2-Math.min(Math.abs(wPct(c)),99)/100:({duration:3,modules:3,format:4,topics:4}[c.f]??(wCat(c)==="gone"?6:5))+(c.sch?0:3);
+const wMini=c=>`<li><b>${esc(c.nm)}</b> ${c.f==="listed"||c.f==="status"?wDelta(c):`<span class="was">${wShow(c,c.b)}</span> → <span class="now">${wShow(c,c.a)}</span> ${wDelta(c)}`}</li>`;
+function wTileHTML(s,d,net,o){
+  const l=wOf(net.list,s.s,d), hid=wOf(net.hid,s.s,d).length, n=wProgs(l);
+  const counts=WCATS.map(([k,lab])=>{const x=l.filter(c=>wCat(c)===k);if(!x.length)return "";
+    const m=k==="feeUp"||k==="feeDown"?`${k==="feeUp"?"+":""}${median(x.map(wPct)).toFixed(1)}%`:"";return `<span>${lab}</span><b>${x.length}</b><em>${m}</em>`;}).join("");
+  const top=[...l].sort((a,b)=>wRank(a)-wRank(b)).slice(0,3);
+  return `<a class="tile ${s.g==="ISB"?"home":""}" href="#/changes/${s.s}${wQS(o,d)}">
     <h3>${esc(dName(s,d))}</h3>
-    <div class="big-n"><span class="ba">Before → after</span><b>${t.before||0} → ${t.after||0}</b>programmes</div>
-    ${mv?`<div class="medt"><span class="h">Programmes</span><span></span><span></span>${mv}</div>`:""}
-    ${fl.length?`<div class="medt"><span class="h">Details that differ</span><span></span><span></span>${fl.map(([l,c])=>`<span>${l}</span><b>${c}</b><em></em>`).join("")}</div>`:""}
-    <p class="foc">${n?`<b>${n}</b> ${n===1?"programme":"programmes"} with a change`:"No changes"}${t.duplicate_rows?`; ${t.duplicate_rows} duplicate before ${t.duplicate_rows===1?"row":"rows"} dropped`:""}</p>
-    <span class="open">Open changes →</span></a>`;
+    <div class="big-n"><span class="ba">${wWin(o)}</span><b>${n}</b>${n===1?"programme":"programmes"} changed</div>
+    <p class="say">${wSay(l)}</p>
+    ${counts?`<div class="medt"><span class="h">Changes</span><span></span><span class="h">median</span>${counts}</div>`:""}
+    ${top.length?`<ul class="hl">${top.map(wMini).join("")}</ul>`:""}
+    ${hid?`<p class="foc">${plural(hid,"correction")} to our records not shown</p>`:""}
+    <span class="open">See all changes →</span></a>`;
 }
+const wControls=(o,g,extra="")=>`<div class="tools wctl">${g?`<div class="tabs"><a href="#/changes/india${wQS(o)}" class="${g==="India"?"on":""}">Indian</a><a href="#/changes/global${wQS(o)}" class="${g==="Global"?"on":""}">Global</a></div>`:""}
+  <label>Period <select id="wwin">${opts(WIN,o.w)}</select></label>
+  <label class="ck"><input type="checkbox" id="wours" ${o.ours?"checked":""}> Include corrections to our records</label>${extra}</div>`;
+const wHistNote=(o,net)=>`${net.from<W.start?`<p class="meta" style="margin:6px 0 0;max-width:780px">The change history starts on ${fmtD(W.start)}, so this shows every change since then.</p>`:""}${WE.some(e=>e.sch&&e.f!=="listed"&&e.f!=="status")?"":`<p class="meta" style="margin:6px 0 0;max-width:780px">The weekly re-check of programme pages starts on 23 Nov 2026. Until it has run, changes to fees, duration, modules and format are corrections to our records, shown only if you include them.</p>`}`;
+const WNOTE=`<b>How changes are found.</b> Every Monday the refresh re-reads half of all programme pages, IIMs first, then the global schools, then SP Jain, so each programme is checked every two weeks, and adds any programme a school has newly listed. Each run compares the catalogue with the previous run and records what moved and when. A change counts as the school's when the re-check found the page changed, or when a programme is newly listed or gone. A value we filled in or corrected counts as ours and is hidden unless you include corrections. A new launch is a new programme whose page says it is new or announces its first cohort. Each change compares the value at the start of the period with the value now, so a fee that rose and fell back does not show.`;
 
-function changesView(g){
+function changesView(g,q={}){
   if(!W) return notFound();
-  const G=g==="global"?"Global":"India", list=wGroup(G), sum=k=>list.reduce((a,s)=>a+(wTile(s.s,"")[k]||0),0);
+  const G=g==="global"?"Global":"India", list=D.schools.filter(s=>G==="Global"?s.g==="Global":s.g!=="Global"), o=wOpt(q), net=wNet(o);
+  const mine=net.list.filter(c=>list.some(s=>s.s===c.sc)), cnt=k=>mine.filter(c=>wCat(c)===k).length;
   $("view").innerHTML=band(`<h1>What changed</h1>
-    <p class="lead"><b>Before</b> is the programme data as it was first fed in, on ${fmtD(W.date)}. <b>After</b> is the database today. Each tile compares one school: programmes added, removed or moved, and every detail that differs.</p>
-    <div class="tabs" style="margin-top:20px"><a href="#/changes/india" class="${G==="India"?"on":""}">Indian</a><a href="#/changes/global" class="${G==="Global"?"on":""}">Global</a></div>`)+
-  `<div class="tools" style="justify-content:space-between"><p style="margin:0;font-size:16px">${G==="India"?"ISB, the Indian schools and the platforms":"The global schools"}: <b>${sum("before").toLocaleString("en-IN")} programmes before, ${sum("after").toLocaleString("en-IN")} after</b>. ${sum("added")} added, ${sum("removed")} removed; ${sum("f_fee")} fees, ${sum("f_format")} formats and ${sum("f_link")} links differ.</p>
-    <button type="button" class="lnk" id="wdl">Download every change (CSV)</button></div>
-  <div class="tiles">${entriesOf(list).map(([s,d])=>wTileHTML(s,d)).join("")}</div>
+    <p class="lead">What changed in each school's catalogue over the period you pick: new programmes, programmes gone, fees, length, modules, format and other details. Each change sets the value at the start of the period against the value now.</p>
+    ${wControls(o,G)}${wHistNote(o,net)}`)+
+  `<div class="tools" style="justify-content:space-between"><p style="margin:0;font-size:16px">${G==="India"?"ISB, the Indian schools and the platforms":"The global schools"}, ${wWin(o).toLowerCase()}: <b>${plural(wProgs(mine),"programme")} changed</b>${mine.length?`: ${andList(WCATS.filter(([k])=>cnt(k)).map(([k])=>`${cnt(k)} ${WPH[k][cnt(k)===1?0:1]}`))}`:""}.</p>
+    <button type="button" class="lnk" id="wdl">Download these changes (CSV)</button></div>
+  <div class="tiles">${entriesOf(list).map(([s,d])=>wTileHTML(s,d,net,o)).join("")}</div>
   <p class="meta" style="margin-top:22px">${WNOTE}</p>
-  ${weekly(list)}`;
-  $("wdl").onclick=()=>wCsv(WR.filter(r=>list.some(s=>s.s===r.sc)),`what-changed-${G==="India"?"indian":"global"}.csv`);
+  ${wLog()}`;
+  wBind(o,v=>`#/changes/${G==="Global"?"global":"india"}${wQS(v)}`);
+  $("wdl").onclick=()=>wCsv(mine,`what-changed-${G==="India"?"indian":"global"}-${o.w}d.csv`);
+}
+function wBind(o,to){
+  $("wwin").onchange=e=>{location.hash=to({...o,w:e.target.value});};
+  $("wours").onchange=e=>{location.hash=to({...o,ours:e.target.checked});};
 }
 
-const wDate=v=>esc(v.replace(/^\d{4}-\d\d-\d\d/,m=>fmtD(m)));
-const wLink=v=>/^(https?:\/\/|www\.)/i.test(v)?ext(/^www\./i.test(v)?"https://"+v:v,esc(v.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,"").slice(0,52)+(v.length>60?"…":""))):esc(v);
-const wVal=(r,v)=>!v?`<span class="meta">none</span>`:r.f==="link"?wLink(v):r.f==="start"?wDate(v):esc(v);
-const wName=r=>`<span class="n">${r.p?nameLink(r.p)+goneTag(r.p):esc(r.bn)}</span>`;
 let wKey=""; const wOpen=new Set();
 function changesSchool(slug,q={}){
   const s=SC[slug]; if(!s||!W) return notFound();
-  const d=slug==="isb"&&(q.d==="own"||q.d==="partner")?q.d:"";
-  if(wKey!==slug+"|"+d){wKey=slug+"|"+d;wOpen.clear();}
-  const t=wTile(slug,d), l=wRows(slug,d), G=s.g==="Global"?"Global":"India";
-  const sw=entriesOf(wGroup(G)).map(([x,dd])=>[x.s+(dd?`?d=${dd}`:""),dName(x,dd)]);
-  if(slug==="isb") sw.splice(sw.findIndex(o=>o[0].startsWith("isb")),0,["isb","Indian School of Business, all programmes"]);
-  const moves=WMOVE.filter(([k])=>t[k]).map(([k,lab])=>`${t[k]} ${lab.toLowerCase()}`);
-  const by=(a,b)=>(a.p?a.p.n:a.bn).localeCompare(b.p?b.p.n:b.bn);
-  const sec=(id,title,meta,head,cols,rows,cell)=>{if(!rows.length)return "";rows=[...rows].sort(by);const cut=wOpen.has(id)||rows.length<=30?rows.length:25;
-    return `<section><header><h2>${title}</h2><span class="meta">${meta}</span></header>
+  const d=slug==="isb"&&(q.d==="own"||q.d==="partner")?q.d:"", o=wOpt(q), net=wNet(o), l=wOf(net.list,slug,d), hid=wOf(net.hid,slug,d).length;
+  if(wKey!==slug+"|"+d+"|"+o.w+"|"+o.ours){wKey=slug+"|"+d+"|"+o.w+"|"+o.ours;wOpen.clear();}
+  const G=s.g==="Global"?"global":"india";
+  const sw=entriesOf(D.schools.filter(x=>G==="global"?x.g==="Global":x.g!=="Global")).map(([x,dd])=>[x.s+(dd?`?d=${dd}`:""),dName(x,dd)]);
+  if(slug==="isb") sw.splice(sw.findIndex(v=>v[0].startsWith("isb")),0,["isb","Indian School of Business, all programmes"]);
+  const by=(a,b)=>wRank(a)-wRank(b)||a.nm.localeCompare(b.nm);
+  const nameCell=c=>`<span class="n">${c.kind==="removed"?`<span class="struck">${esc(c.nm)}</span>`:c.p?nameLink(c.p)+goneTag(c.p):esc(c.nm)}${c.sch?"":wOurs}</span>`;
+  const sec=(id,title,rows,head,cols,cell)=>{if(!rows.length)return "";rows=[...rows].sort(by);const cut=wOpen.has(id)||rows.length<=30?rows.length:25;
+    return `<section><header><h2>${title}</h2><span class="meta">${rows.length}</span></header>
       <div class="rows"><div class="r hd" style="--cols:${cols}">${head.map(h=>`<span>${h}</span>`).join("")}</div>
-      ${rows.slice(0,cut).map(r=>`<div class="r" ${r.p?`data-go="#/p/${r.p.i}" tabindex="0"`:""} style="--cols:${cols}">${cell(r)}</div>`).join("")}</div>
+      ${rows.slice(0,cut).map(c=>`<div class="r" ${c.p?`data-go="#/p/${c.p.i}" tabindex="0"`:""} style="--cols:${cols}">${cell(c)}</div>`).join("")}</div>
       ${cut<rows.length?`<p style="margin-top:12px"><button type="button" class="lnk" data-open="${id}">Show all ${rows.length}</button></p>`:""}</section>`;};
-  const of=k=>l.filter(r=>r.c===k), C2="minmax(0,1fr) minmax(0,.8fr)", C3="minmax(0,1fr) minmax(0,.7fr) minmax(0,.7fr)";
-  const origins=count(of("added"),r=>r.note).map(([o,n])=>`${n} ${o}`).join(", ");
+  const C5="minmax(0,1.3fr) minmax(0,.75fr) minmax(0,.75fr) minmax(0,.8fr) 104px", C4="minmax(0,1.3fr) minmax(0,.9fr) minmax(0,.9fr) 104px";
+  const cat=k=>l.filter(c=>wCat(c)===k);
+  const fieldCell=c=>`${nameCell(c)}<span class="c was">${wShow(c,c.b)}</span><span class="c now">${wShow(c,c.a)}</span><span class="c">${wDelta(c)}</span><span class="c hm">${fmtD(c.d)}</span>`;
   const body=
-    sec("added","Added",`${of("added").length}: ${origins}`,["Programme","Format and duration","Fee"],C3,of("added"),
-      r=>`${wName(r)}<span class="c">${esc([r.p.f,r.p.dr||(r.p.w?wk(r.p.w):"")].filter(Boolean).join(", "))}</span><span class="c">${r.p.inr?lakh(r.p.inr):"not published"}</span>`)+
-    sec("removed","Removed",`${of("removed").length}: still in the database, not shown on the dashboard`,["Before","Why it is not shown"],C2,of("removed"),
-      r=>`${wName(r)}<span class="c">${esc(r.note)}</span>`)+
-    sec("moved_in","Moved in",`${of("moved_in").length}: listed under a platform before`,["Programme","Before"],C2,of("moved_in"),
-      r=>`${wName(r)}<span class="c">${esc(r.bn)}, ${esc(r.note.replace(/^listed under /,"under "))}</span>`)+
-    sec("moved_out","Moved out",`${of("moved_out").length}: listed here before, under its own school now`,["Before","After"],C2,of("moved_out"),
-      r=>`<span class="n">${esc(r.bn)}</span><span class="c">${r.p?nameLink(r.p):""}, ${esc(r.note.replace(/^now under /,"under "))}</span>`)+
-    sec("merged","Merged",`${of("merged").length}: two before names, one programme now`,["Programme","Also listed before as"],C2,of("merged"),
-      r=>`${wName(r)}<span class="c">${esc(r.bn)}</span>`)+
-    sec("discontinued","Likely discontinued",`${of("discontinued").length}: in before, still listed, marked`,["Programme","Evidence"],C2,of("discontinued"),
-      r=>`${wName(r)}<span class="c">${esc(r.note)}</span>`)+
-    WFLD.map(([f,lab])=>{const rows=l.filter(r=>r.c==="field"&&r.f===f); if(!rows.length) return "";
-      const kc=count(rows,r=>WKIND[r.k]).map(([k,n])=>`${n} ${k}`).join(", ");
-      return sec("f_"+f,lab,`${rows.length}: ${kc}`,["Programme","Before","After"],C3,rows,r=>`${wName(r)}<span class="c">${wVal(r,r.b)}</span><span class="c">${wVal(r,r.a)}</span>`);}).join("");
-  $("view").innerHTML=band(`<p class="crumb"><a href="#/changes/${G==="Global"?"global":"india"}">What changed · ${G==="Global"?"Global":"Indian"}</a></p>
+    sec("new","New programmes",cat("new"),["Programme","","Format and fee","Date"],C4,
+      c=>`${nameCell(c)}<span class="c">${wDelta(c)}</span><span class="c">${c.p?esc([c.p.f,c.p.inr?lakh(c.p.inr):""].filter(Boolean).join(", ")):""}</span><span class="c hm">${fmtD(c.d)}</span>`)+
+    sec("gone","Gone or likely discontinued",cat("gone"),["Programme","","Evidence","Date"],C4,
+      c=>`${nameCell(c)}<span class="c">${wDelta(c)}</span><span class="c">${esc(c.f==="status"&&c.p&&c.p.gone?c.p.gone:c.note)}</span><span class="c hm">${fmtD(c.d)}</span>`)+
+    [["feeUp","Fees raised"],["feeDown","Fees cut"],["fee","Fees added or restated"],["duration","Duration"],["modules","Modules"],["format","Format"],["topics","Topics taught"]]
+      .map(([k,t])=>sec(k,t,cat(k),["Programme","Before","After","Change","Date"],C5,fieldCell)).join("")+
+    sec("other","Other details",cat("other"),["Programme","Before","After","What changed","Date"],C5,
+      c=>`${nameCell(c)}<span class="c was">${wShow(c,c.b)}</span><span class="c now">${wShow(c,c.a)}</span><span class="c">${esc(WLAB[c.f])}</span><span class="c hm">${fmtD(c.d)}</span>`);
+  $("view").innerHTML=band(`<p class="crumb"><a href="#/changes/${G}${wQS(o)}">What changed · ${G==="global"?"Global":"Indian"}</a></p>
     <h1>${esc(dName(s,d))}</h1>
-    <p class="lead">Before: <b>${plural(t.before||0,"programme")}</b>. After: <b>${plural(t.after||0,"programme")}</b>.${moves.length?" "+andList(moves)+".":""}${t.duplicate_rows?` ${t.duplicate_rows} before ${t.duplicate_rows===1?"row was a cohort":"rows were cohorts"} entered twice and dropped.`:""}</p>`)+
-  `<div class="tools" style="justify-content:space-between"><select id="wsc" aria-label="School">${opts(sw,slug+(d?`?d=${d}`:""))}</select>
-    <button type="button" class="lnk" id="wdl">Download these changes (CSV)</button></div>
-  <div id="wbody">${body||`<p style="padding:18px 0;font-size:16px">Nothing differs between before and after for this ${d?"group":"school"}.</p>`}</div>
+    <p class="lead">${wWin(o)}: <b>${plural(wProgs(l),"programme")} changed</b>. ${wSay(l)}${hid?` ${plural(hid,"correction")} to our records not shown.`:""}</p>
+    ${wControls(o,"",`<select id="wsc" aria-label="School">${opts(sw,slug+(d?`?d=${d}`:""))}</select>`)}${wHistNote(o,net)}`)+
+  `<div class="tools" style="justify-content:flex-end"><button type="button" class="lnk" id="wdl">Download these changes (CSV)</button></div>
+  <div id="wbody">${body||`<p style="padding:18px 0;font-size:16px">No change ${o.ours?"":"by the school "}in this period.${hid?" Tick “Include corrections to our records” to see what we updated.":""}</p>`}</div>
   <p class="meta" style="margin-top:22px">${WNOTE}</p>`;
-  $("wsc").onchange=e=>{location.hash="#/changes/"+e.target.value;};
-  $("wdl").onclick=()=>wCsv(l,`what-changed-${slug}${d?"-"+d:""}.csv`);
+  wBind(o,v=>`#/changes/${slug}${wQS(v,d)}`);
+  $("wsc").onchange=e=>{const [sl,qs]=e.target.value.split("?");location.hash=`#/changes/${sl}${wQS(o,(new URLSearchParams(qs||"")).get("d")||"")}`;};
+  $("wdl").onclick=()=>wCsv(l,`what-changed-${slug}${d?"-"+d:""}-${o.w}d.csv`);
   $("wbody").onclick=e=>{const b=e.target.closest("[data-open]");if(b){wOpen.add(b.dataset.open);changesSchool(slug,q);}};
 }
 function wCsv(list,name){
-  const lab=Object.fromEntries([...WMOVE.map(([k,l])=>[k,l]),...WFLD.map(([k,l])=>[k,l])]);
-  const cols=[["school",r=>SC[r.sc].n],["isb_tile",r=>r.d==="own"?"delivered by ISB":r.d==="partner"?"delivered with partners":""],
-    ["change",r=>r.c==="field"?lab[r.f]+" "+WKIND[r.k]:lab[r.c]],["programme_now",r=>r.p?r.p.n:""],["school_now",r=>r.p?SC[r.p.sc].n:""],
-    ["name_before",r=>r.bn||(r.p?r.p.n:"")],["before",r=>r.b],["after",r=>r.a],["note",r=>r.note]];
+  const cols=[["school",c=>SC[c.sc].n],["isb_tile",c=>c.t==="own"?"delivered by ISB":c.t==="partner"?"delivered with partners":""],["programme",c=>c.nm],
+    ["what_changed",c=>WCATS.find(x=>x[0]===wCat(c))[1]],["field",c=>WLAB[c.f]],["before",c=>wPlain(c,c.b)],["after",c=>wPlain(c,c.a)],["change",wDeltaText],
+    ["date",c=>c.d],["changed_by",c=>c.sch?"school":"our record"],["note",c=>c.note]];
   const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
-  const body=[cols.map(c=>c[0]).join(",")].concat(list.map(r=>cols.map(c=>q(c[1](r))).join(","))).join("\n");
+  const body=[cols.map(c=>c[0]).join(",")].concat(list.map(c=>cols.map(x=>q(x[1](c))).join(","))).join("\n");
   const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+body],{type:"text/csv"}));a.download=name;a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
-
-/* ---------- week on week, and the log: under What changed ---------- */
-function weekly(list){
-  const c=D.changes, inG=x=>list.some(s=>s.s===x[0]);
-  const lst=(h,l)=>{l=(l||[]).filter(inG);return l.length?`<section><header><h2>${h}</h2><span class="meta">${l.length}</span></header><div class="rows">${l.map(x=>{const p=D.progs.find(q=>q.sc===x[0]&&q.n===x[1]);
-    return `<div class="r" ${p?`data-go="#/p/${p.i}" tabindex="0"`:""} style="--cols:80px minmax(0,1fr)"><span class="c">${esc(SC[x[0]]?SC[x[0]].l:x[0])}</span><span class="n">${p?nameLink(p):esc(x[1])}${x[2]&&x[3]?` <span class="meta">${esc(x[2])} → ${esc(x[3])}</span>`:""}</span></div>`;}).join("")}</div></section>`:"";};
-  const wk=c?lst(`Added since ${fmtD(c.since)}`,c.added)+lst("Dropped",c.dropped)+lst("Repriced",c.repriced):"";
-  return `<section style="margin-top:56px"><header><h2>Week on week</h2><span class="meta">last refresh ${esc(D.whatsnew.ran)}; next ${esc(D.whatsnew.next)}</span></header>
-      <p class="meta">The catalogue refreshes every Monday and each refresh is compared with the previous one.${wk?"":` Nothing in this group was added, dropped or repriced${c?" since "+fmtD(c.since):""}.`}</p></section>${wk}
-    <section><header><h2>Log</h2></header><div class="rows">${D.whatsnew.log.map(e=>`<div class="r" style="--cols:110px minmax(0,1fr)"><span class="c">${fmtD(e.date)}</span><span><div class="n">${esc(e.headline)}</div><div class="s">${esc(e.detail)}</div></span></div>`).join("")}</div></section>
+// the hand-written log, under What changed
+function wLog(){
+  return `<section style="margin-top:56px"><header><h2>Log</h2><span class="meta">last refresh ${esc(D.whatsnew.ran)}; next ${esc(D.whatsnew.next)}</span></header><div class="rows">${D.whatsnew.log.map(e=>`<div class="r" style="--cols:110px minmax(0,1fr)"><span class="c">${fmtD(e.date)}</span><span><div class="n">${esc(e.headline)}</div><div class="s">${esc(e.detail)}</div></span></div>`).join("")}</div></section>
     <p class="meta" style="margin-top:22px">Queued for the next refresh: ${D.quality.queue} programmes with a missing fee, duration or start date${D.quality.links?`, and ${D.quality.links} whose name cannot yet be linked to a page of its own`:""}. A further ${D.quality.noPage} were searched for a programme page and have none to link: their schools publish a calendar or a brochure instead, so the name opens the brochure where there is one.</p>`;
 }
+
 function notFound(){$("view").innerHTML=band(`<h1>Not found</h1><p><a class="go" href="#/">Back to search →</a></p>`);}
 
 /* ---------- find ---------- */
@@ -1020,7 +1103,7 @@ function route(){
   document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#/"+tab));
   document.body.classList.toggle("home",at===""||at==="programmes");
   ({"":()=>search(q),programmes:()=>search(q),brief:()=>location.replace("#/launches"),launches:()=>launches(q),test:()=>test(q),updates:()=>location.replace("#/changes"),
-    changes:()=>!parts[1]||parts[1]==="india"||parts[1]==="global"?changesView(parts[1]):changesSchool(parts[1],q),
+    changes:()=>!parts[1]||parts[1]==="india"||parts[1]==="global"?changesView(parts[1],q):changesSchool(parts[1],q),
     schools:()=>schools(parts[1]),school:()=>school(parts[1],q),portfolio:()=>location.replace("#/"),
     topic:()=>topic(parts[1]),p:()=>programme(parts[1])}[at]||notFound)();
   if(q.at&&$(q.at)) $(q.at).scrollIntoView(); else window.scrollTo(0,0);
