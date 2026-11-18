@@ -248,11 +248,27 @@ if changes:
     for p in progs:
         if (p['sc'], p['n']) in _added:
             p['new'] = 1
+# What changed: before (the competitor sheet as fed in) vs after (today), per school
+# tile, from scripts/what_changed.py. A row points at its dashboard programme by
+# index; a programme no longer on the dashboard is named instead.
+wc = None
+if (R / 'outputs/what_changed.csv').exists():
+    _at = {(p['sc'], p['n']): i for i, p in enumerate(progs)}
+    _num = lambda v: int(v) if str(v).isdigit() else v
+    wc = {'date': '2026-09-30',
+          'tiles': {(s['school_slug'] + ('|' + s['tile'] if s['tile'] else '')): {k: _num(v) for k, v in s.items()
+                    if k not in ('school_slug', 'tile') and _num(v)} for s in L('outputs/what_changed_schools.csv')},
+          'rows': []}
+    for c in L('outputs/what_changed.csv'):
+        i = _at.get((c['after_school'] or c['school_slug'], c['programme']), -1)
+        nm = c['before_name'] if (i < 0 or (c['before_name'] and c['before_name'] != c['programme'])) else ''
+        wc['rows'].append([c['school_slug'], c['tile'], c['change'], c['field'], c['kind'], i, nm,
+                           c['before_value'], c['after_value'], c['note']])
 d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'schools': [{'s': s['slug'], 'l': s['label'], 'g': s['group'], 'n': s['school'], 'r': s['region']} for s in schools],
      'types': TYPES,
      'themes': list(dict.fromkeys(t['theme'] for t in tax)),
-     'topics': topics, 'progs': progs, 'changes': changes, 'whatsnew': whatsnew, 'launches': launches,
+     'topics': topics, 'progs': progs, 'changes': changes, 'whatsnew': whatsnew, 'launches': launches, 'wc': wc,
      'fx': {k: v for k, v in fx.items() if k != 'INR'}, 'fxDate': L('data/fx.csv')[0]['set_on'],
      'quality': {'queue': len(q), 'links': len(lq), 'noPage': nopage, 'noFee': sum(1 for p in progs if p['inr'] is None),
                  'noStart': sum(1 for p in progs if not p['ns']),

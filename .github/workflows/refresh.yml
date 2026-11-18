@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install openpyxl
-      - name: Rebuild taxonomy, classify, analyse, score demand
+      - name: Rebuild taxonomy, classify, analyse, score demand, compare before and after
         run: |
           python scripts/build_taxonomy.py
           python scripts/update_launches.py
@@ -27,6 +27,7 @@ jobs:
           python scripts/demand_index.py
           python scripts/refresh_queue.py
           python scripts/link_audit.py
+          python scripts/what_changed.py
           python scripts/build_data.py
           python scripts/build_site.py
       - name: Guardrail - fail if any school's product count moved more than 10%

@@ -246,10 +246,19 @@ def extract(xlsx):
 
 
 # ---------------------------------------------------------------- merge
-def merge():
-    src = list(csv.DictReader(open(OUT / 'competitor_sheet.csv', encoding='utf-8')))
+def read_sheet(src=None):
+    """The sheet's rows as catalogue rows, per school, after moving school-branded
+    platform listings to their school and dropping Coursera/edX courses and
+    cohorts entered twice. Returns (incoming, dropped, stats). Each incoming row
+    keeps the sheet row it came from in `_sheet` and the school the sheet filed
+    it under in `_sheet_school`; dropped is a list of (sheet school, school,
+    name, reason, sheet row). scripts/what_changed.py reads the sheet through
+    this too, so the comparison links rows exactly as the merge did."""
+    if src is None:
+        src = list(csv.DictReader(open(OUT / 'competitor_sheet.csv', encoding='utf-8')))
     stats = collections.Counter()
     incoming = collections.defaultdict(list)
+    dropped = []
     seen = set()
     for r in src:
         slug = SLUG.get(r['School Name'].strip().lower())
@@ -257,6 +266,7 @@ def merge():
         if not slug or not name:
             stats['unknown school'] += 1
             continue
+        filed_under = slug
         partner = ''
         if slug in PLATFORMS:
             # "IIM Kozhikode-Chief Product Officer Programme" on Emeritus is IIM-K's
@@ -277,10 +287,12 @@ def merge():
         link = r['Source Link'].lower()
         if 'coursera.org' in link or 'edx.org' in link or name.lower().startswith('iimbx'):
             stats['dropped: coursera/edx'] += 1
+            dropped.append((filed_under, slug, name, 'coursera/edx', r))
             continue
         k = (slug, norm_name(name), r['Start Date'])
         if k in seen:
             stats['dropped: same cohort entered twice'] += 1
+            dropped.append((filed_under, slug, name, 'same cohort entered twice', r))
             continue
         seen.add(k)
         start = to_date(r['Start Date'])
@@ -301,7 +313,25 @@ def merge():
             alumni_status=yes_no(r['Alumni Status']), eligibility=clean(r['Eligibility Criteria'])[:200],
             source_note=f"team competitor sheet {r['sheet_version']}",
             channel='Partner' if partner else '', mark='(P)' if partner else '',
-            provenance='team-sheet', last_verified=''))
+            provenance='team-sheet', last_verified='', _sheet=r, _sheet_school=filed_under))
+    return incoming, dropped, stats
+
+
+def find_match(n, idx, names):
+    """The catalogue row a normalised sheet name names, and how it was found:
+    'exact', 'close' (difflib, 0.9) or 'words' (same_programme). (None, '') if none."""
+    hit = idx.get(n)
+    if hit:
+        return hit, 'exact'
+    close = difflib.get_close_matches(n, names, 1, 0.9)
+    if close:
+        return idx[close[0]], 'close'
+    alt = [x for x in names if same_programme(n, x)]
+    return (idx[alt[0]], 'words') if len(alt) == 1 else (None, '')
+
+
+def merge():
+    incoming, _, stats = read_sheet()
 
     # names already sold by a school through a platform: a platform row with the
     # same name is the same product and must not be counted twice
@@ -336,15 +366,9 @@ def merge():
             if slug in PLATFORMS and n in partner_names:
                 stats['dropped: platform row already held under a school'] += 1
                 continue
-            hit = idx.get(n)
-            if not hit:
-                close = difflib.get_close_matches(n, names, 1, 0.9)
-                hit = idx.get(close[0]) if close else None
-            if not hit:
-                alt = [x for x in names if same_programme(n, x)]
-                hit = idx.get(alt[0]) if len(alt) == 1 else None
-                if hit:
-                    matches.append((slug, r['programme_name'], hit['programme_name']))
+            hit, how = find_match(n, idx, names)
+            if how == 'words':
+                matches.append((slug, r['programme_name'], hit['programme_name']))
             if hit:
                 matched += 1
                 for c in FILLABLE:

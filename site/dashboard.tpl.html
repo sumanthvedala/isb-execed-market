@@ -136,6 +136,9 @@ details.r>summary::-webkit-details-marker{display:none}
 .tabs button:hover{background:var(--sky)}
 .tabs button.on{background:var(--isb);color:#fff}
 .tabs button .meta{color:inherit;opacity:.75}
+.tabs a{text-decoration:none;border:1px solid var(--isb);background:var(--paper);color:var(--isb);padding:9px 22px;font-size:15px;font-weight:500}
+.tabs a:hover{background:var(--sky)}
+.tabs a.on{background:var(--isb);color:#fff}
 select,input[type=text],input[type=number],input[type=search],textarea{border:1px solid var(--rule);background:var(--paper);padding:7px 10px;font-size:14px;max-width:100%}
 label.ck{display:inline-flex;gap:6px;align-items:center;color:var(--ink-2)}
 .lnk{appearance:none;border:0;background:none;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--sky-2);font-size:14px;color:var(--isb)}
@@ -179,6 +182,7 @@ label.pillck.on{border-color:var(--isb);background:var(--sky);color:var(--isb);f
 .tile .big-n{font:400 15px/1.3 var(--sans);color:var(--ink-2)}
 .tile .big-n b{font:400 34px/1 var(--serif);color:var(--blue);margin-right:6px}
 .tile .foc{font-size:14px;color:var(--ink-2);margin:0}
+.tile .big-n .ba{display:block;font-size:11.5px;color:var(--ink-3);letter-spacing:.03em;text-transform:uppercase;margin-bottom:4px}
 .tile .foc b{font-weight:600;color:var(--ink)}
 .tile .open{margin-top:auto;font:700 15px/1.2 var(--serif);color:var(--isb);border-bottom:3px solid var(--coral);align-self:flex-start;padding-bottom:2px}
 /* how a catalogue splits by delivery: one flat bar, labelled underneath */
@@ -243,7 +247,7 @@ footer a{color:#fff;text-decoration-color:var(--teal)}
     <a class="brand" href="#/" aria-label="ISB Executive Education, market intelligence"><img src="brand/logo-white.webp" alt="ISB Executive Education" width="640" height="146"><span>Market intelligence</span></a>
     <nav class="main" id="nav">
       <a href="#/">Search programmes</a><a href="#/schools/india">Indian schools</a><a href="#/schools/global">Global schools</a>
-      <a href="#/launches">New launches</a><a href="#/test">Test a programme idea</a>
+      <a href="#/launches">New launches</a><a href="#/test">Test a programme idea</a><a href="#/changes">What changed</a>
     </nav>
     <div class="find" role="search">
       <input type="search" id="find" placeholder="Find a topic, programme or school" aria-label="Find" autocomplete="off">
@@ -855,14 +859,122 @@ function testResult(v){
         <p class="meta" style="margin-top:6px">Matched on shared words in the title and description, so check each one.</p>`:`<p class="meta">None of the ${L?L.rows.length:0} launches by other schools in the last year shares two or more key words with this idea.</p>`}</section>`;
 }
 
-/* ---------- updates ---------- */
-function updates(){
-  const c=D.changes;
-  const lst=(h,l)=>l&&l.length?`<section><header><h2>${h}</h2><span class="meta">${l.length}</span></header><div class="rows">${l.map(x=>{const p=D.progs.find(q=>q.sc===x[0]&&q.n===x[1]);
-    return `<div class="r" ${p?`data-go="#/p/${p.i}" tabindex="0"`:""} style="--cols:80px minmax(0,1fr)"><span class="c">${esc(SC[x[0]]?SC[x[0]].l:x[0])}</span><span class="n">${p?nameLink(p):esc(x[1])}${x[2]&&x[3]?` <span class="meta">${esc(x[2])} → ${esc(x[3])}</span>`:""}</span></div>`;}).join("")}</div></section>`:"";
-  $("view").innerHTML=band(`<h1>Updates</h1>
-    <p class="lead">The catalogue refreshes every Monday and each refresh is compared with the previous week. Last refresh ${esc(D.whatsnew.ran)}; next ${esc(D.whatsnew.next)}.</p>`)+
-    `${c?lst(`Added since ${fmtD(c.since)}`,c.added)+lst("Dropped",c.dropped)+lst("Repriced",c.repriced):""}
+/* ---------- what changed: before vs after, one tile per school ---------- */
+// Before is the programme data as first fed in (D.wc.date); after is the database today.
+// scripts/what_changed.py traces every before programme to the one it became, or says why it is gone.
+const W=D.wc;
+const WR=W?W.rows.map(r=>({sc:r[0],d:r[1],c:r[2],f:r[3],k:r[4],p:r[5]>=0?D.progs[r[5]]:null,bn:r[6],b:r[7],a:r[8],note:r[9]})):[];
+const WMOVE=[["added","Added","on the dashboard now, not in before"],["removed","Removed","in before, not on the dashboard now"],
+  ["moved_in","Moved in","listed under a platform before, under this school now"],["moved_out","Moved out","listed here before, under its own school now"],
+  ["merged","Merged","listed twice before, one programme now"],["discontinued","Likely discontinued","in before, still listed, marked as likely discontinued"]];
+const WFLD=[["fee","Fee"],["format","Format"],["duration","Duration"],["start","Start date"],["link","Link"],["name","Name"],
+  ["capstone","Capstone"],["campus_immersion","Campus immersion"],["industry_visit","Industry visit"],["alumni_status","Alumni status"],
+  ["total_modules","Modules"],["eligibility","Eligibility"],["target_audience","Target audience"]];
+const WMAIN=["fee","format","duration","start","link","name"];
+const WKIND={changed:"changed",filled:"added",cleared:"removed"};
+// ISB has a tile for what it delivers itself and one for what it delivers with partners
+const wKeys=(sc,d)=>sc==="isb"&&!d?["isb|own","isb|partner"]:[sc+(d?"|"+d:"")];
+const wTile=(sc,d)=>{const o={};wKeys(sc,d).forEach(k=>Object.entries(W.tiles[k]||{}).forEach(([x,n])=>{o[x]=(o[x]||0)+n;}));return o;};
+const wRows=(sc,d)=>WR.filter(r=>r.sc===sc&&(!d||r.d===d));
+const wOther=t=>WFLD.filter(([f])=>!WMAIN.includes(f)).reduce((a,[f])=>a+(t["f_"+f]||0),0);
+const wCount=l=>new Set(l.map(r=>r.p?"p"+r.p.i:"b"+r.bn)).size;
+const wGroup=G=>D.schools.filter(s=>G==="Global"?s.g==="Global":s.g!=="Global");
+const WNOTE=`<b>How before and after are compared.</b> Every before programme is traced to the programme it became, using the same name matching as the original merge. A detail counts as different only when the after value matches none of that programme's before cohorts. Fees are compared in their own currency; durations within 15% count as the same; a name differing only by “&” or “and”, Program or Programme, or a batch number does not count. A before link that was a file name or a title rather than a web address counts as a link added. Removed programmes are still in the database: they are out of scope (degree programmes, Coursera or edX courses) or could not be tagged to a topic, so the dashboard does not show them. Platform tiles mostly show programmes moved out, because a school-branded listing on Emeritus, TimesPro or Jaro now sits under its school.`;
+
+function wTileHTML(s,d){
+  const t=wTile(s.s,d), n=wCount(wRows(s.s,d));
+  const mv=WMOVE.filter(([k])=>t[k]).map(([k,l])=>`<span>${l}</span><b>${t[k]}</b><em></em>`).join("");
+  const fl=WFLD.filter(([f])=>WMAIN.includes(f)&&t["f_"+f]).map(([f,l])=>[l,t["f_"+f]]).concat(wOther(t)?[["Other details",wOther(t)]]:[]);
+  return `<a class="tile ${s.g==="ISB"?"home":""}" href="#/changes/${s.s}${d?`?d=${d}`:""}">
+    <h3>${esc(dName(s,d))}</h3>
+    <div class="big-n"><span class="ba">Before → after</span><b>${t.before||0} → ${t.after||0}</b>programmes</div>
+    ${mv?`<div class="medt"><span class="h">Programmes</span><span></span><span></span>${mv}</div>`:""}
+    ${fl.length?`<div class="medt"><span class="h">Details that differ</span><span></span><span></span>${fl.map(([l,c])=>`<span>${l}</span><b>${c}</b><em></em>`).join("")}</div>`:""}
+    <p class="foc">${n?`<b>${n}</b> ${n===1?"programme":"programmes"} with a change`:"No changes"}${t.duplicate_rows?`; ${t.duplicate_rows} duplicate before ${t.duplicate_rows===1?"row":"rows"} dropped`:""}</p>
+    <span class="open">Open changes →</span></a>`;
+}
+
+function changesView(g){
+  if(!W) return notFound();
+  const G=g==="global"?"Global":"India", list=wGroup(G), sum=k=>list.reduce((a,s)=>a+(wTile(s.s,"")[k]||0),0);
+  $("view").innerHTML=band(`<h1>What changed</h1>
+    <p class="lead"><b>Before</b> is the programme data as it was first fed in, on ${fmtD(W.date)}. <b>After</b> is the database today. Each tile compares one school: programmes added, removed or moved, and every detail that differs.</p>
+    <div class="tabs" style="margin-top:20px"><a href="#/changes/india" class="${G==="India"?"on":""}">Indian</a><a href="#/changes/global" class="${G==="Global"?"on":""}">Global</a></div>`)+
+  `<div class="tools" style="justify-content:space-between"><p style="margin:0;font-size:16px">${G==="India"?"ISB, the Indian schools and the platforms":"The global schools"}: <b>${sum("before").toLocaleString("en-IN")} programmes before, ${sum("after").toLocaleString("en-IN")} after</b>. ${sum("added")} added, ${sum("removed")} removed; ${sum("f_fee")} fees, ${sum("f_format")} formats and ${sum("f_link")} links differ.</p>
+    <button type="button" class="lnk" id="wdl">Download every change (CSV)</button></div>
+  <div class="tiles">${entriesOf(list).map(([s,d])=>wTileHTML(s,d)).join("")}</div>
+  <p class="meta" style="margin-top:22px">${WNOTE}</p>
+  ${weekly(list)}`;
+  $("wdl").onclick=()=>wCsv(WR.filter(r=>list.some(s=>s.s===r.sc)),`what-changed-${G==="India"?"indian":"global"}.csv`);
+}
+
+const wDate=v=>esc(v.replace(/^\d{4}-\d\d-\d\d/,m=>fmtD(m)));
+const wLink=v=>/^(https?:\/\/|www\.)/i.test(v)?ext(/^www\./i.test(v)?"https://"+v:v,esc(v.replace(/^https?:\/\/(www\.)?/i,"").replace(/\/$/,"").slice(0,52)+(v.length>60?"…":""))):esc(v);
+const wVal=(r,v)=>!v?`<span class="meta">none</span>`:r.f==="link"?wLink(v):r.f==="start"?wDate(v):esc(v);
+const wName=r=>`<span class="n">${r.p?nameLink(r.p)+goneTag(r.p):esc(r.bn)}</span>`;
+let wKey=""; const wOpen=new Set();
+function changesSchool(slug,q={}){
+  const s=SC[slug]; if(!s||!W) return notFound();
+  const d=slug==="isb"&&(q.d==="own"||q.d==="partner")?q.d:"";
+  if(wKey!==slug+"|"+d){wKey=slug+"|"+d;wOpen.clear();}
+  const t=wTile(slug,d), l=wRows(slug,d), G=s.g==="Global"?"Global":"India";
+  const sw=entriesOf(wGroup(G)).map(([x,dd])=>[x.s+(dd?`?d=${dd}`:""),dName(x,dd)]);
+  if(slug==="isb") sw.splice(sw.findIndex(o=>o[0].startsWith("isb")),0,["isb","Indian School of Business, all programmes"]);
+  const moves=WMOVE.filter(([k])=>t[k]).map(([k,lab])=>`${t[k]} ${lab.toLowerCase()}`);
+  const by=(a,b)=>(a.p?a.p.n:a.bn).localeCompare(b.p?b.p.n:b.bn);
+  const sec=(id,title,meta,head,cols,rows,cell)=>{if(!rows.length)return "";rows=[...rows].sort(by);const cut=wOpen.has(id)||rows.length<=30?rows.length:25;
+    return `<section><header><h2>${title}</h2><span class="meta">${meta}</span></header>
+      <div class="rows"><div class="r hd" style="--cols:${cols}">${head.map(h=>`<span>${h}</span>`).join("")}</div>
+      ${rows.slice(0,cut).map(r=>`<div class="r" ${r.p?`data-go="#/p/${r.p.i}" tabindex="0"`:""} style="--cols:${cols}">${cell(r)}</div>`).join("")}</div>
+      ${cut<rows.length?`<p style="margin-top:12px"><button type="button" class="lnk" data-open="${id}">Show all ${rows.length}</button></p>`:""}</section>`;};
+  const of=k=>l.filter(r=>r.c===k), C2="minmax(0,1fr) minmax(0,.8fr)", C3="minmax(0,1fr) minmax(0,.7fr) minmax(0,.7fr)";
+  const origins=count(of("added"),r=>r.note).map(([o,n])=>`${n} ${o}`).join(", ");
+  const body=
+    sec("added","Added",`${of("added").length}: ${origins}`,["Programme","Format and duration","Fee"],C3,of("added"),
+      r=>`${wName(r)}<span class="c">${esc([r.p.f,r.p.dr||(r.p.w?wk(r.p.w):"")].filter(Boolean).join(", "))}</span><span class="c">${r.p.inr?lakh(r.p.inr):"not published"}</span>`)+
+    sec("removed","Removed",`${of("removed").length}: still in the database, not shown on the dashboard`,["Before","Why it is not shown"],C2,of("removed"),
+      r=>`${wName(r)}<span class="c">${esc(r.note)}</span>`)+
+    sec("moved_in","Moved in",`${of("moved_in").length}: listed under a platform before`,["Programme","Before"],C2,of("moved_in"),
+      r=>`${wName(r)}<span class="c">${esc(r.bn)}, ${esc(r.note.replace(/^listed under /,"under "))}</span>`)+
+    sec("moved_out","Moved out",`${of("moved_out").length}: listed here before, under its own school now`,["Before","After"],C2,of("moved_out"),
+      r=>`<span class="n">${esc(r.bn)}</span><span class="c">${r.p?nameLink(r.p):""}, ${esc(r.note.replace(/^now under /,"under "))}</span>`)+
+    sec("merged","Merged",`${of("merged").length}: two before names, one programme now`,["Programme","Also listed before as"],C2,of("merged"),
+      r=>`${wName(r)}<span class="c">${esc(r.bn)}</span>`)+
+    sec("discontinued","Likely discontinued",`${of("discontinued").length}: in before, still listed, marked`,["Programme","Evidence"],C2,of("discontinued"),
+      r=>`${wName(r)}<span class="c">${esc(r.note)}</span>`)+
+    WFLD.map(([f,lab])=>{const rows=l.filter(r=>r.c==="field"&&r.f===f); if(!rows.length) return "";
+      const kc=count(rows,r=>WKIND[r.k]).map(([k,n])=>`${n} ${k}`).join(", ");
+      return sec("f_"+f,lab,`${rows.length}: ${kc}`,["Programme","Before","After"],C3,rows,r=>`${wName(r)}<span class="c">${wVal(r,r.b)}</span><span class="c">${wVal(r,r.a)}</span>`);}).join("");
+  $("view").innerHTML=band(`<p class="crumb"><a href="#/changes/${G==="Global"?"global":"india"}">What changed · ${G==="Global"?"Global":"Indian"}</a></p>
+    <h1>${esc(dName(s,d))}</h1>
+    <p class="lead">Before: <b>${plural(t.before||0,"programme")}</b>. After: <b>${plural(t.after||0,"programme")}</b>.${moves.length?" "+andList(moves)+".":""}${t.duplicate_rows?` ${t.duplicate_rows} before ${t.duplicate_rows===1?"row was a cohort":"rows were cohorts"} entered twice and dropped.`:""}</p>`)+
+  `<div class="tools" style="justify-content:space-between"><select id="wsc" aria-label="School">${opts(sw,slug+(d?`?d=${d}`:""))}</select>
+    <button type="button" class="lnk" id="wdl">Download these changes (CSV)</button></div>
+  <div id="wbody">${body||`<p style="padding:18px 0;font-size:16px">Nothing differs between before and after for this ${d?"group":"school"}.</p>`}</div>
+  <p class="meta" style="margin-top:22px">${WNOTE}</p>`;
+  $("wsc").onchange=e=>{location.hash="#/changes/"+e.target.value;};
+  $("wdl").onclick=()=>wCsv(l,`what-changed-${slug}${d?"-"+d:""}.csv`);
+  $("wbody").onclick=e=>{const b=e.target.closest("[data-open]");if(b){wOpen.add(b.dataset.open);changesSchool(slug,q);}};
+}
+function wCsv(list,name){
+  const lab=Object.fromEntries([...WMOVE.map(([k,l])=>[k,l]),...WFLD.map(([k,l])=>[k,l])]);
+  const cols=[["school",r=>SC[r.sc].n],["isb_tile",r=>r.d==="own"?"delivered by ISB":r.d==="partner"?"delivered with partners":""],
+    ["change",r=>r.c==="field"?lab[r.f]+" "+WKIND[r.k]:lab[r.c]],["programme_now",r=>r.p?r.p.n:""],["school_now",r=>r.p?SC[r.p.sc].n:""],
+    ["name_before",r=>r.bn||(r.p?r.p.n:"")],["before",r=>r.b],["after",r=>r.a],["note",r=>r.note]];
+  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+  const body=[cols.map(c=>c[0]).join(",")].concat(list.map(r=>cols.map(c=>q(c[1](r))).join(","))).join("\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["﻿"+body],{type:"text/csv"}));a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+/* ---------- week on week, and the log: under What changed ---------- */
+function weekly(list){
+  const c=D.changes, inG=x=>list.some(s=>s.s===x[0]);
+  const lst=(h,l)=>{l=(l||[]).filter(inG);return l.length?`<section><header><h2>${h}</h2><span class="meta">${l.length}</span></header><div class="rows">${l.map(x=>{const p=D.progs.find(q=>q.sc===x[0]&&q.n===x[1]);
+    return `<div class="r" ${p?`data-go="#/p/${p.i}" tabindex="0"`:""} style="--cols:80px minmax(0,1fr)"><span class="c">${esc(SC[x[0]]?SC[x[0]].l:x[0])}</span><span class="n">${p?nameLink(p):esc(x[1])}${x[2]&&x[3]?` <span class="meta">${esc(x[2])} → ${esc(x[3])}</span>`:""}</span></div>`;}).join("")}</div></section>`:"";};
+  const wk=c?lst(`Added since ${fmtD(c.since)}`,c.added)+lst("Dropped",c.dropped)+lst("Repriced",c.repriced):"";
+  return `<section style="margin-top:56px"><header><h2>Week on week</h2><span class="meta">last refresh ${esc(D.whatsnew.ran)}; next ${esc(D.whatsnew.next)}</span></header>
+      <p class="meta">The catalogue refreshes every Monday and each refresh is compared with the previous one.${wk?"":` Nothing in this group was added, dropped or repriced${c?" since "+fmtD(c.since):""}.`}</p></section>${wk}
     <section><header><h2>Log</h2></header><div class="rows">${D.whatsnew.log.map(e=>`<div class="r" style="--cols:110px minmax(0,1fr)"><span class="c">${fmtD(e.date)}</span><span><div class="n">${esc(e.headline)}</div><div class="s">${esc(e.detail)}</div></span></div>`).join("")}</div></section>
     <p class="meta" style="margin-top:22px">Queued for the next refresh: ${D.quality.queue} programmes with a missing fee, duration or start date${D.quality.links?`, and ${D.quality.links} whose name cannot yet be linked to a page of its own`:""}. A further ${D.quality.noPage} were searched for a programme page and have none to link: their schools publish a calendar or a brochure instead, so the name opens the brochure where there is one.</p>`;
 }
@@ -907,7 +1019,8 @@ function route(){
     :at==="school"&&SC[parts[1]]?tabOf(SC[parts[1]])[0].slice(2):at==="programmes"?"":at;
   document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#/"+tab));
   document.body.classList.toggle("home",at===""||at==="programmes");
-  ({"":()=>search(q),programmes:()=>search(q),brief:()=>location.replace("#/launches"),launches:()=>launches(q),test:()=>test(q),updates,
+  ({"":()=>search(q),programmes:()=>search(q),brief:()=>location.replace("#/launches"),launches:()=>launches(q),test:()=>test(q),updates:()=>location.replace("#/changes"),
+    changes:()=>!parts[1]||parts[1]==="india"||parts[1]==="global"?changesView(parts[1]):changesSchool(parts[1],q),
     schools:()=>schools(parts[1]),school:()=>school(parts[1],q),portfolio:()=>location.replace("#/"),
     topic:()=>topic(parts[1]),p:()=>programme(parts[1])}[at]||notFound)();
   if(q.at&&$(q.at)) $(q.at).scrollIntoView(); else window.scrollTo(0,0);
@@ -917,6 +1030,6 @@ window.addEventListener("hashchange",route);
 document.addEventListener("click",e=>{const r=e.target.closest("[data-go]");if(r&&!e.target.closest("a,button,input,select,summary"))location.hash=r.dataset.go;});
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.go)location.hash=e.target.dataset.go;});
 $("foot").innerHTML=`<p>Built from ${D.schools.length} schools' and platforms' own catalogues, ${D.quality.signals} published demand signals and the Product Team's register of new launches. ISB's programmes are checked against live pages; other schools' catalogues are captured in bulk and tagged by keyword, so their counts are indicative. There is no ISB enrolment, revenue or feedback data here. Fees in other currencies use fixed planning rates set on ${esc(D.fxDate)}. Out of scope: degree programmes, custom programmes, Coursera and edX.</p>
-  <p><a href="#/updates">Updates</a> · refreshed ${esc(D.whatsnew.ran)} · next refresh ${esc(D.whatsnew.next)}</p>`;
+  <p><a href="#/changes">What changed</a> · refreshed ${esc(D.whatsnew.ran)} · next refresh ${esc(D.whatsnew.next)}</p>`;
 route();
 </script>

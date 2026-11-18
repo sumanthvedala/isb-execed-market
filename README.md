@@ -43,18 +43,29 @@ The team's competitor sheet (the Power BI source) is merged in with
 Every Monday at 02:00 UTC, and on any push that touches the data or scripts:
 
 `build_taxonomy.py` → `classify.py` → `analyse.py` → `demand_index.py` → `refresh_queue.py` → `link_audit.py`
-→ `build_data.py` → `build_site.py` → `check_drift.py`
+→ `what_changed.py` → `build_data.py` → `build_site.py` → `check_drift.py`
 
 `check_drift.py` fails the build if any school's product count moved more than 10% against
 last month's snapshot, so a broken capture cannot silently rewrite the numbers. Changes on
-the Updates page are still measured against the month before, not the week before.
+the week-on-week lists under What changed are still measured against the month before, not the week before.
 
 ## What the dashboard shows
 
 Search across every programme; a tab each for Indian schools and global schools, with one
 tile per school that opens its whole portfolio (CXO programmes first, then blended, live
 online, campus, self-paced) under the same filters as the search page; new launches by
-other schools, by theme and level; a test for a programme idea; and a brief.
+other schools, by theme and level; a test for a programme idea; and What changed.
+
+What changed compares before (the competitor sheet as it was fed in on 30 Sep 2026) with
+after (the database today), one tile per school under an Indian and a Global button, in the
+same layout as the schools tabs. Each tile counts programmes added, removed, moved between a
+platform and its school, merged as duplicates or marked likely discontinued, and the fees,
+formats, durations, start dates, links, names and other details that differ; a school's page
+lists every change with its before and after value, and either downloads as CSV.
+`scripts/what_changed.py` traces each before programme with the same name matching the merge
+used and writes `outputs/what_changed.csv`; the tile counts reconcile, so before minus
+removed, moved out and merged, plus moved in and added, equals after. The week-on-week lists
+and the log sit at the bottom of the tab.
 
 Every programme has one programme type, so nothing is counted twice: C-suite (named for a
 C-suite role, or filed under C-suite by the school, whatever its format), Blended, Live
