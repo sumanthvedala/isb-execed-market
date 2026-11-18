@@ -169,6 +169,20 @@ def level_of(ta):
     return 'Unknown'
 
 
+# The first amount in a fee string. Commas group digits as before ("3,50,000",
+# "12,500"). A space, no-break space (U+00A0) or narrow no-break space (U+202F)
+# also groups digits, the way HEC writes "55 300 €", but only between a head of
+# one to three digits and groups of exactly three, so "2 programmes 3 000 €"
+# and "55 3000" are not read as one number.
+_SPACE_SEP = '[   ]'
+AMOUNT = re.compile(rf'\d{{1,3}}(?:{_SPACE_SEP}\d{{3}}(?!\d))+(?:\.\d+)?|\d[\d,]*(?:\.\d+)?')
+
+
+def amount_of(s):
+    m = AMOUNT.search(s or '')
+    return float(re.sub(rf'[,{_SPACE_SEP[1:-1]}]', '', m.group(0))) if m else None
+
+
 def fee_of(raw, slug):
     s = clean(raw)
     if not s or re.search(r'free', s, re.I):
@@ -176,10 +190,9 @@ def fee_of(raw, slug):
     ccy = ('GBP' if '£' in s else 'SGD' if 'S$' in s else 'EUR' if ('€' in s or 'EUR' in s.upper())
            else 'USD' if ('$' in s or 'USD' in s.upper()) else
            'INR' if re.search(r'₹|rs|inr', s, re.I) else HOME_CCY.get(slug, 'INR'))
-    m = re.search(r'\d[\d,]*(?:\.\d+)?', s)
-    if not m:
+    amt = amount_of(s)
+    if amt is None:
         return s, '', ''
-    amt = float(m.group(0).replace(',', ''))
     return s, ccy, str(int(amt)) if amt == int(amt) else str(amt)
 
 
