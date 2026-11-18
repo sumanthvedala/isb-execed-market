@@ -187,9 +187,15 @@ label.pillck.on{border-color:var(--isb);background:var(--sky);color:var(--isb);f
 .mixkey{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--ink-2)}
 .mixkey span{white-space:nowrap}
 .mixkey i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
-.mixkey em{font-style:normal;color:var(--ink-3)}
-.k-Csuite{background:#192890}.k-Blended{background:#245bff}.k-Liveonline{background:#80edd9}.k-TFPcampus{background:#ffb172}
-.k-TFPonline{background:#ffd866}.k-Longcampus{background:#8685e0}.k-Selfpaced{background:#5d6f7a}.k-Notpublished{background:#e6ebee;box-shadow:inset 0 0 0 1px #c9d2dc}
+.k-Csuite{background:#192890;fill:#192890}.k-Blended{background:#245bff;fill:#245bff}.k-Liveonline{background:#80edd9;fill:#80edd9}.k-TFPcampus{background:#ffb172;fill:#ffb172}
+.k-TFPonline{background:#ffd866;fill:#ffd866}.k-Longcampus{background:#8685e0;fill:#8685e0}.k-Selfpaced{background:#5d6f7a;fill:#5d6f7a}.k-Notpublished{background:#e6ebee;fill:#e6ebee;box-shadow:inset 0 0 0 1px #c9d2dc}
+/* school tiles: the same split as a pie, with counts and shares beside it */
+.pie{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding-bottom:14px;border-bottom:1px solid var(--rule)}
+.pie svg{flex:none;width:100px;height:100px;display:block}
+.pie path,.pie circle{stroke:var(--paper);stroke-width:1.5;stroke-linejoin:round}
+.tile.home .pie path,.tile.home .pie circle,.tile:hover .pie path,.tile:hover .pie circle{stroke:var(--mist)}
+.tile .pie path.k-Notpublished,.tile .pie circle.k-Notpublished{stroke:#c9d2dc}
+.pie .medt{flex:1 1 150px}.pie .medt em{font-size:13px;font-variant-numeric:tabular-nums}
 .medt{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:3px 12px;font-size:13px;color:var(--ink-2);align-items:baseline}
 .medt i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
 .medt b{font-weight:600;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}.medt em{font-style:normal;color:var(--ink-3);text-align:right;font-size:12px}
@@ -665,10 +671,20 @@ function csv(list){
 
 /* ---------- Indian schools, Global schools: one tile per school ---------- */
 const kindCounts=l=>KINDS.map(k=>[k,l.filter(p=>kindOf(p)===k[0]).length]).filter(x=>x[1]);
-// pct: also show each type's share of the school's programmes (tiles only), whole numbers
-const mixBar=(l,pct)=>{const kc=kindCounts(l), sh=n=>{const v=Math.round(100*n/l.length);return v?v+"%":"<1%";}, ps=n=>pct?` (${sh(n)})`:"";
-  return `<div class="mixbar" role="img" aria-label="${kc.map(([k,n])=>`${k[2]} ${n}${ps(n)}`).join(", ")}">${kc.map(([k,n])=>`<i class="${kcls(k[0])}" style="width:${(100*n/l.length).toFixed(2)}%" title="${k[1]}: ${n}${ps(n)}"></i>`).join("")}</div>
-  <div class="mixkey">${kc.map(([k,n])=>`<span><i class="${kcls(k[0])}"></i>${k[2]} ${n}${pct?` <em>(${sh(n)})</em>`:""}</span>`).join("")}</div>`;};
+const mixBar=l=>{const kc=kindCounts(l);return `<div class="mixbar" role="img" aria-label="${kc.map(([k,n])=>`${k[2]} ${n}`).join(", ")}">${kc.map(([k,n])=>`<i class="${kcls(k[0])}" style="width:${(100*n/l.length).toFixed(2)}%" title="${k[1]}: ${n}"></i>`).join("")}</div>
+  <div class="mixkey">${kc.map(([k,n])=>`<span><i class="${kcls(k[0])}"></i>${k[2]} ${n}</span>`).join("")}</div>`;};
+// a type's share of a school's programmes, as a whole-number percentage
+const share=(n,N)=>{const v=Math.round(100*n/N);return v?v+"%":"<1%";};
+// school tiles: the split by programme type as a pie, clockwise from 12 o'clock in the fixed type
+// order, with a count and share per type beside it. The SVG is hidden from screen readers
+// because the list beside it carries every figure.
+const typePie=l=>{const kc=kindCounts(l), N=l.length, C=50, R=48.5, pt=t=>`${(C+R*Math.sin(2*Math.PI*t)).toFixed(2)} ${(C-R*Math.cos(2*Math.PI*t)).toFixed(2)}`;
+  let a=0;
+  const sl=kc.map(([k,n])=>{const s=a, f=n/N; a+=f; const tip=`<title>${k[1]}: ${n} (${share(n,N)})</title>`;
+    return f>=1?`<circle class="${kcls(k[0])}" cx="${C}" cy="${C}" r="${R}">${tip}</circle>`
+      :`<path class="${kcls(k[0])}" d="M${C} ${C}L${pt(s)}A${R} ${R} 0 ${f>.5?1:0} 1 ${pt(a)}Z">${tip}</path>`;}).join("");
+  return `<div class="pie"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">${sl}</svg>
+    <div class="medt">${kc.map(([k,n])=>`<span><i class="${kcls(k[0])}"></i>${k[2]}</span><b>${n}</b><em>${share(n,N)}</em>`).join("")}</div></div>`;};
 // median published fee for each programme type, never one median for a whole school
 const medByType=l=>KINDS.map(k=>{const all=l.filter(p=>p.ty===k[0]), f=all.map(p=>p.inr).filter(Boolean);return f.length?[k,median(f),f.length,all.length]:null;}).filter(Boolean);
 const medTable=(l,full)=>{const m=medByType(l);return m.length?`<div class="medt">${full?`<span class="h">Programme type</span><span class="h">Median fee</span><span class="h">Fees published</span>`:""}${m.map(([k,v,n,t])=>`<span><i class="${kcls(k[0])}"></i>${k[2]}</span><b>${lakh(v)}</b><em>${full?`${n} of ${t}`:`${n}`}</em>`).join("")}</div>`:`<p class="meta">No fees published.</p>`;};
@@ -690,13 +706,13 @@ function schools(g){
     return `<a class="tile ${s.g==="ISB"?"home":""}" href="#/school/${s.s}${d?`?d=${d}`:""}">
       <h3>${esc(dName(s,d))}</h3>
       <div class="big-n"><b>${all.length}</b>programmes</div>
-      ${all.length?mixBar(all,1):""}
+      ${all.length?typePie(all):""}
       ${d==="partner"&&pts.length?`<p class="foc">With ${andList(pts.map(([p,n])=>`<b>${esc(p)}</b> (${n})`))}</p>`:""}
       ${medTable(all)}
       ${th.length?`<p class="foc">Most in ${andList(th.map(([t,n])=>`<b>${esc(t)}</b> (${n})`))}</p>`:""}
       ${ln?`<p class="foc">${plural(ln,"new launch","new launches")} in the last year</p>`:""}
       <span class="open">Open portfolio →</span></a>`;}).join("")}</div>
-  <p class="meta" style="margin-top:22px">${TYDEF} The percentage beside each programme type is its share of that tile's programmes, rounded to a whole number, so a tile can add up to 99% or 101%. The number after each median is how many programmes of that type publish a fee.</p>`;
+  <p class="meta" style="margin-top:22px">${TYDEF} Each pie splits that tile's programmes by type; the percentages beside it are rounded to whole numbers, so a tile can add up to 99% or 101%. The number after each median is how many programmes of that type publish a fee.</p>`;
 }
 
 /* ---------- one school's whole portfolio ---------- */
