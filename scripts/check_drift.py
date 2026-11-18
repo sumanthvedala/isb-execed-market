@@ -28,9 +28,15 @@ with open(snapdir/f'calls-{today}.csv','w',newline='',encoding='utf-8') as f:
         w.writerow([r['topic_id'],r['call']])
 if not prev:
     print('no prior snapshot; baseline written'); sys.exit(0)
-# a deliberate re-scope (new schools, a merged sheet) is not a scraper failure
-ACCEPT=set(filter(None,(ROOT/'snapshots'/'ACCEPT_DRIFT').read_text().split())) \
-    if (ROOT/'snapshots'/'ACCEPT_DRIFT').exists() else set()
+# a deliberate re-scope (new schools, a merged sheet, programmes a school confirmed
+# discontinued) is not a scraper failure. One school per line, optionally with the
+# last date the exemption holds ("isb 2026-11-30"), so it lapses on its own; # starts a note.
+ACCEPT=set()
+if (ROOT/'snapshots'/'ACCEPT_DRIFT').exists():
+    for line in (ROOT/'snapshots'/'ACCEPT_DRIFT').read_text().splitlines():
+        tok=line.split('#')[0].split()
+        if tok and (len(tok)<2 or datetime.date.today().isoformat()<=tok[1]):
+            ACCEPT.add(tok[0])
 bad=[]
 for s,n in old.items():
     if s in ACCEPT: continue

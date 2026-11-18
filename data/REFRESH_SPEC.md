@@ -135,8 +135,10 @@ the same; left alone, the old name reads as discontinued and the new one as a se
 4. Do not edit the catalogue for a rename. `scripts/apply_renames.py` runs on every build: it
    removes the old row when the new name is already held, or gives the old row the new name and
    clears its likely-discontinued mark, and What changed shows the programme as renamed.
-5. ISB's own renames come from the Product & Content Strategy team and are already recorded;
-   do not override them.
+5. A programme the school confirms is no longer sold, with no successor, is recorded the same way
+   with `decision` `discontinued` and `new_name` blank; the build removes it. ISB's own renames and
+   discontinuations come from the Product & Content Strategy team and are already recorded; do not
+   override them.
 
 ## Finish
 
