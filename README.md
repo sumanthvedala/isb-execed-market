@@ -78,7 +78,10 @@ that looks gone against the live programmes at its school (old page forwarding t
 name words, matching fee, length, modules, format, partner and level) and writes
 `outputs/rename_candidates.csv`; pass 4 of the weekly refresh confirms each on the school's own
 pages and records the decision in `data/renames.csv`. `scripts/apply_renames.py` applies the
-confirmed ones on every build, and What changed shows them as renamed.
+confirmed ones on every build, and What changed shows them as renamed. The same file records
+programmes a school has confirmed discontinued (`decision` `discontinued`), which the build
+removes. `snapshots/ACCEPT_DRIFT` exempts a school from the 10% drift guard, optionally until a
+date, when its count moves for a known reason.
 
 Every programme has one programme type, so nothing is counted twice: C-suite (named for a
 C-suite role, or filed under C-suite by the school, whatever its format), Blended, Live

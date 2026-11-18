@@ -120,16 +120,25 @@ def main():
     removed = hist / 'removed.csv'
     if removed.exists():
         cut = (TODAY - datetime.timedelta(days=365)).isoformat()
-        for r in csv.DictReader(open(removed, encoding='utf-8')):
-            if r.get('removed_on', '') >= cut:
-                r['_gone_on'] = r['removed_on']
-                r['status_note'] = r.get('status_note') or f"no longer in the catalogue ({r['removed_on']})"
-                old.append(r)
-    decided = set()
+        for s in csv.DictReader(open(removed, encoding='utf-8')):
+            if s.get('removed_on', '') < cut:
+                continue
+            # removed.csv keeps what_changed.py's state fields; put them back in catalogue form
+            ccy, _, amt = (s.get('fee') or '').partition(' ')
+            raw, _, wk = (s.get('duration') or '').partition('|')
+            old.append(dict(school_slug=s['school_slug'], programme_name=s['name'], fee_currency=ccy, fee_amount=amt,
+                            duration_raw=raw, duration_weeks=wk, total_modules=s.get('modules', ''),
+                            format=s.get('format', ''), partner=s.get('partner', ''), level=s.get('level', ''),
+                            url=s.get('link', ''), _gone_on=s['removed_on'],
+                            status_note=f"no longer in the catalogue ({s['removed_on']})"))
+    decided, settled = set(), set()
     p = R / 'data' / 'renames.csv'
     if p.exists():
         for d in csv.DictReader(open(p, encoding='utf-8')):
             decided.add((d['school_slug'], its.norm_name(d['old_name']), its.norm_name(d['new_name'])))
+            if d['decision'].strip().lower() in ('renamed', 'discontinued'):
+                settled.add((d['school_slug'], its.norm_name(d['old_name'])))
+    old = [o for o in old if (o['school_slug'], its.norm_name(o['programme_name'])) not in settled]
     live = [r for r in rows if not (r.get('status') or '').strip()]
     # how common a value is at a school: a fee or length most programmes share proves little
     from collections import Counter

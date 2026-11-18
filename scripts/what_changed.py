@@ -138,6 +138,14 @@ def recheck_changes():
     return out
 
 
+def discontinued():
+    """programmes a school confirmed discontinued: (school, key) -> evidence"""
+    p = R / 'data' / 'renames.csv'
+    return {(r['school_slug'], product_key(r['old_name'])): clean(r.get('evidence'))
+            for r in csv.DictReader(open(p, encoding='utf-8'))
+            if clean(r.get('decision')).lower() == 'discontinued'} if p.exists() else {}
+
+
 def renames():
     """confirmed renames: (school, old key) -> (school, new key, old name, new name, evidence)"""
     p = R / 'data' / 'renames.csv'
@@ -178,8 +186,9 @@ def diff(old, new, date, rechecked=None, renamed=None):
             'school' if s['provenance'] in ('catalogue-capture', '') else 'ours',
             'new launch' if launch else ('from the school\'s listing' if s['provenance'] in ('catalogue-capture', '')
                                          else f"from {s['provenance'].replace('-', ' ')}"))
+    confirmed = discontinued()
     for k in sorted(gone):
-        add(k, old[k], 'listed', 'removed', old[k]['name'], '', 'school', 'no longer in the catalogue')
+        add(k, old[k], 'listed', 'removed', old[k]['name'], '', 'school', confirmed.get(k) or 'no longer in the catalogue')
     for k in sorted(old.keys() & new.keys()):
         a, b = old[k], new[k]
         checks = [fs for dt, fs in rechecked.get(k, []) if d0 <= dt <= date]
