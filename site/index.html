@@ -906,10 +906,10 @@ const WIN=[["7","Last week"],["14","Last two weeks"],["30","Last month"],["91","
 const WE=W?W.rows.map(r=>({d:r[0],sc:r[1],t:r[2],p:r[3]>=0?D.progs[r[3]]:null,nm:r[4],k:r[5],f:r[6],kind:r[7],b:r[8],a:r[9],sch:!!r[10],note:r[11]})):[];
 const WLAB={listed:"Listing",fee:"Fee",duration:"Duration",modules:"Modules",format:"Format",topics:"Topics taught",next_start:"Next start",level:"Level",partner:"Delivery partner",capstone:"Capstone",campus_immersion:"Campus immersion",industry_visit:"Industry visit",alumni_status:"Alumni status",eligibility:"Eligibility",target_audience:"Target audience",status:"Status"};
 // a category's count in a sentence: "1 new programme", "3 fees raised"
-const WPH={new:["new programme","new programmes"],gone:["programme gone or likely discontinued","programmes gone or likely discontinued"],feeUp:["fee raised","fees raised"],
+const WPH={new:["new programme","new programmes"],renamed:["programme renamed","programmes renamed"],gone:["programme gone or likely discontinued","programmes gone or likely discontinued"],feeUp:["fee raised","fees raised"],
   feeDown:["fee cut","fees cut"],fee:["fee added or restated","fees added or restated"],duration:["duration change","duration changes"],modules:["module change","module changes"],
   format:["format change","format changes"],topics:["change to topics taught","changes to topics taught"],other:["other detail changed","other details changed"]};
-const WCATS=[["new","New programmes"],["gone","Gone or likely discontinued"],["feeUp","Fees raised"],["feeDown","Fees cut"],["fee","Fees added or restated"],["duration","Duration changed"],["modules","Modules changed"],["format","Format changed"],["topics","Topics taught changed"],["other","Other details"]];
+const WCATS=[["new","New programmes"],["renamed","Renamed"],["gone","Gone or likely discontinued"],["feeUp","Fees raised"],["feeDown","Fees cut"],["fee","Fees added or restated"],["duration","Duration changed"],["modules","Modules changed"],["format","Format changed"],["topics","Topics taught changed"],["other","Other details"]];
 const wOpt=q=>({w:WIN.some(x=>x[0]===q.w)?q.w:"30",ours:q.ours==="1"});
 const wQS=(o,d)=>`?${d?`d=${d}&`:""}w=${o.w}${o.ours?"&ours=1":""}`;
 const wWin=o=>WIN.find(x=>x[0]===o.w)[1];
@@ -921,12 +921,12 @@ const wDur=v=>{const [raw,w]=(v||"").split("|");return {raw:raw||"",w:w?+w:null}
 const wPct=c=>{const x=wFee(c.b),y=wFee(c.a);return c.f==="fee"&&c.kind==="changed"&&x&&y&&x[0]===y[0]&&x[1]?100*(y[1]-x[1])/x[1]:null;};
 const wPlain=(c,v)=>!v?"":c.f==="fee"?wMoney(v):c.f==="duration"?(wDur(v).raw||wk(wDur(v).w)):c.f==="next_start"&&/^\d{4}-\d\d-\d\d$/.test(v)?fmtD(v):v;
 const wShow=(c,v)=>!v?`<span class="meta">none</span>`:esc((s=>s.length>140?s.slice(0,140)+"…":s)(wPlain(c,v)));
-const wCat=c=>c.f==="listed"?(c.kind==="added"?"new":"gone"):c.f==="status"?(c.kind==="discontinued"?"gone":"other")
+const wCat=c=>c.f==="listed"?(c.kind==="added"?"new":c.kind==="renamed"?"renamed":"gone"):c.f==="status"?(c.kind==="discontinued"?"gone":"other")
   :c.f==="fee"?(wPct(c)==null||!c.sch?"fee":wPct(c)>0?"feeUp":"feeDown"):["duration","modules","format","topics"].includes(c.f)?c.f:"other";
 const wLaunch=c=>c.kind==="added"&&/new launch/.test(c.note);
 function wDelta(c){
   const chip=(cls,t)=>`<span class="dlt ${cls}">${t}</span>`;
-  if(c.f==="listed") return c.kind==="added"?(wLaunch(c)?`<span class="newtag">New launch</span>`:`<span class="newtag listed">Newly listed</span>`):chip("gone","No longer listed");
+  if(c.f==="listed") return c.kind==="renamed"?chip("neu","Renamed"):c.kind==="added"?(wLaunch(c)?`<span class="newtag">New launch</span>`:`<span class="newtag listed">Newly listed</span>`):chip("gone","No longer listed");
   if(c.f==="status") return c.kind==="discontinued"?chip("gone","Likely discontinued"):chip("neu","Listed again");
   if(c.kind==="filled") return chip("neu","added to our record");
   if(c.kind==="cleared") return chip("neu","removed from our record");
@@ -956,7 +956,7 @@ function wNet(o){
   for(const e of WE){if(e.d<=from)continue;const id=e.sc+"|"+e.k+"|"+e.f;if(!g.has(id))g.set(id,[]);g.get(id).push(e);}
   const all=[];
   for(const l of g.values()){const f0=l[0], z=l[l.length-1], b=f0.b, a=z.a; if(b===a) continue;
-    const kind=f0.f==="listed"?(a?"added":"removed"):f0.f==="status"?(a?"discontinued":"relisted"):!b?"filled":!a?"cleared":"changed";
+    const kind=f0.f==="listed"?(l.some(e=>e.kind==="renamed")?"renamed":a?"added":"removed"):f0.f==="status"?(a?"discontinued":"relisted"):!b?"filled":!a?"cleared":"changed";
     const p=l.map(e=>e.p).find(Boolean)||null;
     all.push({sc:f0.sc,t:z.t||f0.t,p,nm:p?p.n:(z.nm||f0.nm||a||b),k:f0.k,f:f0.f,kind,b,a,sch:l.some(e=>e.sch),d:z.d,note:z.note});}
   // a programme new in the period is one change, not one per field
@@ -971,6 +971,8 @@ function wSay(l){
   const sch=l.filter(c=>c.sch), by=k=>sch.filter(c=>wCat(c)===k), s=[], pc=v=>`${v>0?"+":""}${v.toFixed(1)}%`, med=a=>a.length===1?pc(wPct(a[0])):"median "+pc(median(a.map(wPct)));
   const nw=by("new"), la=nw.filter(wLaunch);
   if(la.length) s.push(`launched ${andList(la.slice(0,2).map(c=>`<b>${esc(c.nm)}</b>`))}${la.length>2?` and ${la.length-2} more`:""}`);
+  const rn=by("renamed");
+  if(rn.length) s.push(`renamed ${andList(rn.slice(0,2).map(c=>`<b>${esc(c.b)}</b> as <b>${esc(c.a)}</b>`))}${rn.length>2?` and ${rn.length-2} more`:""}`);
   if(nw.length>la.length) s.push(`listed ${plural(nw.length-la.length,la.length?"other new programme":"new programme")}${la.length?"":`, including <b>${esc(nw.find(c=>!wLaunch(c)).nm)}</b>`}`);
   const up=by("feeUp"), dn=by("feeDown");
   if(up.length) s.push(`raised the fee on ${plural(up.length,"programme")} (${med(up)})`);
@@ -989,8 +991,8 @@ function wSay(l){
   return out.trim()||"No change by the school in this period.";
 }
 // the changes worth seeing first: launches, the largest fee moves, then other edits
-const wRank=c=>wLaunch(c)?0:c.f==="listed"&&c.kind==="added"?1:wPct(c)!=null?2-Math.min(Math.abs(wPct(c)),99)/100:({duration:3,modules:3,format:4,topics:4}[c.f]??(wCat(c)==="gone"?6:5))+(c.sch?0:3);
-const wMini=c=>`<li><b>${esc(c.nm)}</b> ${c.f==="listed"||c.f==="status"?wDelta(c):`<span class="was">${wShow(c,c.b)}</span> → <span class="now">${wShow(c,c.a)}</span> ${wDelta(c)}`}</li>`;
+const wRank=c=>wLaunch(c)?0:c.f==="listed"&&c.kind==="added"?1:c.kind==="renamed"?1.5:wPct(c)!=null?2-Math.min(Math.abs(wPct(c)),99)/100:({duration:3,modules:3,format:4,topics:4}[c.f]??(wCat(c)==="gone"?6:5))+(c.sch?0:3);
+const wMini=c=>`<li><b>${esc(c.nm)}</b> ${c.kind==="renamed"?`${wDelta(c)} from <span class="was">${esc(c.b)}</span>`:c.f==="listed"||c.f==="status"?wDelta(c):`<span class="was">${wShow(c,c.b)}</span> → <span class="now">${wShow(c,c.a)}</span> ${wDelta(c)}`}</li>`;
 function wTileHTML(s,d,net,o){
   const l=wOf(net.list,s.s,d), hid=wOf(net.hid,s.s,d).length, n=wProgs(l);
   const counts=WCATS.map(([k,lab])=>{const x=l.filter(c=>wCat(c)===k);if(!x.length)return "";
@@ -1052,6 +1054,8 @@ function changesSchool(slug,q={}){
   const body=
     sec("new","New programmes",cat("new"),["Programme","","Format and fee","Date"],C4,
       c=>`${nameCell(c)}<span class="c">${wDelta(c)}</span><span class="c">${c.p?esc([c.p.f,c.p.inr?lakh(c.p.inr):""].filter(Boolean).join(", ")):""}</span><span class="c hm">${fmtD(c.d)}</span>`)+
+    sec("renamed","Renamed",cat("renamed"),["Programme, as now named","","Before","Date"],C4,
+      c=>`${nameCell(c)}<span class="c">${wDelta(c)}</span><span class="c was">${esc(c.b)}</span><span class="c hm">${fmtD(c.d)}</span>`)+
     sec("gone","Gone or likely discontinued",cat("gone"),["Programme","","Evidence","Date"],C4,
       c=>`${nameCell(c)}<span class="c">${wDelta(c)}</span><span class="c">${esc(c.f==="status"&&c.p&&c.p.gone?c.p.gone:c.note)}</span><span class="c hm">${fmtD(c.d)}</span>`)+
     [["feeUp","Fees raised"],["feeDown","Fees cut"],["fee","Fees added or restated"],["duration","Duration"],["modules","Modules"],["format","Format"],["topics","Topics taught"]]
