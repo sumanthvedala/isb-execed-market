@@ -80,7 +80,7 @@ MOOC=re.compile(r'coursera|\bedx\b|edx\.org|^iimbx',re.I)
 # Fallback: broad single-concept terms, applied ONLY when nothing else matched.
 # Weight is low by construction (scored separately) so a real match always wins.
 FALLBACK=[
- (r'emerging c[fomt]o|owner/president|president/ceo|senior management program|'
+ (r'emerging c[bfomt]o|owner/president|president/ceo|senior management program|'
   r'\bcmo\b|chief marketing|chief \w+ officer',"Becoming a C-suite officer (role-specific ladders)"),
  (r'\bboard\b|gobierno corporativo|sala de juntas|non.executive|\bdirector',
   "Board effectiveness and director duties"),
@@ -88,6 +88,12 @@ FALLBACK=[
   r'certificate in management|management foundations|program for executive development|'
   r'global executive program|executive programme in advanced general',
   "General management programmes for senior leaders"),
+ # the IIMs' long-duration online "Executive Programme in (Global) Business
+ # Management" family: business fundamentals for mid-career managers, as ISB's
+ # own EPBM is tagged (overrides.csv)
+ (r'\bbusiness management\b|certificate programme in management\b',
+  "Mini-MBA and business fundamentals for specialists"),
+ (r'\bmerger',"M&A strategy and deal rationale"),
  (r'new product|product development',"Product management and product marketing"),
  (r'high performance organisation|high.performance organization',
   "Organisational culture and culture change"),
@@ -111,6 +117,7 @@ FALLBACK=[
  (r'\bfinanc|account',"Finance for non-finance managers"),
  (r'\bhuman resource|\bhr\b|people manage|talent',"Strategic HR and business partnering"),
  (r'\boperations|supply|procure|logistic',"Operational excellence and process improvement"),
+ (r'\bethic',"Compliance, ethics and integrity programmes"),
  (r'governance|complian|\blaw\b|legal|\brisk\b',"Enterprise risk management"),
  (r'sustainab|climate|esg|green',"Sustainability and ESG strategy for the enterprise"),
  (r'polic(y|ies)|government',"Public policy design and analysis"),

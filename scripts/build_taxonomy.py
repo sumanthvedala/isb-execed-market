@@ -11,6 +11,10 @@ import csv, os, re
 
 # theme -> subtheme -> [(topic, ai_flag, keywords)]
 # ai_flag: New (did not meaningfully exist pre-2023) | Transformed | Stable
+# Keywords are regexes matched case-insensitively. French phrases (HEC runs a
+# French-language catalogue) sit alongside the English ones; keep them to
+# phrases or words that do not occur in English, so they cannot match English
+# text by accident.
 T = {}
 
 T["Leadership & Executive Capability"] = {
@@ -30,7 +34,7 @@ T["Leadership & Executive Capability"] = {
  ],
  "Leading people and teams": [
   ("Leading high-performing teams","Stable","high.performing team;team effectiveness;team dynamics;teaming"),
-  ("Leading hybrid, remote and distributed teams","Transformed","hybrid team;remote team;distributed team;virtual team"),
+  ("Leading hybrid, remote and distributed teams","Transformed","hybrid team;remote team;distributed team;virtual team;management à distance;équipes à distance"),
   ("Coaching and the leader as coach","Stable","leader as coach;coaching skill;executive coaching;coaching for performance"),
   ("Feedback and difficult conversations","Stable","difficult conversation;feedback skill;candid conversation"),
   ("Psychological safety and inclusive team culture","Stable","psychological safety;inclusive team;belonging"),
@@ -48,11 +52,11 @@ T["Leadership & Executive Capability"] = {
   ("Human-agent ratio and span-of-control design","New","human.agent ratio;span of control;agent per;team design.*agent"),
  ],
  "Change, resilience and crisis": [
-  ("Leading change and transformation","Stable","change management;leading change;change leadership;transformation leader"),
+  ("Leading change and transformation","Stable","change management;leading change;change leadership;transformation leader;dans le changement;conduite du changement"),
   ("Organisational resilience","Stable","organisational resilience;resilient organisation;business resilience"),
-  ("Personal resilience, wellbeing and burnout","Stable","resilience;wellbeing;well-being;burnout;mindfulness;stress management;breathwork"),
+  ("Personal resilience, wellbeing and burnout","Stable","resilience;wellbeing;well-being;burnout;mindfulness;stress management;breathwork;happiness"),
   ("Crisis leadership and business continuity","Stable","crisis;business continuity;emergency;disaster"),
-  ("Leading in uncertainty, volatility and ambiguity","Stable","uncertainty;volatil;ambiguity;turbulent;disruption leadership"),
+  ("Leading in uncertainty, volatility and ambiguity","Stable","uncertainty;volatil;ambiguity;turbulent;disruption leadership;incertitude"),
   ("Turnaround and restructuring leadership","Stable","turnaround;restructuring;distressed"),
  ],
 }
@@ -67,14 +71,14 @@ T["Strategy"] = {
   ("Platform and ecosystem strategy","Transformed","platform strategy;ecosystem;network effect;multi-sided"),
  ],
  "Strategy execution": [
-  ("Strategy execution and implementation","Stable","strategy execution;executing strategy;implement.*strategy;from strategy to"),
+  ("Strategy execution and implementation","Stable","strategy execution;executing strategy;implement.*strategy;from strategy to;exécution de la stratégie"),
   ("OKRs, balanced scorecard and performance management systems","Stable","okr;balanced scorecard;performance management system;kpi"),
   ("Strategic planning and budgeting cycles","Stable","strategic planning;annual plan;budgeting cycle"),
   ("Organisation design and operating models","Stable","organisation design;organizational design;operating model;org structure"),
   ("Strategic project and programme governance","Stable","programme governance;project portfolio;pmo"),
  ],
  "AI-era strategy": [
-  ("AI strategy for the enterprise","New","ai strategy;strategy.*artificial intelligence;ai roadmap;ai for leaders;ai for senior;ai for cxo"),
+  ("AI strategy for the enterprise","New","ai strategy;strategy.*artificial intelligence;ai roadmap;ai for leaders;ai for senior;ai for cxo;stratégie data et ia;stratégie ia"),
   ("Competing when AI collapses cost curves","New","ai disrupt;ai.*competitive;ai economics;cost curve"),
   ("Build-vs-buy and AI vendor/partner strategy","New","build.*buy;ai vendor;ai partner;model selection"),
   ("Data strategy as competitive strategy","Transformed","data strategy;data as asset;data monetis;data monetiz"),
@@ -123,8 +127,8 @@ T["AI, Data & Digital"] = {
  "Data, analytics and decisions": [
   ("Business analytics for decision-making","Stable","business analytic;analytics for;data driven decision;data-driven decision"),
   ("Data science and applied statistics for managers","Stable","data science;statistic;predictive model;machine learning applied"),
-  ("Data visualisation and storytelling with data","Stable","visualis;visualiz;storytelling with data;dashboard"),
-  ("Data governance, quality and architecture","Transformed","data governance;data quality;data architecture;data management"),
+  ("Data visualisation and storytelling with data","Stable","visualis;visualiz;storytelling with data;dashboard;power bi"),
+  ("Data governance, quality and architecture","Transformed","data governance;data quality;data architecture;data management;data engineering"),
   ("Experimentation, causal inference and A/B testing","Stable","experiment;a/b test;causal;randomised;randomized"),
   ("AI-augmented decision-making and judgment","New","judgment;decision.*ai;augmented decision;human judgment"),
  ],
@@ -177,7 +181,7 @@ T["Marketing, Sales & Customer"] = {
   ("Marketing strategy for executives","Stable","marketing strategy;strategic marketing;marketing management"),
   ("Brand management and positioning","Stable","brand;positioning"),
   ("Customer insight, segmentation and market research","Stable","customer insight;segmentation;market research;consumer behav"),
-  ("Pricing strategy and revenue management","Stable","pricing;revenue management;monetis;monetiz"),
+  ("Pricing strategy and revenue management","Stable","pricing;revenue management;monetis;monetiz;stratégie de prix;tarification"),
   ("Product management and product marketing","Stable","product management;product manager;product marketing;product lead"),
   ("B2B and industrial marketing","Stable","b2b;industrial marketing;business to business"),
  ],
@@ -194,11 +198,11 @@ T["Marketing, Sales & Customer"] = {
   ("AI and the future of search / discovery","New","ai search;answer engine;zero.click;conversational commerce"),
  ],
  "Sales and go-to-market": [
-  ("Sales leadership and sales force management","Stable","sales leadership;sales team;sales force;sales management"),
+  ("Sales leadership and sales force management","Stable","sales leadership;sales team;sales force;sales management;équipes commerciales;stratégie commerciale;force de vente"),
   ("Key account management and enterprise selling","Stable","key account;strategic account;enterprise selling;solution selling"),
   ("Channel, distribution and route-to-market","Stable","channel;distribution;route to market;dealer;retail network"),
-  ("Sales operations, enablement and AI in sales","Transformed","sales operation;sales enablement;revenue operation;ai.*sales"),
-  ("Negotiation for commercial outcomes","Stable","negotiat;bargaining;deal making"),
+  ("Sales operations, enablement and AI in sales","Transformed","sales operation;sales enablement;revenue operation;ai.*sales;performance commerciale"),
+  ("Negotiation for commercial outcomes","Stable","negotiat;bargaining;deal making;négoci"),
  ],
 }
 
@@ -231,7 +235,7 @@ T["People, Talent & Organisation"] = {
  "Talent, learning and workforce": [
   ("Talent acquisition and employer brand","Stable","talent acquisition;recruit;hiring;employer brand"),
   ("Performance management and appraisal systems","Stable","performance appraisal;performance review;performance management"),
-  ("Learning, development and capability building","Stable","learning and development;l&d;capability building;training design"),
+  ("Learning, development and capability building","Stable","learning and development;l&d;capability building;training design;instructional design;train the trainer"),
   ("Workforce planning and skills-based organisation","Transformed","workforce planning;skills based organis;skill taxonom;strategic workforce"),
   ("Leadership development and succession architecture","Stable","leadership development;succession planning;talent pipeline"),
  ],
@@ -291,7 +295,7 @@ T["Innovation & Entrepreneurship"] = {
 
 T["Sustainability, ESG & Climate"] = {
  "Sustainability strategy": [
-  ("Sustainability and ESG strategy for the enterprise","Transformed","sustainab;esg;environmental social"),
+  ("Sustainability and ESG strategy for the enterprise","Transformed","sustainab;esg;environmental social;développement durable"),
   ("Net-zero transition and decarbonisation","New","net zero;net-zero;decarbonis;decarboniz;carbon;emission;climate transition"),
   ("Circular economy and sustainable operations","Stable","circular economy;waste;sustainable operation;resource efficiency"),
   ("Sustainable finance, green bonds and climate risk in finance","Transformed","sustainable finance;green bond;climate risk;transition finance;esg investing"),
