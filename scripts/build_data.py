@@ -255,7 +255,9 @@ if changes:
 wc = None
 if (R / 'outputs/what_changed.csv').exists():
     _at = {(p['sc'], p['n']): i for i, p in enumerate(progs)}
-    wc = {'start': '2026-09-30', 'today': datetime.date.today().isoformat(), 'rows': []}
+    # rechecks: lines in the weekly re-check log; the page says when none has run yet
+    wc = {'start': '2026-09-30', 'today': datetime.date.today().isoformat(), 'rows': [],
+          'rechecks': len(L('data/recheck_log.csv')) if (R / 'data/recheck_log.csv').exists() else 0}
     for c in L('outputs/what_changed.csv'):
         if c['field'] == 'link':
             continue

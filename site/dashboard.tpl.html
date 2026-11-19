@@ -880,6 +880,11 @@ function testResult(v){
 const W=D.wc;
 const WIN=[["7","Last week"],["14","Last two weeks"],["30","Last month"],["91","Last quarter"],["182","Last 6 months"],["365","Last year"]];
 const WE=W?W.rows.map(r=>({d:r[0],sc:r[1],t:r[2],p:r[3]>=0?D.progs[r[3]]:null,nm:r[4],k:r[5],f:r[6],kind:r[7],b:r[8],a:r[9],sch:!!r[10],note:r[11]})):[];
+// a dated launch in the Product Team's register is the school's own change too, on its launch date
+if(W&&D.launches){D.launches.rows.forEach(r=>{if(!r.eff) return;
+  WE.push({d:r.eff,sc:r.sc,t:"",p:r.p||null,nm:r.n,k:"launch:"+r.n.toLowerCase(),f:"listed",kind:"added",b:"",a:r.n,sch:true,note:"new launch",lr:r});});
+  WE.sort((x,y)=>x.d<y.d?-1:x.d>y.d?1:0);}
+const WUNDATED=W&&D.launches?D.launches.rows.filter(r=>!r.eff).length:0;
 const WLAB={listed:"Listing",fee:"Fee",duration:"Duration",modules:"Modules",format:"Format",topics:"Topics taught",next_start:"Next start",level:"Level",partner:"Delivery partner",capstone:"Capstone",campus_immersion:"Campus immersion",industry_visit:"Industry visit",alumni_status:"Alumni status",eligibility:"Eligibility",target_audience:"Target audience",status:"Status"};
 // a category's count in a sentence: "1 new programme", "3 fees raised"
 const WPH={new:["new programme","new programmes"],renamed:["programme renamed","programmes renamed"],gone:["programme gone or likely discontinued","programmes gone or likely discontinued"],feeUp:["fee raised","fees raised"],
@@ -931,10 +936,19 @@ function wNet(o){
   const from=wFrom(o.w), g=new Map();
   for(const e of WE){if(e.d<=from)continue;const id=e.sc+"|"+e.k+"|"+e.f;if(!g.has(id))g.set(id,[]);g.get(id).push(e);}
   const all=[];
-  for(const l of g.values()){const f0=l[0], z=l[l.length-1], b=f0.b, a=z.a; if(b===a) continue;
+  for(const l of g.values()){const f0=l[0], z=l[l.length-1];
+    // a programme only we added in the period (capturing one already on sale), then gone, is still gone
+    const rm=l.find(e=>e.kind==="removed"), capt=f0.f==="listed"&&rm&&l.filter(e=>e.kind==="added").every(e=>!e.sch);
+    const b=capt?rm.b:f0.b, a=z.a; if(b===a) continue;
     const kind=f0.f==="listed"?(l.some(e=>e.kind==="renamed")?"renamed":a?"added":"removed"):f0.f==="status"?(a?"discontinued":"relisted"):!b?"filled":!a?"cleared":"changed";
     const p=l.map(e=>e.p).find(Boolean)||null;
-    all.push({sc:f0.sc,t:z.t||f0.t,p,nm:p?p.n:(z.nm||f0.nm||a||b),k:f0.k,f:f0.f,kind,b,a,sch:l.some(e=>e.sch),d:z.d,note:z.note});}
+    all.push({sc:f0.sc,t:z.t||f0.t,p,nm:p?p.n:(z.nm||f0.nm||a||b),k:f0.k,f:f0.f,kind,b,a,sch:l.some(e=>e.sch),d:z.d,note:z.note,lr:z.lr||f0.lr});}
+  // a programme marked likely discontinued and then removed is one change: it is gone
+  const goneK=new Set(all.filter(c=>c.f==="listed"&&c.kind==="removed").map(c=>c.sc+"|"+c.k));
+  for(let i=all.length-1;i>=0;i--){const c=all[i];if(c.f==="status"&&goneK.has(c.sc+"|"+c.k)) all.splice(i,1);}
+  // a launch the catalogue already shows as newly listed is one change, not two
+  const listedP=new Set(all.filter(c=>c.kind==="added"&&!c.lr&&c.p).map(c=>c.p.i));
+  for(let i=all.length-1;i>=0;i--){const c=all[i];if(c.lr&&c.p&&listedP.has(c.p.i)) all.splice(i,1);}
   // a programme new in the period is one change, not one per field
   const fresh=new Set(all.filter(c=>c.kind==="added").map(c=>c.sc+"|"+c.k));
   const kept=all.filter(c=>c.f==="listed"||c.f==="status"||!fresh.has(c.sc+"|"+c.k));
@@ -946,7 +960,8 @@ const wProgs=l=>new Set(l.map(c=>c.sc+"|"+c.k)).size;
 function wSay(l){
   const sch=l.filter(c=>c.sch), by=k=>sch.filter(c=>wCat(c)===k), s=[], pc=v=>`${v>0?"+":""}${v.toFixed(1)}%`, med=a=>a.length===1?pc(wPct(a[0])):"median "+pc(median(a.map(wPct)));
   const nw=by("new"), la=nw.filter(wLaunch);
-  if(la.length) s.push(`launched ${andList(la.slice(0,2).map(c=>`<b>${esc(c.nm)}</b>`))}${la.length>2?` and ${la.length-2} more`:""}`);
+  const lth=count(la,c=>c.lr?c.lr.th:c.p&&T[c.p.t]?T[c.p.t].th:"");
+  if(la.length) s.push(`launched ${andList(la.slice(0,2).map(c=>`<b>${esc(c.nm)}</b>`))}${la.length>2?` and ${la.length-2} more`:""}${la.length>1&&lth.length&&lth[0][1]>1?`, ${lth[0][1]===la.length?"all":"mostly"} in ${esc(lth[0][0])}`:""}`);
   const rn=by("renamed");
   if(rn.length) s.push(`renamed ${andList(rn.slice(0,2).map(c=>`<b>${esc(c.b)}</b> as <b>${esc(c.a)}</b>`))}${rn.length>2?` and ${rn.length-2} more`:""}`);
   if(nw.length>la.length) s.push(`listed ${plural(nw.length-la.length,la.length?"other new programme":"new programme")}${la.length?"":`, including <b>${esc(nw.find(c=>!wLaunch(c)).nm)}</b>`}`);
@@ -960,7 +975,7 @@ function wSay(l){
   if(tp.length) s.push(`changed the topics taught in ${plural(tp.length,"programme")}`);
   const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
   let out=s.length?cap(andList(s))+".":"";
-  if(gn.length) out+=` ${cap(plural(gn.length,"programme"))} ${gn.length===1?"is":"are"} gone or look discontinued.`;
+  if(gn.length) out+=` ${cap(plural(gn.length,"programme"))} ${gn.length===1?"is gone or looks":"are gone or look"} discontinued.`;
   const ours=l.filter(c=>!c.sch);
   if(ours.length){const k=count(ours,c=>c.f+"|"+(c.kind==="filled"?"filled in":c.kind==="added"?"added":c.kind==="cleared"?"removed":"corrected"));
     out+=` In our records: ${andList(k.slice(0,3).map(([x,n])=>{const [f,v]=x.split("|");return `${n} ${wPl(f,n)} ${v}`;}))}${k.length>3?" and more":""}.`;}
@@ -986,8 +1001,8 @@ function wTileHTML(s,d,net,o){
 const wControls=(o,g,extra="")=>`<div class="tools wctl">${g?`<div class="tabs"><a href="#/changes/india${wQS(o)}" class="${g==="India"?"on":""}">Indian</a><a href="#/changes/global${wQS(o)}" class="${g==="Global"?"on":""}">Global</a></div>`:""}
   <label>Period <select id="wwin">${opts(WIN,o.w)}</select></label>
   <label class="ck"><input type="checkbox" id="wours" ${o.ours?"checked":""}> Include corrections to our records</label>${extra}</div>`;
-const wHistNote=(o,net)=>`${net.from<W.start?`<p class="meta" style="margin:6px 0 0;max-width:780px">The change history starts on ${fmtD(W.start)}, so this shows every change since then.</p>`:""}${WE.some(e=>e.sch&&e.f!=="listed"&&e.f!=="status")?"":`<p class="meta" style="margin:6px 0 0;max-width:780px">The weekly re-check of programme pages starts on 23 Nov 2026. Until it has run, changes to fees, duration, modules and format are corrections to our records, shown only if you include them.</p>`}`;
-const WNOTE=`<b>How changes are found.</b> Every Monday the refresh re-reads half of all programme pages, IIMs first, then the global schools, then SP Jain, so each programme is checked every two weeks, and adds any programme a school has newly listed. Each run compares the catalogue with the previous run and records what moved and when. A change counts as the school's when the re-check found the page changed, or when a programme is newly listed or gone. A value we filled in or corrected counts as ours and is hidden unless you include corrections. A new launch is a new programme whose page says it is new or announces its first cohort. Each change compares the value at the start of the period with the value now, so a fee that rose and fell back does not show.`;
+const wHistNote=(o,net)=>`${net.from<W.start?`<p class="meta" style="margin:6px 0 0;max-width:780px">Changes to the catalogues are tracked from ${fmtD(W.start)}; new launches from the Product Team's register go back further.</p>`:""}${W.rechecks?"":`<p class="meta" style="margin:6px 0 0;max-width:780px">The weekly re-check of every programme page starts on 23 Nov 2026. Until then, a school's changes to existing programmes come from our two earlier checks of their pages (26 Sep and 29 Oct), so the shorter periods are quiet.</p>`}`;
+const WNOTE=`<b>How changes are found.</b> Every Monday the refresh re-reads half of all programme pages, IIMs first, then the global schools, then SP Jain, so each programme is checked every two weeks, and adds any programme a school has newly listed. Each run compares the catalogue with the previous run and records what moved and when. A change counts as the school's when the re-check found the page changed; when a fee, length or module count read from the school's own page on two dates moved by less than half (a bigger jump is almost always our capture error); or when a programme is newly listed, renamed or gone. A value we filled in or corrected counts as ours and is hidden unless you include corrections. A new launch is a programme in the Product Team's launch register, placed on its launch date, or a new programme whose page says it is new or announces its first cohort${WUNDATED?`; ${WUNDATED} more that schools mark as new without a date are under New launches`:""}. Each change compares the value at the start of the period with the value now, so a fee that rose and fell back does not show.`;
 
 function changesView(g,q={}){
   if(!W) return notFound();
@@ -1029,7 +1044,7 @@ function changesSchool(slug,q={}){
   const fieldCell=c=>`${nameCell(c)}<span class="c was">${wShow(c,c.b)}</span><span class="c now">${wShow(c,c.a)}</span><span class="c">${wDelta(c)}</span><span class="c hm">${fmtD(c.d)}</span>`;
   const body=
     sec("new","New programmes",cat("new"),["Programme","","Format and fee","Date"],C4,
-      c=>`${nameCell(c)}<span class="c">${wDelta(c)}</span><span class="c">${c.p?esc([c.p.f,c.p.inr?lakh(c.p.inr):""].filter(Boolean).join(", ")):""}</span><span class="c hm">${fmtD(c.d)}</span>`)+
+      c=>`${nameCell(c)}<span class="c">${wDelta(c)}</span><span class="c">${c.p?esc([c.p.f,c.p.inr?lakh(c.p.inr):""].filter(Boolean).join(", ")):c.lr?esc([c.lr.f,c.lr.fee].filter(Boolean).join(", ")):""}</span><span class="c hm">${fmtD(c.d)}</span>`)+
     sec("renamed","Renamed",cat("renamed"),["Programme, as now named","","Before","Date"],C4,
       c=>`${nameCell(c)}<span class="c">${wDelta(c)}</span><span class="c was">${esc(c.b)}</span><span class="c hm">${fmtD(c.d)}</span>`)+
     sec("gone","Gone or likely discontinued",cat("gone"),["Programme","","Evidence","Date"],C4,
