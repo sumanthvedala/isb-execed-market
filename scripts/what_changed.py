@@ -13,10 +13,13 @@ now.
 Each change records whether the school changed something or we changed our
 record (basis 'school' or 'ours'):
   - a field filled or cleared is ours: we captured or removed a value;
-  - a value replaced by another is the school's only when the weekly re-check
-    logged that programme as changed in data/recheck_log.csv in the week
-    before; otherwise it is ours (a first check against the live page, or a
-    correction such as a parsing fix or a format rule);
+  - a value replaced by another is the school's when the weekly re-check logged
+    that programme as changed in data/recheck_log.csv in the week before, or,
+    for fee, duration and modules, when both values were read from the school's
+    own page on different dates (the old one by a check we recorded, not from the
+    competitor sheet) and the move is under 50%; a bigger jump is almost always a
+    capture error of ours (a missing digit, a parsing fix). Anything else is ours:
+    a first check against the live page, or a correction such as a format rule;
   - a link is always ours;
   - the likely-discontinued mark, and a programme no longer listed, are the school's;
   - a programme newly listed is the school's when it came from the school's own
@@ -44,7 +47,7 @@ HISTORY_START = '2026-09-30'
 FIELDS = ['fee', 'duration', 'modules', 'format', 'topics', 'next_start', 'level', 'partner', 'link',
           'capstone', 'campus_immersion', 'industry_visit', 'alumni_status', 'eligibility',
           'target_audience', 'status']
-STATE_COLS = ['school_slug', 'key', 'name', 'provenance', 'is_new'] + FIELDS
+STATE_COLS = ['school_slug', 'key', 'name', 'provenance', 'is_new', 'checked'] + FIELDS
 LOG_COLS = ['date', 'school_slug', 'key', 'name', 'field', 'kind', 'before', 'after', 'basis', 'note']
 
 
@@ -112,8 +115,12 @@ def state_of(rows):
         k = (r['school_slug'], product_key(name))
         v = values(r)
         if k not in st:
-            st[k] = dict(school_slug=k[0], key=k[1], name=name, provenance=clean(r.get('provenance')),
-                         is_new=clean(r.get('is_new_2025_26')).upper()[:1], **v)
+            # the day our record was last read from the school's own page; values that came
+            # from the competitor sheet or a search snippet were never read there
+            prov, note = clean(r.get('provenance')), clean(r.get('source_note')).lower()
+            checked = clean(r.get('last_verified'))[:10] if prov not in ('team-sheet',) and 'snippet' not in note else ''
+            st[k] = dict(school_slug=k[0], key=k[1], name=name, provenance=prov,
+                         is_new=clean(r.get('is_new_2025_26')).upper()[:1], checked=checked, **v)
         else:
             for f in FIELDS:
                 if not st[k][f] and v[f]:
@@ -206,8 +213,31 @@ def diff(old, new, date, rechecked=None, renamed=None):
             else:
                 kind = 'changed'
                 basis = 'school' if f != 'link' and any(not fs or f in fs for fs in checks) else 'ours'
+                note = ''
+                if basis == 'ours' and f in ('fee', 'duration', 'modules') and a.get('checked') and a['checked'] < date \
+                        and moved_under(f, x, y, 0.5):
+                    basis, note = 'school', f"read from the school's page on {a['checked']} and again on {date}"
+                add(k, b, f, kind, x, y, basis, note)
+                continue
             add(k, b, f, kind, x, y, basis)
     return ev
+
+
+def moved_under(f, x, y, limit):
+    """the same quantity, moved by less than `limit` as a share of the old value"""
+    try:
+        if f == 'fee':
+            (cx, ax), (cy, ay) = x.split(' ', 1), y.split(' ', 1)
+            if cx != cy:
+                return False
+            a, b = float(ax), float(ay)
+        elif f == 'duration':
+            a, b = float(x.split('|')[1]), float(y.split('|')[1])
+        else:
+            a, b = float(x), float(y)
+        return a > 0 and abs(b - a) / a < limit
+    except (ValueError, IndexError):
+        return False
 
 
 def read_state():

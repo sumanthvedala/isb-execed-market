@@ -5,8 +5,10 @@ Run once, on 18 Nov 2026, when the change history began. The starting point is
 the catalogue as it stood after the team's competitor sheet was merged in on
 30 Sep 2026 (commit cc515ad). Every later commit that touched data/catalogues
 is compared with the one before, in order, and each change is dated by its
-commit. The weekly re-check had not started then, so every replaced value is
-ours (a first check against a live page, or a correction), not the school's.
+commit. The weekly re-check had not started then, so a replaced value is the
+school's only where both values were read from the school's own page on
+different dates (scripts/what_changed.py says how); confirmed renames and
+discontinuations in data/renames.csv are applied as on any other run.
 
 Needs the full history: run in a clone, not a shallow checkout.
 """
@@ -32,9 +34,12 @@ commits = git('log', '--reverse', '--format=%h %ad', '--date=short', f'{BASE}..H
 commits = [c.split() for c in commits if c.strip()]
 prev = wc.state_of(rows_at(BASE))
 events = []
+renamed = wc.renames()
+(wc.HIST / 'removed.csv').unlink(missing_ok=True)
 for sha, date in commits:
     cur = wc.state_of(rows_at(sha))
-    ev = wc.diff(prev, cur, date)
+    ev = wc.diff(prev, cur, date, None, renamed)
+    wc.keep_removed(prev, ev)
     for e in ev:
         e['note'] = (e['note'] + '; ' if e['note'] else '') + f'commit {sha}'
     events += ev
