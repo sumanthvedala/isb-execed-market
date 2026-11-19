@@ -36,9 +36,11 @@ prev = wc.state_of(rows_at(BASE))
 events = []
 renamed = wc.renames()
 (wc.HIST / 'removed.csv').unlink(missing_ok=True)
+prev_date = '2026-09-30'
 for sha, date in commits:
-    cur = wc.state_of(rows_at(sha))
-    ev = wc.diff(prev, cur, date, None, renamed)
+    cur = wc.carry_first_seen(prev, wc.state_of(rows_at(sha)))
+    ev = wc.diff(prev, cur, date, None, renamed, prev_date)
+    prev_date = date
     wc.keep_removed(prev, ev)
     for e in ev:
         e['note'] = (e['note'] + '; ' if e['note'] else '') + f'commit {sha}'
@@ -47,9 +49,10 @@ for sha, date in commits:
     prev = cur
 
 # the working tree must match the last commit; anything newer is the next run's
-now = wc.state_of(wc.catalogue_rows())
+now = wc.carry_first_seen(prev, wc.state_of(wc.catalogue_rows()))
 if now != prev:
     sys.exit('catalogues differ from the last commit: commit them first, then backfill')
 wc.append_log(events, fresh=True)
 wc.write_state(now)
+(wc.HIST / 'last_run.txt').write_text(commits[-1][1] + '\n')
 print(f'{len(events)} changes from {wc.HISTORY_START} written to data/history/changes.csv')

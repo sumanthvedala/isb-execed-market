@@ -32,6 +32,16 @@ record (basis 'school' or 'ours'):
 A programme no longer listed keeps its last recorded details in
 data/history/removed.csv, so scripts/rename_candidates.py can still compare it.
 
+When the school made a change, not when we recorded it. Each change carries
+seen_before (the last day we read the old state on the school's own page or
+listing) and seen_after (the first day we read the new state there). The school
+made the change between the two. seen_before is blank when the old state never
+came from the school's page (the competitor sheet, a workbook), and for a
+programme marked likely discontinued it goes back to the programme's last run when
+that is earlier: a programme that last ran in July 2025 could have been dropped at
+any time since. The page places a change in a period only when this window is
+short enough to date it; the rest it lists as found, date unknown.
+
 History starts on 30 Sep 2026, when the team's competitor sheet was merged in;
 scripts/backfill_history.py rebuilt the changes from then to 18 Nov 2026 from
 the repository's history. Run after classify.py and before build_data.py.
@@ -47,8 +57,19 @@ HISTORY_START = '2026-09-30'
 FIELDS = ['fee', 'duration', 'modules', 'format', 'topics', 'next_start', 'level', 'partner', 'link',
           'capstone', 'campus_immersion', 'industry_visit', 'alumni_status', 'eligibility',
           'target_audience', 'status']
-STATE_COLS = ['school_slug', 'key', 'name', 'provenance', 'is_new', 'checked'] + FIELDS
-LOG_COLS = ['date', 'school_slug', 'key', 'name', 'field', 'kind', 'before', 'after', 'basis', 'note']
+STATE_COLS = ['school_slug', 'key', 'name', 'provenance', 'is_new', 'checked', 'first_seen', 'last_run'] + FIELDS
+LOG_COLS = ['date', 'school_slug', 'key', 'name', 'field', 'kind', 'before', 'after', 'basis', 'note',
+            'seen_before', 'seen_after']
+MONTHS = {m: i for i, m in enumerate(['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'], 1)}
+
+
+def last_run(r):
+    """the programme's last run: last_known_start, else "last ran Jul 2025" in the status note"""
+    d = clean(r.get('last_known_start'))
+    if re.fullmatch(r'\d{4}-\d\d-\d\d', d):
+        return d
+    m = re.search(r'last ran ([A-Za-z]{3})[a-z]* (\d{4})', r.get('status_note') or '')
+    return f'{m.group(2)}-{MONTHS[m.group(1).lower()]:02d}-01' if m and m.group(1).lower() in MONTHS else ''
 
 
 def product_key(name):
@@ -120,12 +141,22 @@ def state_of(rows):
             prov, note = clean(r.get('provenance')), clean(r.get('source_note')).lower()
             checked = clean(r.get('last_verified'))[:10] if prov not in ('team-sheet',) and 'snippet' not in note else ''
             st[k] = dict(school_slug=k[0], key=k[1], name=name, provenance=prov,
-                         is_new=clean(r.get('is_new_2025_26')).upper()[:1], checked=checked, **v)
+                         is_new=clean(r.get('is_new_2025_26')).upper()[:1], checked=checked, first_seen=checked,
+                         last_run=last_run(r), **v)
         else:
             for f in FIELDS:
                 if not st[k][f] and v[f]:
                     st[k][f] = v[f]
     return st
+
+
+def carry_first_seen(old, cur):
+    """the first day each programme was read on the school's page, kept from run to run"""
+    for k, s in cur.items():
+        o = (old or {}).get(k, {})
+        firsts = [x for x in (o.get('first_seen', ''), o.get('checked', ''), s.get('checked', '')) if x]
+        s['first_seen'] = min(firsts) if firsts else ''
+    return cur
 
 
 def catalogue_rows():
@@ -165,16 +196,23 @@ def renames():
     return out
 
 
-def diff(old, new, date, rechecked=None, renamed=None):
-    """the changes between two states, dated `date`"""
+def diff(old, new, date, rechecked=None, renamed=None, prev_run=''):
+    """the changes between two states, recorded on `date`. prev_run is the date of the
+    run that recorded `old`: a programme newly on a school's listing was not there then."""
     rechecked = rechecked or {}
     renamed = renamed or {}
     d0 = (datetime.date.fromisoformat(date) - datetime.timedelta(days=8)).isoformat()
     ev = []
 
-    def add(k, s, field, kind, before, after, basis, note=''):
+    def seen(a, b):
+        """(last day the old state was read on the school's page, first day the new one was)"""
+        sb = (a or {}).get('checked', '')
+        sa = (b or {}).get('checked', '')
+        return sb, sa if sa and sa > sb and sa <= date else date
+
+    def add(k, s, field, kind, before, after, basis, note='', sb='', sa=''):
         ev.append(dict(date=date, school_slug=k[0], key=k[1], name=s['name'], field=field, kind=kind,
-                       before=before, after=after, basis=basis, note=note))
+                       before=before, after=after, basis=basis, note=note, seen_before=sb, seen_after=sa or date))
 
     # a confirmed rename: the old name gone and the new one present is one change
     gone, fresh = old.keys() - new.keys(), new.keys() - old.keys()
@@ -182,20 +220,30 @@ def diff(old, new, date, rechecked=None, renamed=None):
         rn = renamed.get(k)
         if rn and (rn[0], rn[1]) in new:
             nk = (rn[0], rn[1])
+            # the new name was on the school's page by the day we first read it there; if that
+            # is before we last saw the old name, the rename came earlier and cannot be dated
+            sa = min(x for x in ((old.get(nk) or new[nk]).get('first_seen', ''), date) if x)
+            sb = old[k].get('checked', '')
             ev.append(dict(date=date, school_slug=nk[0], key=nk[1], name=new[nk]['name'], field='listed', kind='renamed',
-                           before=old[k]['name'], after=new[nk]['name'], basis='school', note=rn[4]))
+                           before=old[k]['name'], after=new[nk]['name'], basis='school', note=rn[4],
+                           seen_before=sb if sb and sb < sa else '', seen_after=sa))
             gone = gone - {k}
             fresh = fresh - {nk}
     for k in sorted(fresh):
         s = new[k]
         launch = s['is_new'] == 'Y'
-        add(k, s, 'listed', 'added', '', s['name'],
-            'school' if s['provenance'] in ('catalogue-capture', '') else 'ours',
-            'new launch' if launch else ('from the school\'s listing' if s['provenance'] in ('catalogue-capture', '')
-                                         else f"from {s['provenance'].replace('-', ' ')}"))
+        on_listing = s['provenance'] in ('catalogue-capture', '')
+        # newly on a school's listing: not there at the previous weekly run, if that was recent
+        sb = prev_run if on_listing and prev_run and \
+            (datetime.date.fromisoformat(date) - datetime.date.fromisoformat(prev_run)).days <= 14 else ''
+        add(k, s, 'listed', 'added', '', s['name'], 'school' if on_listing else 'ours',
+            'new launch' if launch else ('from the school\'s listing' if on_listing
+                                         else f"from {s['provenance'].replace('-', ' ')}"),
+            sb, seen(None, s)[1])
     confirmed = discontinued()
     for k in sorted(gone):
-        add(k, old[k], 'listed', 'removed', old[k]['name'], '', 'school', confirmed.get(k) or 'no longer in the catalogue')
+        add(k, old[k], 'listed', 'removed', old[k]['name'], '', 'school', confirmed.get(k) or 'no longer in the catalogue',
+            old[k].get('checked', ''), date)
     for k in sorted(old.keys() & new.keys()):
         a, b = old[k], new[k]
         checks = [fs for dt, fs in rechecked.get(k, []) if d0 <= dt <= date]
@@ -203,9 +251,15 @@ def diff(old, new, date, rechecked=None, renamed=None):
             x, y = a.get(f, ''), b.get(f, '')
             if x == y:
                 continue
+            sb, sa = seen(a, b)
             if f == 'status':
                 kind = 'discontinued' if y else 'relisted'
-                basis = 'school'
+                # dropped some time after its last run, if that is before we last saw it listed
+                lr = b.get('last_run', '') or a.get('last_run', '')
+                if y and lr and (not sb or lr < sb):
+                    sb = lr
+                add(k, b, f, kind, x, y, 'school', '', sb, sa)
+                continue
             elif not x:
                 kind, basis = 'filled', 'ours'
             elif not y:
@@ -216,10 +270,10 @@ def diff(old, new, date, rechecked=None, renamed=None):
                 note = ''
                 if basis == 'ours' and f in ('fee', 'duration', 'modules') and a.get('checked') and a['checked'] < date \
                         and moved_under(f, x, y, 0.5):
-                    basis, note = 'school', f"read from the school's page on {a['checked']} and again on {date}"
-                add(k, b, f, kind, x, y, basis, note)
+                    basis, note = 'school', f"read from the school's page on {a['checked']} and again on {sa}"
+                add(k, b, f, kind, x, y, basis, note, sb, sa)
                 continue
-            add(k, b, f, kind, x, y, basis)
+            add(k, b, f, kind, x, y, basis, '', sb, sa)
     return ev
 
 
@@ -286,17 +340,21 @@ def main():
     today = datetime.date.today().isoformat()
     cur = state_of(catalogue_rows())
     old = read_state()
+    meta = HIST / 'last_run.txt'
+    prev_run = meta.read_text().strip() if meta.exists() else ''
     if old is None:
         write_state(cur)
         append_log([])
         print('what changed: no recorded state; this run is the starting point')
         events = []
     else:
-        events = diff(old, cur, today, recheck_changes(), renames())
+        carry_first_seen(old, cur)
+        events = diff(old, cur, today, recheck_changes(), renames(), prev_run)
         if events:
             append_log(events)
             keep_removed(old, events)
         write_state(cur)
+    meta.write_text(today + '\n')
 
     # each change with the dashboard programme it belongs to (programmes_tagged.csv)
     tagged = {}
@@ -307,6 +365,16 @@ def main():
     old_names = set(renames())
     log = [e for e in csv.DictReader(open(HIST / 'changes.csv', encoding='utf-8'))
            if (e['school_slug'], e['key']) not in old_names]
+    # a programme removed after its page was found gone was dropped by the school then, not
+    # when we removed the row: the removal takes the dates of the likely-discontinued mark
+    found_gone = {}
+    for e in log:
+        if e['field'] == 'status' and e['kind'] == 'discontinued':
+            found_gone.setdefault((e['school_slug'], e['key']), (e.get('seen_before', ''), e.get('seen_after', '')))
+    for e in log:
+        k = (e['school_slug'], e['key'])
+        if e['field'] == 'listed' and e['kind'] == 'removed' and k in found_gone:
+            e['seen_before'], e['seen_after'] = found_gone[k]
     out = R / 'outputs' / 'what_changed.csv'
     cols = LOG_COLS + ['programme', 'tile']
     with open(out, 'w', newline='', encoding='utf-8') as f:

@@ -70,7 +70,11 @@ weekly re-check logged that programme as changed (`data/recheck_log.csv`), or wh
 programme is newly listed or gone; a value we filled in or corrected is ours and hidden
 unless the reader includes corrections. Pass 3 of the weekly refresh re-reads half of all
 programmes each week (`scripts/recheck_queue.py`: IIMs first, then the global schools, then
-SP Jain, then ISB and the platforms). The hand-written log sits at the bottom of the tab.
+SP Jain, then ISB and the platforms). The hand-written log sits at the bottom of the tab. Changes are placed by when the school made
+them, not when we recorded them: each carries the days between the last check that saw the old
+state on the school's page and the first that saw the new one (or the school's own date, for a
+launch), and counts in a period when that window, at most 35 days, overlaps it. Changes we
+cannot narrow that far are listed as found in the period we found them.
 
 Renamed programmes: when a school renames a programme, the old name reads as discontinued
 and the new one as a second programme. `scripts/rename_candidates.py` scores every programme
