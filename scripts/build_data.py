@@ -263,8 +263,10 @@ if (R / 'outputs/what_changed.csv').exists():
             continue
         i = _at.get((c['school_slug'], c['programme']), -1)
         note = re.sub(r'(; )?commit [0-9a-f]+$', '', c['note'])
+        # 12, 13: the window in which the school made the change (scripts/what_changed.py)
         wc['rows'].append([c['date'], c['school_slug'], c['tile'], i, c['name'] if i < 0 else '', c['key'],
-                           c['field'], c['kind'], c['before'], c['after'], 1 if c['basis'] == 'school' else 0, note])
+                           c['field'], c['kind'], c['before'], c['after'], 1 if c['basis'] == 'school' else 0, note,
+                           c.get('seen_before', ''), c.get('seen_after', '') or c['date']])
 d = {'asof': datetime.date.today().strftime('%d %b %Y'),
      'schools': [{'s': s['slug'], 'l': s['label'], 'g': s['group'], 'n': s['school'], 'r': s['region']} for s in schools],
      'types': TYPES,
