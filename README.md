@@ -94,7 +94,8 @@ name words, matching fee, length, modules, format, partner and level) and writes
 pages and records the decision in `data/renames.csv`. `scripts/apply_renames.py` applies the
 confirmed ones on every build, and What changed shows them as renamed. The same file records
 programmes a school has confirmed discontinued (`decision` `discontinued`), which the build
-removes. `snapshots/ACCEPT_DRIFT` exempts a school from the 10% drift guard, optionally until a
+removes, and programmes we have taken out of scope (`decision` `removed`), which the build
+removes and What changed leaves out. `snapshots/ACCEPT_DRIFT` exempts a school from the 10% drift guard, optionally until a
 date, when its count moves for a known reason.
 
 Every programme has one programme type, so nothing is counted twice: C-suite (named for a

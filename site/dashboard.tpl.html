@@ -929,7 +929,7 @@ function ptKpis(all,cols){
   const f=peers.map(p=>p.inr).filter(Boolean), fi=isb.map(p=>p.inr).filter(Boolean);
   const ths=D.themes.filter(th=>peers.some(p=>T[p.t].th===th));
   const none=ths.filter(th=>{const x=ptIsb(th,all);return !x.main.length&&!x.sec.length;});
-  return `<div class="kp"><div class="me"><b>${isb.length}</b><span>ISB ${isb.length===1?K.one:K.many}${isb.length?`: ${own} by ISB, ${isb.length-own} with partners`:""}</span></div>
+  return `<div class="kp"><div class="me"><b>${isb.length}</b><span>ISB ${isb.length===1?K.one:K.many}${isb.length&&own<isb.length?`: ${own} by ISB, ${isb.length-own} with partners`:""}</span></div>
     <div><b>${Math.round(median(per.map(x=>x[1])))}</b><span>${K.many} at the typical ${ptWhere(PT.g)} school (median of ${per.length}; ${esc(SC[per[0][0]].l)} has ${per[0][1]})</span></div>
     <div><b>${f.length?lakh(median(f)):"—"}</b><span>median fee at ${ptWhere(PT.g)} schools (${f.length} publish one)${fi.length?`; ISB ${lakh(median(fi))}`:""}</span></div>
     <div><b>${none.length} of ${ths.length}</b><span>themes where ISB has no ${K.one}, as main or second topic</span></div></div>`;

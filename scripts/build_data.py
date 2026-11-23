@@ -178,6 +178,9 @@ def _snap_date(path):
 
 
 snaps = sorted((d, k, p) for p in (R / 'snapshots').glob('programmes-*.csv') for d, k in [_snap_date(p)] if d and d < _monday)
+# programmes taken out of scope (data/renames.csv, decision `removed`) are not shown as dropped
+_out_of_scope = {(r['school_slug'], r['old_name']) for r in csv.DictReader(open(R / 'data' / 'renames.csv', encoding='utf-8'))
+                 if r['decision'].strip().lower() == 'removed'} if (R / 'data' / 'renames.csv').exists() else set()
 changes = None
 if snaps:
     sdate, skey, spath = snaps[-1]
@@ -186,7 +189,7 @@ if snaps:
     # a weekly snapshot is labelled by its Monday, a monthly one by its month
     changes = {'since': sdate.isoformat() if 'W' in skey else skey, 'weekly': 'W' in skey,
                'added': [[s, n, cur[(s, n)]['topic_id']] for (s, n) in cur.keys() - old.keys()],
-               'dropped': [[s, n, old[(s, n)]['topic_id']] for (s, n) in old.keys() - cur.keys()],
+               'dropped': [[s, n, old[(s, n)]['topic_id']] for (s, n) in old.keys() - cur.keys() if (s, n) not in _out_of_scope],
                'repriced': [[s, n, old[(s, n)]['fee_amount'], cur[(s, n)]['fee_amount']]
                             for (s, n) in cur.keys() & old.keys()
                             if old[(s, n)]['fee_amount'] and cur[(s, n)]['fee_amount']

@@ -184,6 +184,16 @@ def discontinued():
             if clean(r.get('decision')).lower() == 'discontinued'} if p.exists() else {}
 
 
+def out_of_scope():
+    """programmes we stopped tracking (decision `removed`): (school, key) -> evidence.
+    Taking one out is our decision, not the school's, so the removal is logged as ours
+    and the page leaves the programme out altogether."""
+    p = R / 'data' / 'renames.csv'
+    return {(r['school_slug'], product_key(r['old_name'])): clean(r.get('evidence'))
+            for r in csv.DictReader(open(p, encoding='utf-8'))
+            if clean(r.get('decision')).lower() == 'removed'} if p.exists() else {}
+
+
 def renames():
     """confirmed renames: (school, old key) -> (school, new key, old name, new name, evidence)"""
     p = R / 'data' / 'renames.csv'
@@ -240,8 +250,11 @@ def diff(old, new, date, rechecked=None, renamed=None, prev_run=''):
             'new launch' if launch else ('from the school\'s listing' if on_listing
                                          else f"from {s['provenance'].replace('-', ' ')}"),
             sb, seen(None, s)[1])
-    confirmed = discontinued()
+    confirmed, ours = discontinued(), out_of_scope()
     for k in sorted(gone):
+        if k in ours:
+            add(k, old[k], 'listed', 'removed', old[k]['name'], '', 'ours', 'taken out of scope: ' + ours[k], '', date)
+            continue
         add(k, old[k], 'listed', 'removed', old[k]['name'], '', 'school', confirmed.get(k) or 'no longer in the catalogue',
             old[k].get('checked', ''), date)
     for k in sorted(old.keys() & new.keys()):
@@ -362,7 +375,8 @@ def main():
         if r['theme'] != 'UNCLASSIFIED':
             tagged[(r['school_slug'], product_key(r['programme_name']))] = r
     # changes under a name later confirmed as renamed were the rename: leave them out
-    old_names = set(renames())
+    # and a programme taken out of scope is left out altogether
+    old_names = set(renames()) | set(out_of_scope())
     log = [e for e in csv.DictReader(open(HIST / 'changes.csv', encoding='utf-8'))
            if (e['school_slug'], e['key']) not in old_names]
     # a programme removed after its page was found gone was dropped by the school then, not

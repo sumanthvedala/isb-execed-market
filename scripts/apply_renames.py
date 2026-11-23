@@ -7,14 +7,17 @@ the old name as a programme that looks discontinued and, often, the new name as
 a second row, so the programme is counted twice or shown as gone.
 
 data/renames.csv holds each decision: school_slug, old_name, new_name, decision
-(renamed | not a rename | discontinued), decided_on, evidence, decided_by. For
+(renamed | not a rename | discontinued | removed), decided_on, evidence, decided_by. For
 every row decided `renamed`:
   - if the catalogue already holds the new name, the old row is removed: the new
     row was captured from the live page and stands as it is;
   - otherwise the old row takes the new name, its likely-discontinued mark is
     cleared and the rename is noted in source_note.
 A row decided `discontinued` (new_name blank) removes the programme: the school
-has confirmed it is no longer sold. Rows decided `not a rename` only stop
+has confirmed it is no longer sold. A row decided `removed` (new_name blank) takes a
+programme out of scope: we stop tracking it, whatever the school does, for example a
+programme another organisation runs under the school's name. The build removes it the
+same way, and What changed leaves it out. Rows decided `not a rename` only stop
 scripts/rename_candidates.py from proposing the pair again.
 
 Runs on every build, before update_launches.py and classify.py, so a rename
@@ -42,7 +45,7 @@ def main():
     done = []
     by_school = {}
     for r in load():
-        if norm(r['decision']) in ('renamed', 'discontinued'):
+        if norm(r['decision']) in ('renamed', 'discontinued', 'removed'):
             by_school.setdefault(r['school_slug'], []).append(r)
     for slug, rn in by_school.items():
         path = R / 'data' / 'catalogues' / f'{slug}.csv'
@@ -57,9 +60,9 @@ def main():
             old = [x for x in rows if norm(x['programme_name']) == norm(r['old_name'])]
             if not old:
                 continue
-            if norm(r['decision']) == 'discontinued':
+            if norm(r['decision']) in ('discontinued', 'removed'):
                 rows = [x for x in rows if x not in old]
-                done.append(f"{slug}: removed '{r['old_name']}', discontinued")
+                done.append(f"{slug}: removed '{r['old_name']}', {norm(r['decision'])}")
                 changed = True
                 continue
             has_new = any(norm(x['programme_name']) == norm(r['new_name']) for x in rows)
