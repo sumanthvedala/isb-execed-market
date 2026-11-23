@@ -138,7 +138,7 @@ Check that ISB's Reckless licence covers that.
 
 | File | What it does |
 | --- | --- |
-| `data/overrides.csv` | Pins a product to the right topic. All ISB products are pinned here, hand-verified, as are the Indian TFP and CXO programmes the keyword engine misread (reviewed 23 Nov 2026). Add a row and the fix is permanent. The optional `secondary_topic` records a second theme a programme really teaches, so it is not read as absent from that theme. |
+| `data/overrides.csv` | Pins a product to the right topic. All ISB products are pinned here, hand-verified, as are the TFP and CXO programmes, Indian and global, that the keyword engine misread (reviewed 23 Nov 2026). Add a row and the fix is permanent. The optional `secondary_topic` records a second theme a programme really teaches, so it is not read as absent from that theme. |
 | `data/taxonomy.csv` | The 15 themes / 46 sub-themes / 230 topics and the keywords that match them. Edit via `scripts/build_taxonomy.py`. |
 
 Both are editable in the GitHub web UI. Every edit is a commit with your name on it, which
