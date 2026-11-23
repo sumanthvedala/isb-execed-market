@@ -30,10 +30,12 @@ people sign in with the account they have and nobody outside the tenant gets in.
 
 ## What is in it
 
-ISB against 15 schools (IIM-A, B, C, I, K, L, SP Jain; HBS, HEC, IMD, INSEAD, Kellogg, LBS,
-Stanford, Wharton) and 4 platforms (Emeritus, Imarticus, Jaro, TimesPro), listed in
+ISB against 18 schools (IIM-A, B, C, I, K, L, MDI Gurgaon, SPJIMR, SP Jain Global, XLRI; HBS, HEC,
+IMD, INSEAD, Kellogg, LBS, Stanford, Wharton) and 4 platforms (Emeritus, Imarticus, Jaro, TimesPro), listed in
 `data/schools.csv`. A platform listing carrying a school's brand is counted under the
-school, with the platform as partner. Coursera and edX courses are out of scope.
+school, with the platform as partner. Coursera and edX courses are out of scope. SPJIMR (S. P. Jain
+Institute of Management and Research, Mumbai) and SP Jain Global (SP Jain School of Global Management) are
+separate institutions and separate tiles.
 
 The team's competitor sheet (the Power BI source) is merged in with
 `scripts/import_team_sheet.py`; see `data/REFRESH_SPEC.md`.
