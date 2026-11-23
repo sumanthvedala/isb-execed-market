@@ -53,8 +53,18 @@ What changed is measured over whatever period the reader picks, from the change 
 
 Search across every programme; a tab each for Indian schools and global schools, with one
 tile per school that opens its whole portfolio (CXO programmes first, then blended, live
-online, campus, self-paced) under the same filters as the search page; new launches by
-other schools, by theme and level; a test for a programme idea; and What changed.
+online, campus, self-paced) under the same filters as the search page; Programme types; new
+launches by other schools, by theme and level; a test for a programme idea; and What changed.
+
+Programme types has a switch for topic-focused programmes (TFP) and C-suite (CXO) programmes.
+Its default view is a grid: themes down the side, schools across, ISB pinned first, Indian and
+global schools under separate buttons because their fees differ about ninefold. Cells show the
+number of programmes, the median fee or new launches; a search box narrows the grid; a theme or
+a cell opens in place with its sub-themes, most-sold topics and programmes. "By school" gives
+the same type as a table, one row a school. ISB's cell reads "none" only when no ISB programme
+of that type has the theme as its main or second topic, and says how many ISB sells in other
+formats; it is outlined in coral when, on top of that, the Indian schools run 20 or more
+(`PT_GAP` in `site/dashboard.tpl.html`).
 
 What changed shows, school by school, what moved over a period the reader picks (last week,
 two weeks, month, quarter, six months or year), under an Indian and a Global button, in the
@@ -91,7 +101,7 @@ Every programme has one programme type, so nothing is counted twice: C-suite (na
 C-suite role, or filed under C-suite by the school, whatever its format), Blended, Live
 online (12 weeks or more online), TFP campus and TFP online (topic-focused programmes, ISB's
 term: up to two weeks on campus or under 12 weeks online), Long campus, Self-paced. Tiles and
-school pages give the median fee per type. ISB has two tiles: in-house and with partners.
+school pages give the median fee per type. ISB has one tile; its tile and page say how many programmes it delivers itself and how many with partners.
 Fee comparisons for a programme idea, and for ISB against its peers, use Indian programmes
 only. The rules are in `scripts/build_data.py`.
 
@@ -128,7 +138,7 @@ Check that ISB's Reckless licence covers that.
 
 | File | What it does |
 | --- | --- |
-| `data/overrides.csv` | Pins a product to the right topic. All 46 ISB products are pinned here, hand-verified. Add a row and the fix is permanent. |
+| `data/overrides.csv` | Pins a product to the right topic. All ISB products are pinned here, hand-verified, as are the TFP and CXO programmes, Indian and global, that the keyword engine misread (reviewed 23 Nov 2026). Add a row and the fix is permanent. The optional `secondary_topic` records a second theme a programme really teaches, so it is not read as absent from that theme. |
 | `data/taxonomy.csv` | The 15 themes / 46 sub-themes / 230 topics and the keywords that match them. Edit via `scripts/build_taxonomy.py`. |
 
 Both are editable in the GitHub web UI. Every edit is a commit with your name on it, which

@@ -273,6 +273,72 @@ footer{background:var(--isb);box-shadow:0 0 0 100vmax var(--isb);clip-path:inset
   margin-top:72px;padding-block:26px 40px;font-size:13px}
 footer p{max-width:86ch}
 footer a{color:#fff;text-decoration-color:var(--teal)}
+/* programme types: a grid of themes (rows) by schools (columns), ISB pinned first.
+   Cells use one hue, light to dark, for how many programmes a school sells in the theme.
+   Spirited Coral marks one thing only: ISB has nothing where the market is busy. */
+.ptctl{display:flex;gap:12px 18px;align-items:center;flex-wrap:wrap;margin-top:22px;max-width:760px}
+.ptctl input{flex:1 1 300px;max-width:440px;padding:11px 13px;font-size:15px;border:2px solid var(--isb);background:#fff}
+.ptctl label{font-size:13px;color:var(--ink-2)}
+.kp{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:28px 0 6px}
+.kp div{border-top:3px solid var(--sky-2);padding-top:10px}
+.kp div.me{border-top-color:var(--isb)}
+.kp b{display:block;font:400 32px/1.05 var(--serif);color:var(--blue)}
+.kp div.me b{color:var(--isb)}
+.kp span{font-size:13.5px;color:var(--ink-2)}
+.mxw{overflow-x:auto}
+.mx{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.mx th{font-weight:500;color:var(--ink-3);font-size:12px;text-align:center;padding:6px 4px;border-bottom:1px solid var(--rule);vertical-align:bottom}
+.mx th.l{text-align:left}
+.mx th.me{color:var(--isb);font-weight:700}
+.mx td{padding:0;height:40px;text-align:center;border-bottom:2px solid #fff}
+.mx td.c{border-left:2px solid #fff;min-width:52px}
+.mx td.c>button,.mx td.l>button{appearance:none;border:0;background:none;color:inherit;font:inherit;display:block;width:100%;min-height:40px;cursor:pointer;padding:3px 2px}
+.mx td.c>button:focus-visible,.mx td.l>button:focus-visible{outline:2px solid var(--isb);outline-offset:-2px}
+.mx td.c button:hover{box-shadow:inset 0 0 0 2px var(--isb)}
+.mx td.sel button{box-shadow:inset 0 0 0 3px var(--isb)}
+.mx td.l{text-align:left;border-bottom:1px solid var(--rule);white-space:nowrap}
+.mx td.l button{text-align:left;padding:0 14px 0 0;font-size:14.5px}
+.mx td.l button:hover{color:var(--blue)}
+.mx td.l .chev{color:var(--blue);font-weight:600;display:inline-block;width:16px}
+.mx tr.open td.l button{font-weight:600;color:var(--isb)}
+.mx td.me{background:var(--isb);color:#fff;font-weight:600;min-width:108px}
+.mx td.me.zero{background:#fff;color:var(--ink-2);font-weight:400;font-size:12.5px;box-shadow:inset 0 0 0 1px var(--rule)}
+.mx td.me.sec{background:var(--sky)}
+.mx td.me.gap{box-shadow:inset 0 0 0 2px var(--coral)}
+.mx td.me small{display:block;font-size:10.5px;line-height:1.2;color:var(--ink-3)}
+.mx td.tot{font-weight:600;color:var(--isb);border-left:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:0 8px}
+.mx td.oth,.mx td.fee{color:var(--ink-3);border-bottom:1px solid var(--rule);font-size:13px;padding:0 8px;white-space:nowrap}
+.mx td.dr{padding:0;height:auto;text-align:left;border-bottom:0}
+.mx .q0{background:#fff;color:var(--silver)} .mx .q1{background:#e3eaff;color:var(--ink)} .mx .q2{background:#c2d2ff;color:var(--ink)}
+.mx .q3{background:#8fabff;color:var(--ink)} .mx .q4{background:var(--blue);color:#fff}
+.mkey{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--ink-3);margin-top:10px}
+.mkey i{display:inline-block;width:22px;height:14px;vertical-align:-2px;margin-right:5px;border:1px solid var(--rule)}
+.mkey i.gapk{border:0;box-shadow:inset 0 0 0 2px var(--coral)}
+.drill{background:var(--mist);border-top:3px solid var(--isb);padding:20px 22px 24px}
+.drill h3{font:400 24px/1.15 var(--serif);color:var(--isb);margin:0}
+.drill .dg{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:28px;margin-top:16px}
+.drill .chips{margin-top:12px}
+.drill .chip.on{background:var(--isb);color:#fff}
+.drill .bars .b{grid-template-columns:minmax(0,1fr) 120px 34px}
+.mxm{display:none}
+.mxm>button{appearance:none;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;width:100%;padding:11px 0;border-bottom:1px solid var(--rule)}
+.mxm>button b{font-weight:600;color:var(--isb);text-align:right}
+.mxm .gap{color:var(--warn)}
+.stw{overflow-x:auto}
+.st{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.st th{font-size:12px;font-weight:500;color:var(--ink-3);text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--rule)}
+.st td{padding:12px 12px 12px 0;border-bottom:1px solid var(--rule);vertical-align:middle}
+.st tr[data-go]{cursor:pointer}
+.st tr[data-go]:hover td{background:var(--mist)}
+.st tr.me td{background:var(--mist)}
+.st .n{text-align:right;white-space:nowrap}
+.st .nm{font:400 19px/1.15 var(--serif);color:var(--isb);text-decoration:none}
+.st .stn{font:400 24px/1 var(--serif);color:var(--blue)}
+.st .bar{display:flex;height:12px;width:160px;background:var(--lgray);margin-bottom:4px}
+.st .bar i{display:block;height:100%}
+.st .thm{font-size:13px;color:var(--ink-2);min-width:220px}
+@media (max-width:860px){.drill .dg{grid-template-columns:1fr}.kp{grid-template-columns:1fr 1fr}}
+@media (max-width:760px){.mxw{display:none}.mxm{display:block}.drill{padding:16px 14px}#ptml{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -281,8 +347,8 @@ footer a{color:#fff;text-decoration-color:var(--teal)}
   <div class="wrap mast">
     <a class="brand" href="#/" aria-label="ISB Executive Education, market intelligence"><img src="brand/logo-white.webp" alt="ISB Executive Education" width="640" height="146"><span>Market intelligence</span></a>
     <nav class="main" id="nav">
-      <a href="#/">Search programmes</a><a href="#/schools/india">Indian schools</a><a href="#/schools/global">Global schools</a>
-      <a href="#/launches">New launches</a><a href="#/test">Test a programme idea</a><a href="#/changes">What changed</a>
+      <a href="#/">Search</a><a href="#/schools/india">Indian schools</a><a href="#/schools/global">Global schools</a>
+      <a href="#/types">Programme types</a><a href="#/launches">New launches</a><a href="#/test">Test an idea</a><a href="#/changes">What changed</a>
     </nav>
     <div class="find" role="search">
       <input type="search" id="find" placeholder="Find a topic, programme or school" aria-label="Find" autocomplete="off">
@@ -731,16 +797,17 @@ const medByType=l=>KINDS.map(k=>{const all=l.filter(p=>p.ty===k[0]), f=all.map(p
 const medTable=(l,full)=>{const m=medByType(l);return m.length?`<div class="medt">${full?`<span class="h">Programme type</span><span class="h">Median fee</span><span class="h">Fees published</span>`:""}${m.map(([k,v,n,t])=>`<span><i class="${kcls(k[0])}"></i>${k[2]}</span><b>${lakh(v)}</b><em>${full?`${n} of ${t}`:`${n}`}</em>`).join("")}</div>`:`<p class="meta">No fees published.</p>`;};
 const tabOf=s=>s.g==="Global"?["#/schools/global","Global schools"]:s.g==="Platform"?["#/","Platforms"]:["#/schools/india","Indian schools"];
 const groupOf=s=>D.schools.filter(x=>s.g==="Global"?x.g==="Global":s.g==="Platform"?x.g==="Platform":x.g==="India"||x.g==="ISB");
-// ISB is shown twice: what ISB delivers itself, and what it delivers with partners
+// ISB has one tile, like every other school. Old links to "?d=own" or "?d=partner" still open
+// that part of ISB's portfolio; nothing on the page links to them any more.
 const progsOf=(sc,d)=>D.progs.filter(p=>p.sc===sc&&(!d||(d==="own"?!p.pt:!!p.pt)));
 const dName=(s,d)=>s.n+(d==="own"?", delivered by ISB":d==="partner"?", delivered with partners":"");
-const entriesOf=list=>list.flatMap(s=>s.s==="isb"?[[s,"own"],[s,"partner"]]:[[s,""]]);
+const entriesOf=list=>list.map(s=>[s,""]);
 function schools(g){
   const G=g==="global"?"Global":"India";
   const list=D.schools.filter(s=>s.g===G||(G==="India"&&s.g==="ISB"));
   const L=D.launches, total=D.progs.filter(p=>list.some(s=>s.s===p.sc)).length;
   $("view").innerHTML=band(`<h1>${GRP[G]}</h1>
-    <p class="lead">${G==="India"?`ISB and the ${list.length-1} Indian schools we track`:`The ${list.length} global schools we track`}, with <b>${total.toLocaleString("en-IN")} programmes</b> between them. Open a school for its full portfolio: C-suite programmes first, then blended, live online and topic-focused programmes.${G==="India"?" ISB has two tiles: what it delivers itself, and what it delivers with partners.":""}</p>`)+
+    <p class="lead">${G==="India"?`ISB and the ${list.length-1} Indian schools we track`:`The ${list.length} global schools we track`}, with <b>${total.toLocaleString("en-IN")} programmes</b> between them. Open a school for its full portfolio: C-suite programmes first, then blended, live online and topic-focused programmes.</p>`)+
   `<div class="tiles">${entriesOf(list).map(([s,d])=>{
     const all=progsOf(s.s,d), th=count(all,p=>T[p.t].th).slice(0,2), pts=count(all,p=>p.pt);
     const ln=L&&!d?L.rows.filter(r=>r.sc===s.s).length:0;
@@ -748,7 +815,7 @@ function schools(g){
       <h3>${esc(dName(s,d))}</h3>
       <div class="big-n"><b>${all.length}</b>programmes</div>
       ${all.length?typePie(all):""}
-      ${d==="partner"&&pts.length?`<p class="foc">With ${andList(pts.map(([p,n])=>`<b>${esc(p)}</b> (${n})`))}</p>`:""}
+      ${s.s==="isb"&&pts.length?`<p class="foc">${all.length-pts.reduce((a,x)=>a+x[1],0)} delivered by ISB; ${pts.reduce((a,x)=>a+x[1],0)} with ${andList(pts.map(([p,n])=>`<b>${esc(p)}</b> (${n})`))}</p>`:""}
       ${medTable(all)}
       ${th.length?`<p class="foc">Most in ${andList(th.map(([t,n])=>`<b>${esc(t)}</b> (${n})`))}</p>`:""}
       ${ln?`<p class="foc">${plural(ln,"new launch","new launches")} in the last year</p>`:""}
@@ -767,7 +834,6 @@ function school(slug,q={}){
   const ln=L&&!d?L.rows.filter(r=>r.sc===slug).length:0, gone=all.filter(p=>p.gone).length;
   const fact=(k,v)=>`<div><dt>${k}</dt><dd>${v}</dd></div>`;
   const sw=entriesOf(groupOf(s)).map(([x,dd])=>[x.s+(dd?`?d=${dd}`:""),dName(x,dd)]);
-  if(slug==="isb") sw.splice(sw.findIndex(o=>o[0].startsWith("isb")),0,["isb","Indian School of Business, all programmes"]);
   $("view").innerHTML=band(`<p class="crumb"><a href="${tab[0]}">${tab[1]}</a>${d?` · <a href="#/school/isb">All ISB programmes</a>`:""}</p>
     <h1>${esc(dName(s,d))}</h1>
     <p class="lead">${all.length?`<b>${plural(all.length,"programme")}</b> tracked: ${andList(kc.map(([k,n])=>`${n} ${k[3]}`))}.${gone?` ${gone} of them look discontinued and are marked in the list.`:""}`:"No programmes on record."}</p>
@@ -812,6 +878,171 @@ function drawSchool(){
       ${cut<l.length?`<p style="margin-top:12px"><button type="button" class="lnk" data-open="${esc(k[0])}">Show all ${l.length}</button></p>`:""}</div>`;}).join("")
     ||`<p style="padding:18px 0;font-size:16px">Nothing matches. Try fewer words, or <button type="button" class="lnk" onclick="document.getElementById('preset').click()">clear all filters</button>.</p>`;
 }
+
+/* ---------- programme types: TFP and CXO, by theme and school ---------- */
+// TFP and CXO programmes each need their own strategy, so each gets the same lens: a grid of
+// themes (rows) by schools (columns), ISB pinned first, a theme opening in place. Indian and
+// global schools are never mixed in one grid: their typical fees differ about ninefold.
+const PTK={
+  tfp:{tab:"Topic-focused (TFP)",one:"TFP",many:"TFPs",is:p=>p.ty==="TFP campus"||p.ty==="TFP online",bins:[3,7,12],
+    def:"short open programmes on one topic, up to two weeks of contact on campus or under 12 weeks online",
+    eg:"Search TFPs: “negotiation”, “AI”, “pricing”, “board”"},
+  cxo:{tab:"C-suite (CXO)",one:"CXO programme",many:"CXO programmes",is:p=>p.ty==="C-suite",bins:[1,2,4],
+    def:"programmes named for a C-suite role, or filed under C-suite by the school, whatever the format",
+    eg:"Search CXO programmes: “CFO”, “CHRO”, “AI”"}};
+const PT_GAP=20;   // ISB is marked only where it has nothing and the Indian schools run at least this many
+const PT={k:"tfp",g:"India",v:"theme",m:"n",q:"",th:"",sc:"",all:false};
+const ptCols=g=>["isb",...D.schools.filter(s=>s.g===g).map(s=>s.s)];
+const ptMatch=p=>!PT.q||hit([p.n,T[p.t].n,T[p.t].st,T[p.t].th,p.kt,p.cat,SC[p.sc].l,SC[p.sc].n].join(" ").toLowerCase(),PT.q);
+const ptNew=p=>!!(p.launch||p.nw);
+const ptWhere=g=>g==="India"?"Indian":"global";
+const ptFmt=p=>p.f==="Campus"?"campus":/blend/i.test(p.f)?"blended":"online";
+function ptURL(){
+  const p=new URLSearchParams();
+  if(PT.k!=="tfp")p.set("k",PT.k); if(PT.g!=="India")p.set("g","global"); if(PT.v!=="theme")p.set("v",PT.v);
+  if(PT.m!=="n")p.set("m",PT.m); if(PT.q)p.set("q",PT.q); if(PT.th)p.set("th",PT.th); if(PT.sc)p.set("sc",PT.sc);
+  const s=p.toString(); history.replaceState(null,"","#/types"+(s?"?"+s:""));
+}
+// ISB in one theme: programmes of this type with the theme as main topic, as second topic,
+// and ISB programmes of other types in the theme. A blank is only claimed when all are empty.
+function ptIsb(th,L){
+  const K=PTK[PT.k], mine=L.filter(p=>p.sc==="isb");
+  return {main:mine.filter(p=>T[p.t].th===th),
+    sec:mine.filter(p=>T[p.t].th!==th&&p.sec&&T[p.sec]&&T[p.sec].th===th),
+    other:D.progs.filter(p=>p.sc==="isb"&&!K.is(p)&&T[p.t].th===th&&ptMatch(p))};
+}
+function ptypes(q){
+  PT.k=q.k==="cxo"?"cxo":"tfp"; PT.g=q.g==="global"?"Global":"India"; PT.v=q.v==="school"?"school":"theme";
+  PT.m=q.m==="fee"||q.m==="new"?q.m:"n"; PT.q=q.q||""; PT.th=q.th||""; PT.sc=q.sc||""; PT.all=false;
+  const tabs=(id,list,v)=>`<div class="tabs" id="${id}">${list.map(([k,l])=>`<button type="button" data-v="${k}" class="${v===k?"on":""}">${l}</button>`).join("")}</div>`;
+  $("view").innerHTML=band(`<h1>Programme types</h1>
+    ${tabs("ptk",Object.entries(PTK).map(([k,o])=>[k,`${o.tab} <span class="meta">${D.progs.filter(o.is).length}</span>`]),PT.k)}
+    <p class="lead" id="ptlead" style="margin-top:18px"></p>
+    <div class="ptctl"><input type="search" id="ptq" value="${esc(PT.q)}" aria-label="Search these programmes" autocomplete="off">
+      ${tabs("ptv",[["theme","By theme"],["school","By school"]],PT.v)}
+      ${tabs("ptg",[["India","Indian schools"],["Global","Global schools"]],PT.g)}
+      <label id="ptml">Cells show <select class="pill" id="ptm">${opts([["n","number of programmes"],["fee","median fee"],["new","new launches"]],PT.m)}</select></label></div>`)+
+    `<div id="ptbody"></div>`;
+  const on=id=>$(id).querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===({ptk:PT.k,ptv:PT.v,ptg:PT.g})[id]));
+  const pick=(id,set)=>{$(id).onclick=e=>{const b=e.target.closest("button");if(!b)return;set(b.dataset.v);PT.all=false;on(id);ptDraw();};};
+  pick("ptk",v=>{PT.k=v;PT.th="";PT.sc="";}); pick("ptv",v=>{PT.v=v;}); pick("ptg",v=>{PT.g=v;PT.sc="";});
+  $("ptm").onchange=e=>{PT.m=e.target.value;ptDraw();};
+  let tm; $("ptq").oninput=e=>{clearTimeout(tm);tm=setTimeout(()=>{PT.q=e.target.value.trim();ptDraw();},180);};
+  $("ptbody").onclick=e=>{
+    if(e.target.closest("[data-close]")){PT.th="";PT.sc="";ptDraw();return;}
+    if(e.target.closest("[data-all]")){PT.all=true;ptDraw();return;}
+    const s=e.target.closest("[data-psc]"); if(s){PT.sc=s.dataset.psc;PT.all=false;ptDraw();return;}
+    const c=e.target.closest("[data-th]"); if(!c) return;
+    const th=c.dataset.th, sc=c.dataset.sc||"";
+    if(PT.th===th&&PT.sc===sc){PT.th="";PT.sc="";}else{PT.th=th;PT.sc=sc;}
+    PT.all=false; ptDraw();
+  };
+  ptDraw();
+}
+function ptDraw(){
+  ptURL();
+  const K=PTK[PT.k], all=D.progs.filter(K.is), L=all.filter(ptMatch), cols=ptCols(PT.g);
+  const n=g=>all.filter(p=>SC[p.sc].g===g).length, ns=g=>D.schools.filter(s=>s.g===g).length;
+  $("ptq").placeholder=K.eg; $("ptml").hidden=PT.v!=="theme";
+  $("ptlead").innerHTML=`<b>${all.length} ${K.many}</b>: ${K.def}. ISB runs <b>${n("ISB")}</b>. The ${ns("India")} Indian schools we track run ${n("India")}; the ${ns("Global")} global schools ${n("Global")}${n("Platform")?`; the platforms ${n("Platform")}`:""}.`;
+  $("ptbody").innerHTML=ptKpis(all,cols)+(PT.v==="theme"?ptGrid(L,cols):ptTable(L,cols))+ptNote();
+}
+function ptKpis(all,cols){
+  const K=PTK[PT.k], peers=all.filter(p=>SC[p.sc].g===PT.g), isb=all.filter(p=>p.sc==="isb"), own=isb.filter(p=>!p.pt).length;
+  const per=cols.slice(1).map(s=>[s,all.filter(p=>p.sc===s).length]).sort((a,b)=>b[1]-a[1]);
+  const f=peers.map(p=>p.inr).filter(Boolean), fi=isb.map(p=>p.inr).filter(Boolean);
+  const ths=D.themes.filter(th=>peers.some(p=>T[p.t].th===th));
+  const none=ths.filter(th=>{const x=ptIsb(th,all);return !x.main.length&&!x.sec.length;});
+  return `<div class="kp"><div class="me"><b>${isb.length}</b><span>ISB ${isb.length===1?K.one:K.many}${isb.length?`: ${own} by ISB, ${isb.length-own} with partners`:""}</span></div>
+    <div><b>${Math.round(median(per.map(x=>x[1])))}</b><span>${K.many} at the typical ${ptWhere(PT.g)} school (median of ${per.length}; ${esc(SC[per[0][0]].l)} has ${per[0][1]})</span></div>
+    <div><b>${f.length?lakh(median(f)):"—"}</b><span>median fee at ${ptWhere(PT.g)} schools (${f.length} publish one)${fi.length?`; ISB ${lakh(median(fi))}`:""}</span></div>
+    <div><b>${none.length} of ${ths.length}</b><span>themes where ISB has no ${K.one}, as main or second topic</span></div></div>`;
+}
+function ptGrid(L,cols){
+  const K=PTK[PT.k], g=PT.g, other=g==="India"?"Global":"India", peerSc=cols.slice(1), gapOn=g==="India"&&!PT.q;
+  const at=(sc,th)=>L.filter(p=>p.sc===sc&&T[p.t].th===th);
+  const peersOf=th=>L.filter(p=>SC[p.sc].g===g&&T[p.t].th===th);
+  // a theme shows when a school in view sells something in it (main topic, or ISB's second topic)
+  const live=th=>L.some(p=>cols.includes(p.sc)&&(T[p.t].th===th||(p.sc==="isb"&&p.sec&&T[p.sec]&&T[p.sec].th===th)));
+  const rows=D.themes.map(th=>[th,peersOf(th).length]).sort((a,b)=>b[1]-a[1]).map(x=>x[0]).filter(live), hidden=D.themes.length-rows.length;
+  if(!rows.length) return `<p style="padding:24px 0;font-size:16px">No ${K.many} match “${esc(PT.q)}”. Try fewer words.</p>`;
+  const fee=l=>median(l.map(p=>p.inr).filter(Boolean));
+  const val=l=>PT.m==="fee"?fee(l):PT.m==="new"?l.filter(ptNew).length:l.length;
+  // shade: counts in fixed steps; fees in quartiles of the cells on screen
+  const fs=PT.m==="fee"?rows.flatMap(th=>peerSc.map(sc=>fee(at(sc,th)))).filter(v=>v!=null).sort((a,b)=>a-b):[];
+  const fb=fs.length?[.25,.5,.75].map(x=>fs[Math.floor(x*(fs.length-1))]):[];
+  const bins=PT.m==="new"?[1,2,4]:K.bins;
+  const shade=v=>v==null||v===0?0:1+(PT.m==="fee"?fb:bins).filter(b=>v>b).length;
+  const txt=(l,v)=>PT.m==="fee"?(v!=null?lakh(v):l.length?"—":"·"):(v||"·");
+  const cell=(sc,th)=>{const l=at(sc,th), v=val(l);
+    const tip=`${SC[sc].l} · ${th}: ${plural(l.length,K.one,K.many)}${l.length?`; median fee ${lakh(fee(l))}`:""}`;
+    return `<td class="c q${shade(v)} ${PT.th===th&&PT.sc===sc?"sel":""}"><button type="button" data-th="${esc(th)}" data-sc="${sc}" title="${esc(tip)}">${txt(l,v)}</button></td>`;};
+  const isbCell=th=>{const x=ptIsb(th,L), pe=peersOf(th).length, sel=PT.th===th&&PT.sc==="isb"?"sel":"";
+    if(x.main.length){const v=val(x.main);
+      return `<td class="c me ${sel}"><button type="button" data-th="${esc(th)}" data-sc="isb" title="${esc("ISB: "+x.main.map(p=>p.n).join("; "))}">${PT.m==="n"?x.main.length:txt(x.main,v)}</button></td>`;}
+    const gap=gapOn&&!x.sec.length&&pe>=PT_GAP;
+    const sub=[x.sec.length&&`${x.sec.length} as second topic`,x.other.length&&`${x.other.length} in other formats`].filter(Boolean);
+    const tip=[`ISB has no ${K.one} with this as its main topic.`,x.sec.length&&`As a second topic: ${x.sec.map(p=>p.n).join("; ")}.`,
+      x.other.length&&`In other formats: ${x.other.map(p=>p.n).join("; ")}.`,gap&&`The Indian schools run ${pe}.`].filter(Boolean).join(" ");
+    return `<td class="c me zero ${x.sec.length?"sec":""} ${gap?"gap":""} ${sel}"><button type="button" data-th="${esc(th)}" data-sc="isb" title="${esc(tip)}">none${sub.map(s=>`<small>${s}</small>`).join("")}</button></td>`;};
+  const tr=th=>{const pe=peersOf(th), ot=L.filter(p=>SC[p.sc].g===other&&T[p.t].th===th).length, f=fee(pe), open=PT.th===th;
+    return `<tr class="${open?"open":""}"><td class="l"><button type="button" data-th="${esc(th)}" aria-expanded="${open}"><span class="chev">${open?"▾":"›"}</span>${esc(th)}</button></td>
+      ${isbCell(th)}${peerSc.map(sc=>cell(sc,th)).join("")}<td class="tot">${pe.length}</td><td class="oth">${ot}</td><td class="fee">${f?lakh(f):"—"}</td></tr>
+      ${open?`<tr><td class="dr" colspan="${cols.length+4}">${ptDrill(th,L)}</td></tr>`:""}`;};
+  const W=ptWhere(g), Wc=W[0].toUpperCase()+W.slice(1), O=ptWhere(other);
+  const lab=b=>[`1${b[0]>1?"–"+b[0]:""}`,`${b[0]+1}${b[1]>b[0]+1?"–"+b[1]:""}`,`${b[1]+1}${b[2]>b[1]+1?"–"+b[2]:""}`,`${b[2]+1}+`];
+  const keys=PT.m==="fee"?(fb.length?[`under ${lakh(fb[0])}`,`${lakh(fb[0])} to ${lakh(fb[1])}`,`${lakh(fb[1])} to ${lakh(fb[2])}`,`${lakh(fb[2])} and over`]:[]):lab(bins);
+  const anyGap=gapOn&&rows.some(th=>{const x=ptIsb(th,L);return !x.main.length&&!x.sec.length&&peersOf(th).length>=PT_GAP;});
+  const mob=`<div class="mxm">${rows.map(th=>{const pe=peersOf(th).length, x=ptIsb(th,L), gap=gapOn&&!x.main.length&&!x.sec.length&&pe>=PT_GAP;
+    return `<button type="button" data-th="${esc(th)}" data-sc="" aria-expanded="${PT.th===th}"><span>${esc(th)}</span><b>${pe}</b>
+      <span class="meta ${gap?"gap":""}">ISB: ${x.main.length||"none"}${!x.main.length&&x.sec.length?`, ${x.sec.length} as second topic`:""}${gap?" · market busy":""}</span><span class="meta">${W} schools</span></button>${PT.th===th?ptDrill(th,L):""}`;}).join("")}</div>`;
+  return `<section style="margin-top:26px"><header><h2>Where ${K.many} are sold, by theme</h2><span class="meta">${Wc} schools · ${PT.m==="fee"?"median fee per school":PT.m==="new"?"new launches per school":"number on sale per school"}${PT.q?` · matching “${esc(PT.q)}”: ${L.filter(p=>cols.includes(p.sc)).length}`:""} · click a theme or a cell to open it</span></header>
+    <div class="mxw"><table class="mx"><tr><th class="l">Theme <span style="font-weight:400">(most ${K.many} first)</span></th><th class="me">ISB</th>${peerSc.map(sc=>`<th>${esc(SC[sc].l)}</th>`).join("")}<th>${Wc}<br>schools</th><th>${O[0].toUpperCase()+O.slice(1)}<br>schools</th><th>Median fee<br>${W}</th></tr>
+    ${rows.map(tr).join("")}</table></div>${mob}
+    <div class="mkey"><span>${PT.m==="fee"?"Median fee":PT.m==="new"?"New launches":K.many} per school:</span>${keys.map((k,i)=>`<span><i class="q${i+1}" style="background:${["#e3eaff","#c2d2ff","#8fabff","var(--blue)"][i]}"></i>${k}</span>`).join("")}
+      ${anyGap?`<span><i class="gapk"></i>ISB has none, as main or second topic, and the Indian schools run ${PT_GAP} or more</span>`:""}
+      ${hidden&&!PT.q?`<span>${plural(hidden,"theme")} where neither ISB nor any ${W} school sells one ${hidden===1?"is":"are"} left out</span>`:""}</div></section>`;
+}
+function ptDrill(th,L){
+  const K=PTK[PT.k], g=PT.g, one=PT.sc&&PT.sc!=="isb";
+  const peers=L.filter(p=>SC[p.sc].g===g&&T[p.t].th===th), sel=one?peers.filter(p=>p.sc===PT.sc):peers;
+  const x=ptIsb(th,L), isbL=one?[]:[...x.main,...x.sec];
+  const f=sel.map(p=>p.inr).filter(Boolean), w=sel.map(p=>p.w).filter(v=>v!=null);
+  const st=count(sel,p=>T[p.t].st), mx=st.length?st[0][1]:1, tp=count(sel,p=>p.t).slice(0,6);
+  const gap=g==="India"&&!PT.q&&!x.main.length&&!x.sec.length&&peers.length>=PT_GAP;
+  const lk=l=>andList(l.map(p=>`<a href="#/p/${p.i}">${esc(p.n)}</a>`));
+  const note=(x.main.length?`ISB runs ${plural(x.main.length,K.one,K.many)} here: ${lk(x.main)}.`
+      :x.sec.length?`<b>Not a blank for ISB.</b> No ISB ${K.one} has this as its main topic, but ${lk(x.sec)} teaches it as a second topic.`
+      :`ISB has no ${K.one} in this theme.`)
+    +(x.other.length?` In other formats ISB sells ${plural(x.other.length,"programme")} here: ${lk(x.other.slice(0,4))}${x.other.length>4?` and ${x.other.length-4} more`:""}.`:"")
+    +(gap?` The ${ptWhere(g)} schools run ${peers.length}. This view covers open programmes on schools' public catalogues, not programmes built for one company.`:"");
+  const list=[...isbL,...sel.slice().sort((a,b)=>(b.inr||0)-(a.inr||0))], n=PT.all?list.length:Math.min(12,list.length);
+  return `<div class="drill"><div style="display:flex;gap:16px;align-items:baseline;justify-content:space-between"><h3>${esc(th)}: ${K.many} at ${one?esc(SC[PT.sc].n):ptWhere(g)+" schools"}</h3><button type="button" class="lnk" data-close="1">Close</button></div>
+    <p style="margin:4px 0 0;font-size:15px;color:var(--ink-2)"><b style="color:var(--isb)">${sel.length}</b> ${sel.length===1?K.one:K.many}${one?"":` at ${plural(new Set(sel.map(p=>p.sc)).size,"school")}`} · median fee ${f.length?`${lakh(median(f))} (${f.length} publish)`:"not published"} · typical length ${w.length?wk(median(w)):"not published"}</p>
+    <div class="explain ${gap?"gone":""}" style="max-width:none">${note}</div>
+    <div class="chips"><button type="button" class="chip ${one?"":"on"}" data-psc="">All ${ptWhere(g)} schools (${peers.length})</button>${count(peers,p=>p.sc).map(([s,c])=>`<button type="button" class="chip ${PT.sc===s?"on":""}" data-psc="${s}">${esc(SC[s].l)} (${c})</button>`).join("")}</div>
+    <div class="dg"><div>
+      <p class="meta" style="margin:0 0 6px">By sub-theme</p>
+      <div class="bars">${st.map(([s,c])=>`<div class="b" style="cursor:default"><span>${esc(s)}</span><span class="tr"><i style="width:${(100*c/mx).toFixed(1)}%"></i></span><span class="n">${c}</span></div>`).join("")||`<p class="meta">None on sale.</p>`}</div>
+      ${tp.length?`<p class="meta" style="margin:18px 0 6px">Most-sold topics: open one for its demand and every school's programmes</p>
+      <div class="bars">${tp.map(([id,c])=>`<a class="b" href="#/topic/${id}" style="text-decoration:none"><span>${esc(T[id].n)}</span><span></span><span class="n">${c}</span></a>`).join("")}</div>`:""}</div>
+    <div><p class="meta" style="margin:0 0 6px">${isbL.length?"ISB first, then ":""}highest fee first · ${n} of ${list.length}</p>
+      ${list.length?`<div class="rows">${progHead(1)}${list.slice(0,n).map(p=>progRow(p,{compact:1})).join("")}</div>`:`<p class="meta">None.</p>`}
+      ${n<list.length?`<p style="margin-top:10px"><button type="button" class="lnk" data-all="1">Show all ${list.length}</button></p>`:""}</div></div></div>`;
+}
+function ptTable(L,cols){
+  const K=PTK[PT.k];
+  const rows=cols.map(sc=>[sc,L.filter(p=>p.sc===sc)]).sort((a,b)=>a[0]==="isb"?-1:b[0]==="isb"?1:b[1].length-a[1].length);
+  const FM=[["campus","var(--isb)"],["blended","var(--blue)"],["online","var(--teal)"]];
+  return `<section style="margin-top:26px"><header><h2>${K.many}, school by school</h2><span class="meta">${ptWhere(PT.g)} schools · ISB first, then most ${K.many}${PT.q?` · matching “${esc(PT.q)}”`:""} · open a school for its whole portfolio</span></header>
+  <div class="stw"><table class="st"><tr><th>School</th><th class="n">${K.many}</th><th>Format</th><th class="n">Median fee</th><th class="n">Typical length</th><th>Biggest themes</th><th class="n">New launches</th></tr>
+  ${rows.map(([sc,l])=>{const f=l.map(p=>p.inr).filter(Boolean), w=l.map(p=>p.w).filter(v=>v!=null), sp=FM.map(([k,c])=>[k,c,l.filter(p=>ptFmt(p)===k).length]);
+    return `<tr class="${sc==="isb"?"me":""}" data-go="#/school/${sc}" tabindex="0"><td><a class="nm" href="#/school/${sc}">${esc(SC[sc].n)}</a></td><td class="n stn">${l.length}</td>
+      <td>${l.length?`<div class="bar">${sp.map(([k,c,m])=>m?`<i style="width:${(100*m/l.length).toFixed(1)}%;background:${c}" title="${k}: ${m}"></i>`:"").join("")}</div><span class="meta">${sp.filter(x=>x[2]).map(([k,,m])=>`${m} ${k}`).join(" · ")}</span>`:"—"}</td>
+      <td class="n">${f.length?lakh(median(f)):"—"}<div class="meta">${f.length} publish</div></td><td class="n">${w.length?wk(median(w)):"—"}</td>
+      <td class="thm">${count(l,p=>T[p.t].th).slice(0,3).map(([t,m])=>`${esc(t)} (${m})`).join("; ")||"—"}</td><td class="n">${l.filter(ptNew).length||"—"}</td></tr>`;}).join("")}</table></div></section>`;
+}
+const ptNote=()=>`<p class="meta" style="margin-top:22px">${TYDEF} Counts are programmes on each school's catalogue, not cohorts run: a programme run four times a year counts once. Platforms are left out of the grid. Every ISB programme's theme and topic was checked by hand against ISB's live pages, and on 23 Nov 2026 every TFP and CXO programme whose tag the keyword engine was unsure of, at Indian and global schools, was checked and corrected where wrong. ISB is outlined in coral only where it has no ${PTK[PT.k].one} with the theme as its main or second topic and the Indian schools run ${PT_GAP} or more. The view covers open programmes on public catalogues, not programmes built for one company.</p>`;
 
 /* ---------- test a programme ---------- */
 const EXAMPLE={t:"AI governance for board directors",d:"board oversight of AI, AI risk, regulation, governance frameworks",f:"Campus",w:"0.6",fee:"2.5",lv:"Board"};
@@ -1114,7 +1345,7 @@ function changesSchool(slug,q={}){
   $("wbody").onclick=e=>{const b=e.target.closest("[data-open]");if(b){wOpen.add(b.dataset.open);changesSchool(slug,q);}};
 }
 function wCsv(list,name){
-  const cols=[["school",c=>SC[c.sc].n],["isb_tile",c=>c.t==="own"?"delivered by ISB":c.t==="partner"?"delivered with partners":""],["programme",c=>c.nm],
+  const cols=[["school",c=>SC[c.sc].n],["isb_delivery",c=>c.t==="own"?"by ISB":c.t==="partner"?"with partners":""],["programme",c=>c.nm],
     ["what_changed",c=>WCATS.find(x=>x[0]===wCat(c))[1]],["field",c=>WLAB[c.f]],["before",c=>wPlain(c,c.b)],["after",c=>wPlain(c,c.a)],["change",wDeltaText],
     ["when_the_school_changed_it",c=>c.sch?wWhen(c):""],["changed_between",c=>c.sch&&!c.x?c.sb:""],["and",c=>c.sch&&!c.x?c.sa:""],
     ["recorded_on",c=>c.d],["changed_by",c=>c.sch?"school":"our record"],["note",c=>c.note]];
@@ -1172,7 +1403,7 @@ function route(){
   document.body.classList.toggle("home",at===""||at==="programmes");
   ({"":()=>search(q),programmes:()=>search(q),brief:()=>location.replace("#/launches"),launches:()=>launches(q),test:()=>test(q),updates:()=>location.replace("#/changes"),
     changes:()=>!parts[1]||parts[1]==="india"||parts[1]==="global"?changesView(parts[1],q):changesSchool(parts[1],q),
-    schools:()=>schools(parts[1]),school:()=>school(parts[1],q),portfolio:()=>location.replace("#/"),
+    schools:()=>schools(parts[1]),types:()=>ptypes(q),school:()=>school(parts[1],q),portfolio:()=>location.replace("#/"),
     topic:()=>topic(parts[1]),p:()=>programme(parts[1])}[at]||notFound)();
   if(q.at&&$(q.at)) $(q.at).scrollIntoView(); else window.scrollTo(0,0);
 }
