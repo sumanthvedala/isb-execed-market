@@ -707,16 +707,17 @@ const medByType=l=>KINDS.map(k=>{const all=l.filter(p=>p.ty===k[0]), f=all.map(p
 const medTable=(l,full)=>{const m=medByType(l);return m.length?`<div class="medt">${full?`<span class="h">Programme type</span><span class="h">Median fee</span><span class="h">Fees published</span>`:""}${m.map(([k,v,n,t])=>`<span><i class="${kcls(k[0])}"></i>${k[2]}</span><b>${lakh(v)}</b><em>${full?`${n} of ${t}`:`${n}`}</em>`).join("")}</div>`:`<p class="meta">No fees published.</p>`;};
 const tabOf=s=>s.g==="Global"?["#/schools/global","Global schools"]:s.g==="Platform"?["#/","Platforms"]:["#/schools/india","Indian schools"];
 const groupOf=s=>D.schools.filter(x=>s.g==="Global"?x.g==="Global":s.g==="Platform"?x.g==="Platform":x.g==="India"||x.g==="ISB");
-// ISB is shown twice: what ISB delivers itself, and what it delivers with partners
+// ISB has one tile, like every other school. Old links to "?d=own" or "?d=partner" still open
+// that part of ISB's portfolio; nothing on the page links to them any more.
 const progsOf=(sc,d)=>D.progs.filter(p=>p.sc===sc&&(!d||(d==="own"?!p.pt:!!p.pt)));
 const dName=(s,d)=>s.n+(d==="own"?", delivered by ISB":d==="partner"?", delivered with partners":"");
-const entriesOf=list=>list.flatMap(s=>s.s==="isb"?[[s,"own"],[s,"partner"]]:[[s,""]]);
+const entriesOf=list=>list.map(s=>[s,""]);
 function schools(g){
   const G=g==="global"?"Global":"India";
   const list=D.schools.filter(s=>s.g===G||(G==="India"&&s.g==="ISB"));
   const L=D.launches, total=D.progs.filter(p=>list.some(s=>s.s===p.sc)).length;
   $("view").innerHTML=band(`<h1>${GRP[G]}</h1>
-    <p class="lead">${G==="India"?`ISB and the ${list.length-1} Indian schools we track`:`The ${list.length} global schools we track`}, with <b>${total.toLocaleString("en-IN")} programmes</b> between them. Open a school for its full portfolio: C-suite programmes first, then blended, live online and topic-focused programmes.${G==="India"?" ISB has two tiles: what it delivers itself, and what it delivers with partners.":""}</p>`)+
+    <p class="lead">${G==="India"?`ISB and the ${list.length-1} Indian schools we track`:`The ${list.length} global schools we track`}, with <b>${total.toLocaleString("en-IN")} programmes</b> between them. Open a school for its full portfolio: C-suite programmes first, then blended, live online and topic-focused programmes.</p>`)+
   `<div class="tiles">${entriesOf(list).map(([s,d])=>{
     const all=progsOf(s.s,d), th=count(all,p=>T[p.t].th).slice(0,2), pts=count(all,p=>p.pt);
     const ln=L&&!d?L.rows.filter(r=>r.sc===s.s).length:0;
@@ -724,7 +725,7 @@ function schools(g){
       <h3>${esc(dName(s,d))}</h3>
       <div class="big-n"><b>${all.length}</b>programmes</div>
       ${all.length?typePie(all):""}
-      ${d==="partner"&&pts.length?`<p class="foc">With ${andList(pts.map(([p,n])=>`<b>${esc(p)}</b> (${n})`))}</p>`:""}
+      ${s.s==="isb"&&pts.length?`<p class="foc">${all.length-pts.reduce((a,x)=>a+x[1],0)} delivered by ISB; ${pts.reduce((a,x)=>a+x[1],0)} with ${andList(pts.map(([p,n])=>`<b>${esc(p)}</b> (${n})`))}</p>`:""}
       ${medTable(all)}
       ${th.length?`<p class="foc">Most in ${andList(th.map(([t,n])=>`<b>${esc(t)}</b> (${n})`))}</p>`:""}
       ${ln?`<p class="foc">${plural(ln,"new launch","new launches")} in the last year</p>`:""}
@@ -743,7 +744,6 @@ function school(slug,q={}){
   const ln=L&&!d?L.rows.filter(r=>r.sc===slug).length:0, gone=all.filter(p=>p.gone).length;
   const fact=(k,v)=>`<div><dt>${k}</dt><dd>${v}</dd></div>`;
   const sw=entriesOf(groupOf(s)).map(([x,dd])=>[x.s+(dd?`?d=${dd}`:""),dName(x,dd)]);
-  if(slug==="isb") sw.splice(sw.findIndex(o=>o[0].startsWith("isb")),0,["isb","Indian School of Business, all programmes"]);
   $("view").innerHTML=band(`<p class="crumb"><a href="${tab[0]}">${tab[1]}</a>${d?` · <a href="#/school/isb">All ISB programmes</a>`:""}</p>
     <h1>${esc(dName(s,d))}</h1>
     <p class="lead">${all.length?`<b>${plural(all.length,"programme")}</b> tracked: ${andList(kc.map(([k,n])=>`${n} ${k[3]}`))}.${gone?` ${gone} of them look discontinued and are marked in the list.`:""}`:"No programmes on record."}</p>
@@ -1090,7 +1090,7 @@ function changesSchool(slug,q={}){
   $("wbody").onclick=e=>{const b=e.target.closest("[data-open]");if(b){wOpen.add(b.dataset.open);changesSchool(slug,q);}};
 }
 function wCsv(list,name){
-  const cols=[["school",c=>SC[c.sc].n],["isb_tile",c=>c.t==="own"?"delivered by ISB":c.t==="partner"?"delivered with partners":""],["programme",c=>c.nm],
+  const cols=[["school",c=>SC[c.sc].n],["isb_delivery",c=>c.t==="own"?"by ISB":c.t==="partner"?"with partners":""],["programme",c=>c.nm],
     ["what_changed",c=>WCATS.find(x=>x[0]===wCat(c))[1]],["field",c=>WLAB[c.f]],["before",c=>wPlain(c,c.b)],["after",c=>wPlain(c,c.a)],["change",wDeltaText],
     ["when_the_school_changed_it",c=>c.sch?wWhen(c):""],["changed_between",c=>c.sch&&!c.x?c.sb:""],["and",c=>c.sch&&!c.x?c.sa:""],
     ["recorded_on",c=>c.d],["changed_by",c=>c.sch?"school":"our record"],["note",c=>c.note]];

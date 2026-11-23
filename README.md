@@ -91,7 +91,7 @@ Every programme has one programme type, so nothing is counted twice: C-suite (na
 C-suite role, or filed under C-suite by the school, whatever its format), Blended, Live
 online (12 weeks or more online), TFP campus and TFP online (topic-focused programmes, ISB's
 term: up to two weeks on campus or under 12 weeks online), Long campus, Self-paced. Tiles and
-school pages give the median fee per type. ISB has two tiles: in-house and with partners.
+school pages give the median fee per type. ISB has one tile; its tile and page say how many programmes it delivers itself and how many with partners.
 Fee comparisons for a programme idea, and for ISB against its peers, use Indian programmes
 only. The rules are in `scripts/build_data.py`.
 
