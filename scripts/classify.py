@@ -21,10 +21,17 @@ WEIGHT={'programme_name':3.0,'key_topics':1.0,'school_category':0.6,'target_audi
 # --- PRIORITY 1: named overrides -------------------------------------------
 # Products where the keyword engine demonstrably misreads the title. Keyed on
 # (school_slug, lowercase substring of the programme name) -> topic NAME.
+# An optional secondary_topic records a second theme the programme really
+# teaches (from its page), so a programme that spans two themes is not read
+# as absent from the second one.
 OVERRIDES=[]
+OVERRIDE_SEC={}
 try:
     for _r in csv.DictReader(open(f'{BASE}/data/overrides.csv',encoding='utf-8')):
-        OVERRIDES.append((_r['school_slug'].strip(),_r['name_contains'].strip().lower(),_r['topic'].strip()))
+        _k=(_r['school_slug'].strip(),_r['name_contains'].strip().lower())
+        OVERRIDES.append((*_k,_r['topic'].strip()))
+        if (_r.get('secondary_topic') or '').strip():
+            OVERRIDE_SEC[_k]=_r['secondary_topic'].strip()
 except FileNotFoundError:
     pass
 
@@ -137,6 +144,8 @@ _byname_all={t['topic']:t['topic_id'] for t in tax}
 for _lst,_lbl in ((OVERRIDES,'OVERRIDES'),):
     _bad=[n for _,_,n in _lst if n not in _byname_all]
     assert not _bad, f"{_lbl} targets not in taxonomy: {_bad}"
+_bad=[n for n in OVERRIDE_SEC.values() if n not in _byname_all]
+assert not _bad, f"override secondary_topic not in taxonomy: {_bad}"
 _bad=[n for _,n in OFFICER if n not in _byname_all]+[n for _,n in SECTOR if n not in _byname_all]
 assert not _bad, f"officer/sector targets not in taxonomy: {_bad}"
 assert LADDER in _byname_all
@@ -158,6 +167,8 @@ def priority_topic(r):
                     if re.search(r'\bai\b|artificial intelligence|\bcaio\b|\bctaio\b|\bcdaio\b|digital',nm,re.I):
                         sec=_byname_all["AI governance frameworks and operating models"]
                     break
+            if (sch,frag) in OVERRIDE_SEC:
+                sec=_byname_all[OVERRIDE_SEC[(sch,frag)]]
             return _byname_all[topic],sec,'override'
     for pat,topic in OFFICER:
         if pat.search(nm):
