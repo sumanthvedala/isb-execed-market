@@ -138,7 +138,8 @@ the same; left alone, the old name reads as discontinued and the new one as a se
 5. A programme the school confirms is no longer sold, with no successor, is recorded the same way
    with `decision` `discontinued` and `new_name` blank; the build removes it. ISB's own renames and
    discontinuations come from the Product & Content Strategy team and are already recorded; do not
-   override them.
+   override them. A row decided `removed` takes a programme out of scope on that team's call (it
+   is not the school's decision); do not add it back, even if the competitor sheet still lists it.
 
 ## Finish
 

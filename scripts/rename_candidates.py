@@ -136,7 +136,7 @@ def main():
     if p.exists():
         for d in csv.DictReader(open(p, encoding='utf-8')):
             decided.add((d['school_slug'], its.norm_name(d['old_name']), its.norm_name(d['new_name'])))
-            if d['decision'].strip().lower() in ('renamed', 'discontinued'):
+            if d['decision'].strip().lower() in ('renamed', 'discontinued', 'removed'):
                 settled.add((d['school_slug'], its.norm_name(d['old_name'])))
     old = [o for o in old if (o['school_slug'], its.norm_name(o['programme_name'])) not in settled]
     live = [r for r in rows if not (r.get('status') or '').strip()]
