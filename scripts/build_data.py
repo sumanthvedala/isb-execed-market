@@ -124,6 +124,128 @@ def first_date(raw, future=False):
     return '' if future and dt < TODAY else dt.isoformat()
 
 
+_MON = r'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec'
+
+
+def _dates(seg):
+    """the dates in one stretch of text, in order, as [day or None, month, year or None]; a
+    range is two dates. '15-18 Feb 2027' gives [15,2,None], [18,2,2027]: the missing parts
+    are filled from the neighbours by runs()"""
+    out, cur = [], {}
+    for tok in re.findall(r'\d{4}|\d{1,2}|[a-z]+|-', seg):
+        if tok == '-':
+            if cur:
+                out.append(cur); cur = {}
+        elif len(tok) == 4 and tok.isdigit():
+            if cur:
+                cur['y'] = int(tok)
+            elif out and 'y' not in out[-1]:
+                out[-1]['y'] = int(tok)
+        elif tok.isdigit():
+            if 'd' in cur:
+                out.append(cur); cur = {}
+            cur['d'] = int(tok)
+        elif tok[:3] in MONTHS and re.fullmatch(r'(?:%s)[a-z]*' % _MON, tok):
+            if 'm' in cur:
+                out.append(cur); cur = {}
+            cur['m'] = MONTHS[tok[:3]]
+    if cur:
+        out.append(cur)
+    return out
+
+
+def runs(raw):
+    """Every run a free-text date field names, as (start, end, precise) with ISO dates; a run
+    given only as a month ("Jan 2027") has start 'YYYY-MM' and precise False. Catalogues write
+    "Apr 25-30, 2027", "Nov 30-Dec 4, 2026", "05 October - 18 December 2026", "10-02-2027"
+    (day first), "Jan 2027" or several runs split by ';' or '&'. Anything without a year is
+    left out rather than guessed."""
+    s = (raw or '').lower().replace('–', '-').replace('—', '-')
+    s = re.sub(r'\(.*?\)|module\s*\d+\s*:|modular', ' ', s)
+    s = re.sub(r'(\d)(st|nd|rd|th)\b', r'\1', s)
+    s = re.sub(r'\b(\d{4})-(\d\d)-(\d\d)\b', lambda m: f'{int(m[3])} {list(MONTHS)[int(m[2]) - 1]} {m[1]}'
+               if 1 <= int(m[2]) <= 12 else m[0], s)
+    s = re.sub(r'\b(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})\b', lambda m: f'{int(m[1])} {list(MONTHS)[int(m[2]) - 1]} {m[3]}'
+               if 1 <= int(m[2]) <= 12 else m[0], s)
+    s = re.sub(r'\b(\d{1,2})-([a-z]{3,})-(\d{4})\b', r'\1 \2 \3', s)
+    s = re.sub(r'\bto\b', '-', s)
+    segs = [_dates(x) for x in re.split(r';|\s&\s|\sand\s', s)]
+    for i in range(len(segs) - 2, -1, -1):          # "Jan 30 & Feb 6, 2027": the year comes last
+        if segs[i] and not any('y' in d for d in segs[i]):
+            y = next((d['y'] for later in segs[i + 1:] for d in later if 'y' in d), None)
+            if y:
+                segs[i][-1]['y'] = y
+    out = []
+    for ds in segs:
+        for i, d in enumerate(ds):                    # month and year from the nearest neighbour
+            for k in ('m', 'y'):
+                if k not in d:
+                    src = next((x[k] for x in ds[i + 1:] if k in x), None) or \
+                          next((x[k] for x in reversed(ds[:i]) if k in x), None)
+                    if src:
+                        d[k] = src
+        ds = [d for d in ds if 'm' in d and 'y' in d]
+        if not ds:
+            continue
+        iso = lambda d: (f"{d['y']:04d}-{d['m']:02d}-{d['d']:02d}" if 'd' in d else f"{d['y']:04d}-{d['m']:02d}")
+        try:
+            for d in ds:
+                if 'd' in d:
+                    datetime.date(d['y'], d['m'], d['d'])
+        except ValueError:
+            continue
+        a, b = ds[0], ds[-1]
+        if len(ds) > 1 and iso(a) > iso(b) and a.get('y') == b.get('y'):
+            a['y'] -= 1                               # "Dec 28 - Jan 3, 2027"
+        out.append((iso(a), iso(b) if len(ds) > 1 else '', 'd' in a))
+    return sorted(set(out))
+
+
+def _iso_end(r):
+    """a run's end date for comparison; a month-only date counts to the month's end"""
+    e = r[1] or r[0]
+    return e if len(e) == 10 else e + '-31'
+
+
+# what a start field says when it gives no date
+NO_DATE = [(r'rolling|any ?time|enrol immediately|flexible|self.paced|on.demand', 'Enrol any time'),
+           (r'to be announced|\btba\b|\btbh\b|\btbd\b|to be confirmed', 'Dates to be announced'),
+           (r'multiple|several|every month|monthly|quarterly', 'Several runs a year')]
+
+# the class pattern, where a page states it: weekends, evenings, hours a week, live sessions
+SCHED = re.compile(r'\d+(?:\s*(?:-|to)\s*\d+)?\s*(?:hours?|hrs?)\s*(?:per|a|/)\s*week'
+                   r'|\d+\s*x\s*\d+\s*h(?:ours?|rs?)?\s*(?:per|a|/)\s*week'
+                   r'|(?:live (?:online |virtual )?)?weekends?(?: sessions?| classes)?|weekday evenings?|evenings?'
+                   r'|(?:\d+|two|three|four|five|six)(?: \d+-hour)? live (?:virtual |online )?sessions?', re.I)
+
+
+def timing(p):
+    """next run, other upcoming runs, last run, a run under way, a no-date note and the class
+    pattern, from the catalogue's start and end fields"""
+    rs = runs(g(p, 'next_start'))
+    up = [r for r in rs if r[0] >= TODAY.isoformat()[:len(r[0])] and not (len(r[0]) == 7 and r[0] == TODAY.isoformat()[:7]
+                                                                          and not r[1])]
+    now = [r for r in rs if r not in up and _iso_end(r) >= TODAY.isoformat()]
+    past = [r for r in rs if r not in up and r not in now]
+    ls, le = first_date(g(p, 'last_known_start')), first_date(g(p, 'end_date'))
+    if le and (not ls or le < ls):
+        le = ''
+    if past and (not ls or past[-1][0] > ls):
+        ls, le = past[-1][0], past[-1][1]
+    note = ''
+    if not rs:
+        txt = g(p, 'next_start').lower()
+        note = next((lab for pat, lab in NO_DATE if re.search(pat, txt)), '')
+    if not up and not now and p['format'].startswith('Self-paced'):
+        note = 'Enrol any time'
+    sch = g(p, 'schedule') or ' · '.join(dict.fromkeys(m.group(0).strip().lower() for f in ('duration_raw', 'target_audience')
+                                                       for m in SCHED.finditer(g(p, f))))
+    return {'ns': up[0][0] if up else '', 'ne': up[0][1] if up else '',
+            'nx': [[a, b] for a, b, _ in up[1:4]],
+            'cur': [now[0][0], now[0][1]] if now and not up else None,
+            'ls': ls, 'le': le, 'nd': note, 'sch': clip(sch, 80)}
+
+
 progs = []
 for p in prog:
     if p['theme'] == 'UNCLASSIFIED':
@@ -134,7 +256,7 @@ for p in prog:
         'w': weeks(p), 'dr': clip(g(p, 'duration_raw'), 50),
         'inr': inr(p), 'fr': clip(g(p, 'fee_raw'), 46),
         'pt': p['partner'], 'nw': 1 if (p['is_new'] or '').upper().startswith('Y') else 0,
-        'ns': first_date(g(p, 'next_start'), future=True), 'ls': first_date(g(p, 'last_known_start')),
+        **timing(p),
         'cap': g(p, 'capstone'), 'imm': g(p, 'campus_immersion'), 'iv': g(p, 'industry_visit'),
         'ta': clip(g(p, 'target_audience'), 200), 'kt': clip(g(p, 'key_topics'), 300),
         # the name links to the first of these the page has: landing page, programme page, brochure

@@ -17,11 +17,14 @@ SCHOOLS=[s['slug'] for s in _sch]
 PEERS=[s for s in SCHOOLS if s!='isb']
 
 # ---------- map demand signals to topics with the same keyword engine ----------
+# same whole-word matching as the programme classifier (scripts/classifier.py)
+import sys as _sys; _sys.path.insert(0,f'{BASE}/scripts')
+from classifier import compile_kw, norm as _norm, FALLBACK_TOPICS
 pats=[]
 for t in tax:
     for kw in t['keywords'].split(';'):
-        kw=kw.strip()
-        if kw: pats.append((re.compile(kw,re.I),t))
+        p=compile_kw(kw)
+        if p: pats.append((p,t))
 
 # Manual mapping for demand signals whose vocabulary is a SKILLS taxonomy
 # phrase with no catalogue equivalent. Keyed on a substring of the verbatim
@@ -61,10 +64,11 @@ assert not _bad, f"manual demand targets not in taxonomy: {_bad}"
 dem_by_topic=collections.defaultdict(list)
 dem_unmapped=[]
 for d in dem:
-    txt=(d['skill_or_topic_verbatim']+' '+d.get('note','')+' '+d.get('metric_verbatim',''))
+    txt=_norm(d['skill_or_topic_verbatim']+' '+d.get('note','')+' '+d.get('metric_verbatim',''))
+    skill=_norm(d['skill_or_topic_verbatim'])
     sc=collections.Counter()
     for pat,t in pats:
-        if pat.search(d['skill_or_topic_verbatim']): sc[t['topic_id']]+=3
+        if pat.search(skill): sc[t['topic_id']]+=3
         elif pat.search(txt): sc[t['topic_id']]+=1
     man=None
     for frag,topicname in MANUAL_DEMAND.items():
@@ -98,13 +102,9 @@ for tid,ds in dem_by_topic.items():
 
 
 # --- provenance flags: which topics are inflated by construction -------------
-import importlib.util as _ilu
-_cl=open(f'{BASE}/scripts/classify.py').read()
-_names=set(re.findall(r'"([^"]+)"\)[,\s]*$',_cl,re.M))
-SUPPLY_RESIDUAL={n for n in _names if n in {t['topic'] for t in tax}}
-# fallback targets (supply-side residual buckets)
-_fb=_cl[_cl.index('FALLBACK=['):_cl.index('_byname={')]
-SUPPLY_RESIDUAL={n for n in re.findall(r'"([^"]{8,})"',_fb) if n in {t['topic'] for t in tax}}
+# fallback targets (supply-side residual buckets): the topics a programme gets when
+# its title names only a domain (scripts/classifier.py DOMAINS)
+SUPPLY_RESIDUAL={n for n in FALLBACK_TOPICS if n in {t['topic'] for t in tax}}
 DEMAND_MANUAL={v for v in MANUAL_DEMAND.values() if v}
 
 # ---------- supply counts ----------

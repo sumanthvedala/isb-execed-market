@@ -102,7 +102,7 @@ a.go:hover{color:var(--blue)}
 
 /* rows: the one list pattern used everywhere */
 .rows{border-top:1px solid var(--rule)}
-.r{display:grid;grid-template-columns:var(--cols,minmax(0,1fr) 110px 110px 90px 90px);gap:14px;align-items:baseline;
+.r{display:grid;grid-template-columns:var(--cols,minmax(0,1fr) 110px 100px 90px 140px);gap:14px;align-items:baseline;
   padding:10px 0;border-bottom:1px solid var(--rule);text-decoration:none}
 a.r:hover,.r[data-go]:hover{background:var(--mist)}
 .r[data-go]{cursor:pointer}
@@ -354,6 +354,17 @@ const lakh=v=>v==null?"not published":v>=1e7?"₹"+(v/1e7).toFixed(2)+" Cr":"₹
 const wk=w=>w==null?"not published":w<1?Math.round(w*5)+" days":w<9?(+w.toFixed(1))+" weeks":Math.round(w/4.33)+" months";
 const fmtD=s=>{if(!s)return"";const d=new Date((s.length===7?s+"-01":s)+"T00:00:00");return isNaN(d)?s:
   d.toLocaleDateString("en-GB",s.length===7?{month:"short",year:"numeric"}:{day:"numeric",month:"short",year:"numeric"});};
+// a run's dates: "4–6 Feb 2027", "30 Nov – 4 Dec 2026", "Jan 2027" (only the month is published)
+const fmtRun=(a,b)=>{if(!a)return"";if(!b||b===a||a.length===7||b.length===7)return fmtD(a)+(b&&b!==a?" – "+fmtD(b):"");
+  const A=new Date(a+"T00:00:00"),B=new Date(b+"T00:00:00"),m=x=>x.toLocaleDateString("en-GB",{month:"short"});
+  return A.getFullYear()!==B.getFullYear()?fmtD(a)+" – "+fmtD(b):A.getMonth()!==B.getMonth()?`${A.getDate()} ${m(A)} – ${B.getDate()} ${m(B)} ${B.getFullYear()}`
+    :`${A.getDate()}–${B.getDate()} ${m(B)} ${B.getFullYear()}`;};
+// every run a programme has ahead of it, soonest first
+const runsOf=p=>p.ns?[[p.ns,p.ne],...(p.nx||[])]:[];
+// when a programme runs, for a list: its next run; else the run under way; else a note; else when it last ran, muted
+const whenTxt=p=>p.ns?fmtRun(p.ns,p.ne):p.cur?`under way, to ${fmtD(p.cur[1]||p.cur[0])}`:p.nd?p.nd:p.ls?`last ran ${fmtD(p.ls.slice(0,7))}`:"";
+const whenCell=p=>p.ns?`<span${p.nx&&p.nx.length?` title="${esc("Later runs: "+p.nx.map(r=>fmtRun(r[0],r[1])).join("; "))}"`:""}>${fmtRun(p.ns,p.ne)}${p.nx&&p.nx.length?` <span class="meta">+${p.nx.length} more</span>`:""}</span>`
+  :whenTxt(p)?`<span class="meta">${esc(whenTxt(p))}</span>`:"—";
 const addM=(iso,m)=>{const d=new Date(iso+"T00:00:00");d.setMonth(d.getMonth()+m);return d.toISOString().slice(0,10);};
 const words=q=>q.toLowerCase().split(/[\s,]+/).filter(Boolean);
 const ALIAS={cfo:"chief financial",ceo:"chief executive",cmo:"chief marketing",cto:"chief technology",coo:"chief operat",
@@ -450,18 +461,20 @@ function strip(list,mark){
 }
 
 /* one row pattern for programmes everywhere */
-const COMPACT="--cols:minmax(0,1fr) 92px 78px 70px";
+const COMPACT="--cols:minmax(0,1fr) 92px 78px 70px", COMPACT_D="--cols:minmax(0,1fr) 92px 78px 70px 140px";
 function progRow(p,opt={}){
   const s=SC[p.sc];
-  const sub=[opt.noSchool?"":esc(s.l),p.pt?`with ${esc(p.pt)}`:"",p.sc==="isb"&&p.cat?`ISB: ${esc(p.cat)}`:"",opt.topic?esc(T[p.t].n):""].filter(Boolean).join(" · ");
-  return `<div class="r ${p.sc==="isb"&&!opt.noSchool?"isbrow":""}" data-go="#/p/${p.i}" tabindex="0" style="${opt.compact?COMPACT:""}">
+  const sub=[opt.noSchool?"":esc(s.l),p.pt?`with ${esc(p.pt)}`:"",p.sc==="isb"&&p.cat?`ISB: ${esc(p.cat)}`:"",opt.topic?esc(T[p.t].n):"",
+    p.sch?`class pattern: ${esc(p.sch)}`:""].filter(Boolean).join(" · ");
+  const dates=!opt.compact||opt.dates;
+  return `<div class="r ${p.sc==="isb"&&!opt.noSchool?"isbrow":""}" data-go="#/p/${p.i}" tabindex="0" style="${opt.compact?(opt.dates?COMPACT_D:COMPACT):""}">
     <span><div class="n">${nameLink(p)}${newTag(p.launch)}${p.new?'<span class="mark">added this month</span>':""}${goneTag(p)}</div>
       <div class="s">${sub}</div></span>
     <span class="c hm">${esc({"Self-paced Online":"Self-paced","Online":"Online cohort"}[p.f]||p.f)}</span><span class="c hm">${wk(p.w)}</span>
-    <span class="c">${p.inr?lakh(p.inr):"—"}</span>${opt.compact?"":`<span class="c hm">${p.ns?fmtD(p.ns):"—"}</span>`}</div>`;
+    <span class="c">${p.inr?lakh(p.inr):"—"}</span>${dates?`<span class="c hm">${whenCell(p)}</span>`:""}</div>`;
 }
-const progHead=(c)=>c?`<div class="r hd" style="${COMPACT}"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span></div>`
-  :`<div class="r hd"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span><span>Next start</span></div>`;
+const progHead=(c,dates)=>c?`<div class="r hd" style="${dates?COMPACT_D:COMPACT}"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span>${dates?"<span>Next run</span>":""}</div>`
+  :`<div class="r hd"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span><span>Next run</span></div>`;
 
 /* ---------- topic ---------- */
 function topic(id){
@@ -503,7 +516,8 @@ function programme(i){
     ${p.inr&&med&&f.length>=3?`<p class="lead">${lakh(p.inr)}, ${p.inr>med?`${Math.round(100*(p.inr/med-1))}% above`:`${Math.round(100*(1-p.inr/med))}% below`} the typical fee of the ${f.length} most similar programmes at other ${reg==="India"?"Indian":"global"} schools.</p>`:""}`)+
     `${p.gone?`<p class="explain gone read"><b>Likely discontinued:</b> ${esc(p.gone)}. It still counts in topic and fee comparisons until a refresh confirms it, so check before quoting it.</p>`:""}
     <dl class="facts">${row("Format",esc(p.f))}${row("Duration",esc(p.dr||(p.w?wk(p.w):"")))}${row("Fee as published",esc(p.fr))}
-      ${row("Level",esc(LV(p.lv)))}${row("Next start",p.ns?fmtD(p.ns):"")}${row("Delivered with",esc(p.pt))}${row("Includes",feats.join(", "))}${row("Theme",esc(t.th))}</dl>
+      ${row("Level",esc(LV(p.lv)))}${row("Next run",p.ns?fmtRun(p.ns,p.ne)+(p.nx&&p.nx.length?`<br><span class="meta">then ${p.nx.map(r=>fmtRun(r[0],r[1])).join("; ")}</span>`:""):p.cur?`under way, to ${fmtD(p.cur[1]||p.cur[0])}`:esc(p.nd))}
+      ${row("Last run",p.ls?fmtRun(p.ls,p.le):"")}${row("Class pattern",esc(p.sch))}${row("Delivered with",esc(p.pt))}${row("Includes",feats.join(", "))}${row("Theme",esc(t.th))}</dl>
     ${p.ta?`<p class="read"><span class="meta">For </span>${esc(p.ta)}</p>`:""}
     ${p.kt?`<p class="read"><span class="meta">Teaches </span>${esc(p.kt.split(";").map(x=>x.trim()).filter(Boolean).join(", "))}</p>`:""}
     ${strip([p,...rp])}
@@ -742,7 +756,8 @@ function drawProgs(){
 }
 function csv(list){
   const cols=[["school",p=>SC[p.sc].n],["programme",p=>p.n],["programme_type",p=>KINDS.find(k=>k[0]===kindOf(p))[1]],["theme",p=>T[p.t].th],["sub_theme",p=>T[p.t].st],["topic",p=>T[p.t].n],
-    ["format",p=>p.f],["level",p=>p.lv],["weeks",p=>p.w],["fee_as_published",p=>p.fr],["fee_inr",p=>p.inr],["next_start",p=>p.ns],
+    ["format",p=>p.f],["level",p=>p.lv],["weeks",p=>p.w],["fee_as_published",p=>p.fr],["fee_inr",p=>p.inr],["next_start",p=>p.ns],["next_end",p=>p.ne],["later_runs",p=>(p.nx||[]).map(r=>r[0]+(r[1]?" to "+r[1]:"")).join("; ")],
+    ["under_way",p=>p.cur?p.cur.join(" to "):""],["no_date_note",p=>p.nd],["last_run_start",p=>p.ls],["last_run_end",p=>p.le],["class_pattern",p=>p.sch],
     ["new_launch",p=>p.launch?(p.launch.ld||"probable"):""],["partner",p=>p.pt],
     ["link",p=>(links(p)[0]||[])[1]],["landing_page",p=>p.lu],["programme_page",p=>p.u],["brochure",p=>p.bu],
     ["status",p=>p.gone?"likely discontinued: "+p.gone:""]];
@@ -855,19 +870,32 @@ function drawSchool(){
     ||`<p style="padding:18px 0;font-size:16px">Nothing matches. Try fewer words, or <button type="button" class="lnk" onclick="document.getElementById('preset').click()">clear all filters</button>.</p>`;
 }
 
-/* ---------- programme types: TFP and CXO, by theme and school ---------- */
-// TFP and CXO programmes each need their own strategy, so each gets the same lens: a grid of
-// themes (rows) by schools (columns), ISB pinned first, a theme opening in place. Indian and
-// global schools are never mixed in one grid: their typical fees differ about ninefold.
+/* ---------- programme types: every type, by theme, school and start date ---------- */
+// Each programme type needs its own strategy, so each gets the same lens: a grid of themes
+// (rows) by schools (columns), ISB pinned first, a theme opening in place; a table by school;
+// and a calendar of when runs start. Indian and global schools are never mixed in one grid:
+// their typical fees differ about ninefold.
 const PTK={
   tfp:{tab:"Topic-focused (TFP)",one:"TFP",many:"TFPs",is:p=>p.ty==="TFP campus"||p.ty==="TFP online",bins:[3,7,12],
     def:"short open programmes on one topic, up to two weeks of contact on campus or under 12 weeks online",
     eg:"Search TFPs: “negotiation”, “AI”, “pricing”, “board”"},
   cxo:{tab:"C-suite (CXO)",one:"CXO programme",many:"CXO programmes",is:p=>p.ty==="C-suite",bins:[1,2,4],
     def:"programmes named for a C-suite role, or filed under C-suite by the school, whatever the format",
-    eg:"Search CXO programmes: “CFO”, “CHRO”, “AI”"}};
+    eg:"Search CXO programmes: “CFO”, “CHRO”, “AI”"},
+  blended:{tab:"Blended",one:"blended programme",many:"blended programmes",is:p=>p.ty==="Blended",bins:[1,3,6],
+    def:"programmes that mix online learning with modules on campus",
+    eg:"Search blended programmes: “general management”, “AI”, “finance”"},
+  live:{tab:"Live online",one:"live online programme",many:"live online programmes",is:p=>p.ty==="Live online",bins:[1,3,6],
+    def:"online programmes of 12 weeks or more, taught live or as a cohort",
+    eg:"Search live online programmes: “analytics”, “marketing”, “AI”"},
+  long:{tab:"Long campus",one:"long campus programme",many:"long campus programmes",is:p=>p.ty==="Long campus",bins:[1,2,3],
+    def:"campus programmes of more than two weeks of contact",
+    eg:"Search long campus programmes: “general management”, “leadership”"},
+  self:{tab:"Self-paced",one:"self-paced course",many:"self-paced courses",is:p=>p.ty==="Self-paced",bins:[1,3,6],
+    def:"online courses with no cohort, open to enrol at any time",
+    eg:"Search self-paced courses: “AI”, “finance”, “strategy”"}};
 const PT_GAP=20;   // ISB is marked only where it has nothing and the Indian schools run at least this many
-const PT={k:"tfp",g:"India",v:"theme",m:"n",q:"",th:"",sc:"",all:false};
+const PT={k:"tfp",g:"India",v:"theme",m:"n",q:"",th:"",sc:"",mo:"",all:false};
 const ptCols=g=>["isb",...D.schools.filter(s=>s.g===g).map(s=>s.s)];
 const ptMatch=p=>!PT.q||hit([p.n,T[p.t].n,T[p.t].st,T[p.t].th,p.kt,p.cat,SC[p.sc].l,SC[p.sc].n].join(" ").toLowerCase(),PT.q);
 const ptNew=p=>!!(p.launch||p.nw);
@@ -876,7 +904,7 @@ const ptFmt=p=>p.f==="Campus"?"campus":/blend/i.test(p.f)?"blended":"online";
 function ptURL(){
   const p=new URLSearchParams();
   if(PT.k!=="tfp")p.set("k",PT.k); if(PT.g!=="India")p.set("g","global"); if(PT.v!=="theme")p.set("v",PT.v);
-  if(PT.m!=="n")p.set("m",PT.m); if(PT.q)p.set("q",PT.q); if(PT.th)p.set("th",PT.th); if(PT.sc)p.set("sc",PT.sc);
+  if(PT.m!=="n")p.set("m",PT.m); if(PT.q)p.set("q",PT.q); if(PT.th)p.set("th",PT.th); if(PT.sc)p.set("sc",PT.sc); if(PT.mo)p.set("mo",PT.mo);
   const s=p.toString(); history.replaceState(null,"","#/types"+(s?"?"+s:""));
 }
 // ISB in one theme: programmes of this type with the theme as main topic, as second topic,
@@ -888,25 +916,27 @@ function ptIsb(th,L){
     other:D.progs.filter(p=>p.sc==="isb"&&!K.is(p)&&T[p.t].th===th&&ptMatch(p))};
 }
 function ptypes(q){
-  PT.k=q.k==="cxo"?"cxo":"tfp"; PT.g=q.g==="global"?"Global":"India"; PT.v=q.v==="school"?"school":"theme";
-  PT.m=q.m==="fee"||q.m==="new"?q.m:"n"; PT.q=q.q||""; PT.th=q.th||""; PT.sc=q.sc||""; PT.all=false;
+  PT.k=PTK[q.k]?q.k:"tfp"; PT.g=q.g==="global"?"Global":"India"; PT.v=q.v==="school"||q.v==="dates"?q.v:"theme";
+  PT.m=q.m==="fee"||q.m==="new"?q.m:"n"; PT.q=q.q||""; PT.th=q.th||""; PT.sc=q.sc||""; PT.mo=/^\d{4}-\d\d$/.test(q.mo||"")?q.mo:""; PT.all=false;
   const tabs=(id,list,v)=>`<div class="tabs" id="${id}">${list.map(([k,l])=>`<button type="button" data-v="${k}" class="${v===k?"on":""}">${l}</button>`).join("")}</div>`;
   $("view").innerHTML=band(`<h1>Programme types</h1>
     ${tabs("ptk",Object.entries(PTK).map(([k,o])=>[k,`${o.tab} <span class="meta">${D.progs.filter(o.is).length}</span>`]),PT.k)}
     <p class="lead" id="ptlead" style="margin-top:18px"></p>
     <div class="ptctl"><input type="search" id="ptq" value="${esc(PT.q)}" aria-label="Search these programmes" autocomplete="off">
-      ${tabs("ptv",[["theme","By theme"],["school","By school"]],PT.v)}
+      ${tabs("ptv",[["theme","By theme"],["school","By school"],["dates","By start date"]],PT.v)}
       ${tabs("ptg",[["India","Indian schools"],["Global","Global schools"]],PT.g)}
       <label id="ptml">Cells show <select class="pill" id="ptm">${opts([["n","number of programmes"],["fee","median fee"],["new","new launches"]],PT.m)}</select></label></div>`)+
     `<div id="ptbody"></div>`;
   const on=id=>$(id).querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.v===({ptk:PT.k,ptv:PT.v,ptg:PT.g})[id]));
   const pick=(id,set)=>{$(id).onclick=e=>{const b=e.target.closest("button");if(!b)return;set(b.dataset.v);PT.all=false;on(id);ptDraw();};};
-  pick("ptk",v=>{PT.k=v;PT.th="";PT.sc="";}); pick("ptv",v=>{PT.v=v;}); pick("ptg",v=>{PT.g=v;PT.sc="";});
+  pick("ptk",v=>{PT.k=v;PT.th="";PT.sc="";PT.mo="";}); pick("ptv",v=>{PT.v=v;PT.th="";PT.sc="";PT.mo="";}); pick("ptg",v=>{PT.g=v;PT.sc="";PT.mo="";});
   $("ptm").onchange=e=>{PT.m=e.target.value;ptDraw();};
   let tm; $("ptq").oninput=e=>{clearTimeout(tm);tm=setTimeout(()=>{PT.q=e.target.value.trim();ptDraw();},180);};
   $("ptbody").onclick=e=>{
-    if(e.target.closest("[data-close]")){PT.th="";PT.sc="";ptDraw();return;}
+    if(e.target.closest("[data-close]")){PT.th="";PT.sc="";PT.mo="";ptDraw();return;}
     if(e.target.closest("[data-all]")){PT.all=true;ptDraw();return;}
+    const mo=e.target.closest("[data-mo]");
+    if(mo){const sc=mo.dataset.sc, m=mo.dataset.mo; if(PT.sc===sc&&PT.mo===m){PT.sc="";PT.mo="";}else{PT.sc=sc;PT.mo=m;} PT.all=false; ptDraw(); return;}
     const s=e.target.closest("[data-psc]"); if(s){PT.sc=s.dataset.psc;PT.all=false;ptDraw();return;}
     const c=e.target.closest("[data-th]"); if(!c) return;
     const th=c.dataset.th, sc=c.dataset.sc||"";
@@ -921,7 +951,7 @@ function ptDraw(){
   const n=g=>all.filter(p=>SC[p.sc].g===g).length, ns=g=>D.schools.filter(s=>s.g===g).length;
   $("ptq").placeholder=K.eg; $("ptml").hidden=PT.v!=="theme";
   $("ptlead").innerHTML=`<b>${all.length} ${K.many}</b>: ${K.def}. ISB runs <b>${n("ISB")}</b>. The ${ns("India")} Indian schools we track run ${n("India")}; the ${ns("Global")} global schools ${n("Global")}${n("Platform")?`; the platforms ${n("Platform")}`:""}.`;
-  $("ptbody").innerHTML=ptKpis(all,cols)+(PT.v==="theme"?ptGrid(L,cols):ptTable(L,cols))+ptNote();
+  $("ptbody").innerHTML=ptKpis(all,cols)+(PT.v==="theme"?ptGrid(L,cols):PT.v==="school"?ptTable(L,cols):ptDates(L,cols))+ptNote();
 }
 function ptKpis(all,cols){
   const K=PTK[PT.k], peers=all.filter(p=>SC[p.sc].g===PT.g), isb=all.filter(p=>p.sc==="isb"), own=isb.filter(p=>!p.pt).length;
@@ -994,31 +1024,68 @@ function ptDrill(th,L){
     +(gap?` The ${ptWhere(g)} schools run ${peers.length}. This view covers open programmes on schools' public catalogues, not programmes built for one company.`:"");
   const list=[...isbL,...sel.slice().sort((a,b)=>(b.inr||0)-(a.inr||0))], n=PT.all?list.length:Math.min(12,list.length);
   return `<div class="drill"><div style="display:flex;gap:16px;align-items:baseline;justify-content:space-between"><h3>${esc(th)}: ${K.many} at ${one?esc(SC[PT.sc].n):ptWhere(g)+" schools"}</h3><button type="button" class="lnk" data-close="1">Close</button></div>
-    <p style="margin:4px 0 0;font-size:15px;color:var(--ink-2)"><b style="color:var(--isb)">${sel.length}</b> ${sel.length===1?K.one:K.many}${one?"":` at ${plural(new Set(sel.map(p=>p.sc)).size,"school")}`} · median fee ${f.length?`${lakh(median(f))} (${f.length} publish)`:"not published"} · typical length ${w.length?wk(median(w)):"not published"}</p>
+    <p style="margin:4px 0 0;font-size:15px;color:var(--ink-2)"><b style="color:var(--isb)">${sel.length}</b> ${sel.length===1?K.one:K.many}${one?"":` at ${plural(new Set(sel.map(p=>p.sc)).size,"school")}`} · median fee ${f.length?`${lakh(median(f))} (${f.length} publish)`:"not published"} · typical length ${w.length?wk(median(w)):"not published"} · ${sel.filter(p=>p.ns).length} with a future run published</p>
     <div class="explain ${gap?"gone":""}" style="max-width:none">${note}</div>
     <div class="chips"><button type="button" class="chip ${one?"":"on"}" data-psc="">All ${ptWhere(g)} schools (${peers.length})</button>${count(peers,p=>p.sc).map(([s,c])=>`<button type="button" class="chip ${PT.sc===s?"on":""}" data-psc="${s}">${esc(SC[s].l)} (${c})</button>`).join("")}</div>
     <div class="dg"><div>
       <p class="meta" style="margin:0 0 6px">By sub-theme</p>
-      <div class="bars">${st.map(([s,c])=>`<div class="b" style="cursor:default"><span>${esc(s)}</span><span class="tr"><i style="width:${(100*c/mx).toFixed(1)}%"></i></span><span class="n">${c}</span></div>`).join("")||`<p class="meta">None on sale.</p>`}</div>
-      ${tp.length?`<p class="meta" style="margin:18px 0 6px">Most-sold topics: open one for its demand and every school's programmes</p>
-      <div class="bars">${tp.map(([id,c])=>`<a class="b" href="#/topic/${id}" style="text-decoration:none"><span>${esc(T[id].n)}</span><span></span><span class="n">${c}</span></a>`).join("")}</div>`:""}</div>
-    <div><p class="meta" style="margin:0 0 6px">${isbL.length?"ISB first, then ":""}highest fee first · ${n} of ${list.length}</p>
-      ${list.length?`<div class="rows">${progHead(1)}${list.slice(0,n).map(p=>progRow(p,{compact:1})).join("")}</div>`:`<p class="meta">None.</p>`}
-      ${n<list.length?`<p style="margin-top:10px"><button type="button" class="lnk" data-all="1">Show all ${list.length}</button></p>`:""}</div></div></div>`;
+      <div class="bars">${st.map(([s,c])=>`<div class="b" style="cursor:default"><span>${esc(s)}</span><span class="tr"><i style="width:${(100*c/mx).toFixed(1)}%"></i></span><span class="n">${c}</span></div>`).join("")||`<p class="meta">None on sale.</p>`}</div></div>
+      <div>${tp.length?`<p class="meta" style="margin:0 0 6px">Most-sold topics: open one for its demand and every school's programmes</p>
+      <div class="bars">${tp.map(([id,c])=>`<a class="b" href="#/topic/${id}" style="text-decoration:none"><span>${esc(T[id].n)}</span><span></span><span class="n">${c}</span></a>`).join("")}</div>`:""}</div></div>
+    <div style="margin-top:22px"><p class="meta" style="margin:0 0 6px">${isbL.length?"ISB first, then ":""}highest fee first · ${n} of ${list.length} · next run as the school publishes it, else when it last ran</p>
+      ${list.length?`<div class="rows">${progHead(1,1)}${list.slice(0,n).map(p=>progRow(p,{compact:1,dates:1})).join("")}</div>`:`<p class="meta">None.</p>`}
+      ${n<list.length?`<p style="margin-top:10px"><button type="button" class="lnk" data-all="1">Show all ${list.length}</button></p>`:""}</div></div>`;
 }
 function ptTable(L,cols){
   const K=PTK[PT.k];
   const rows=cols.map(sc=>[sc,L.filter(p=>p.sc===sc)]).sort((a,b)=>a[0]==="isb"?-1:b[0]==="isb"?1:b[1].length-a[1].length);
   const FM=[["campus","var(--isb)"],["blended","var(--blue)"],["online","var(--teal)"]];
   return `<section style="margin-top:26px"><header><h2>${K.many}, school by school</h2><span class="meta">${ptWhere(PT.g)} schools · ISB first, then most ${K.many}${PT.q?` · matching “${esc(PT.q)}”`:""} · open a school for its whole portfolio</span></header>
-  <div class="stw"><table class="st"><tr><th>School</th><th class="n">${K.many}</th><th>Format</th><th class="n">Median fee</th><th class="n">Typical length</th><th>Biggest themes</th><th class="n">New launches</th></tr>
+  <div class="stw"><table class="st"><tr><th>School</th><th class="n">${K.many}</th><th>Format</th><th class="n">Median fee</th><th class="n">Typical length</th><th class="n">Next run</th><th>Biggest themes</th><th class="n">New launches</th></tr>
   ${rows.map(([sc,l])=>{const f=l.map(p=>p.inr).filter(Boolean), w=l.map(p=>p.w).filter(v=>v!=null), sp=FM.map(([k,c])=>[k,c,l.filter(p=>ptFmt(p)===k).length]);
     return `<tr class="${sc==="isb"?"me":""}" data-go="#/school/${sc}" tabindex="0"><td><a class="nm" href="#/school/${sc}">${esc(SC[sc].n)}</a></td><td class="n stn">${l.length}</td>
       <td>${l.length?`<div class="bar">${sp.map(([k,c,m])=>m?`<i style="width:${(100*m/l.length).toFixed(1)}%;background:${c}" title="${k}: ${m}"></i>`:"").join("")}</div><span class="meta">${sp.filter(x=>x[2]).map(([k,,m])=>`${m} ${k}`).join(" · ")}</span>`:"—"}</td>
       <td class="n">${f.length?lakh(median(f)):"—"}<div class="meta">${f.length} publish</div></td><td class="n">${w.length?wk(median(w)):"—"}</td>
+      <td class="n">${(u=>u.length?`${fmtRun(u[0].ns,u[0].ne)}<div class="meta">${u.length} of ${l.length} dated</div>`:"—")(l.filter(p=>p.ns).sort((a,b)=>a.ns<b.ns?-1:1))}</td>
       <td class="thm">${count(l,p=>T[p.t].th).slice(0,3).map(([t,m])=>`${esc(t)} (${m})`).join("; ")||"—"}</td><td class="n">${l.filter(ptNew).length||"—"}</td></tr>`;}).join("")}</table></div></section>`;
 }
-const ptNote=()=>`<p class="meta" style="margin-top:22px">${TYDEF} Counts are programmes on each school's catalogue, not cohorts run: a programme run four times a year counts once. Platforms are left out of the grid. Every ISB programme's theme and topic was checked by hand against ISB's live pages, and on 23 Nov 2026 every TFP and CXO programme whose tag the keyword engine was unsure of, at Indian and global schools, was checked and corrected where wrong. ISB is outlined in coral only where it has no ${PTK[PT.k].one} with the theme as its main or second topic and the Indian schools run ${PT_GAP} or more. The view covers open programmes on public catalogues, not programmes built for one company.</p>`;
+// When runs start: schools down the side, the next 12 months across, a cell the runs that start
+// that month. A programme with several runs counts in each month one starts; one with no future
+// date published counts under "no date". The list under the grid follows the cell picked.
+function ptDates(L,cols){
+  const K=PTK[PT.k], W=ptWhere(PT.g), Wc=W[0].toUpperCase()+W.slice(1);
+  const m0=(D.whatsnew.iso||new Date().toISOString()).slice(0,7), months=[...Array(12)].map((_,i)=>addM(m0+"-01",i).slice(0,7));
+  const inView=L.filter(p=>cols.includes(p.sc));
+  const starts=sc=>inView.filter(p=>p.sc===sc).flatMap(p=>runsOf(p).map(r=>({p,a:r[0],b:r[1]}))).filter(x=>x.a.slice(0,7)<=months[11]);
+  const at=(sc,mo)=>starts(sc).filter(x=>x.a.slice(0,7)===mo);
+  const undated=sc=>inView.filter(p=>p.sc===sc&&!p.ns);
+  const shade=v=>!v?0:1+[1,2,4].filter(b=>v>b).length;
+  const cell=(sc,mo)=>{const l=at(sc,mo);
+    return `<td class="c q${shade(l.length)} ${PT.sc===sc&&PT.mo===mo?"sel":""}"><button type="button" data-mo="${mo}" data-sc="${sc}" title="${esc(`${SC[sc].l} · ${fmtD(mo)}: ${l.length?l.map(x=>x.p.n).join("; "):"no run starts"}`)}">${l.length||"·"}</button></td>`;};
+  const und=sc=>{const u=undated(sc);return `<td class="oth" title="${esc(u.length?"No future run published: "+u.map(p=>p.n+(p.ls?` (last ran ${fmtD(p.ls.slice(0,7))})`:p.nd?` (${p.nd})`:"")).join("; "):"")}">${u.length||"·"}</td>`;};
+  const row=sc=>`<tr><td class="l"><button type="button" data-mo="" data-sc="${sc}" style="${sc==="isb"?"font-weight:700;color:var(--isb)":""}">${esc(SC[sc].l)}</button></td>${months.map(mo=>cell(sc,mo)).join("")}${und(sc)}</tr>`;
+  const tot=mo=>cols.slice(1).reduce((a,sc)=>a+at(sc,mo).length,0);
+  const dated=inView.filter(p=>p.ns).length, now=inView.filter(p=>p.cur).length;
+  const list=cols.flatMap(sc=>starts(sc)).filter(x=>(!PT.sc||x.p.sc===PT.sc)&&(!PT.mo||x.a.slice(0,7)===PT.mo))
+    .sort((x,y)=>x.a<y.a?-1:x.a>y.a?1:(x.p.sc==="isb"?-1:y.p.sc==="isb"?1:0));
+  const n=PT.all?list.length:Math.min(40,list.length), RC="--cols:150px minmax(0,1fr) 92px 78px 70px";
+  const runRow=x=>{const p=x.p;
+    return `<div class="r ${p.sc==="isb"?"isbrow":""}" data-go="#/p/${p.i}" tabindex="0" style="${RC}"><span class="c">${fmtRun(x.a,x.b)}</span>
+      <span><div class="n">${nameLink(p)}${newTag(p.launch)}${goneTag(p)}</div><div class="s">${[esc(SC[p.sc].l),p.pt?`with ${esc(p.pt)}`:"",esc(T[p.t].th),p.sch?`class pattern: ${esc(p.sch)}`:""].filter(Boolean).join(" · ")}</div></span>
+      <span class="c hm">${esc({"Self-paced Online":"Self-paced","Online":"Online cohort"}[p.f]||p.f)}</span><span class="c hm">${wk(p.w)}</span><span class="c">${p.inr?lakh(p.inr):"—"}</span></div>`;};
+  const what=`${PT.sc?esc(SC[PT.sc].n):`ISB and the ${W} schools`}${PT.mo?`, starting ${fmtD(PT.mo)}`:`, ${fmtD(months[0])} to ${fmtD(months[11])}`}`;
+  return `<section style="margin-top:26px"><header><h2>When ${K.many} run, month by month</h2><span class="meta">${Wc} schools · runs starting each month, as schools publish them${PT.q?` · matching “${esc(PT.q)}”`:""} · click a cell or a school for its runs</span></header>
+    <p class="meta" style="max-width:780px;margin:0 0 12px">${dated} of the ${inView.length} ${K.many} at ISB and the ${W} schools publish a date for a future run${now?`, and ${now} more are under way now`:""}. The rest count under “No date”; hover over the number for when each last ran.</p>
+    <div class="mxw"><table class="mx"><tr><th class="l">School</th>${months.map(mo=>`<th>${fmtD(mo).replace(" ","<br>")}</th>`).join("")}<th>No<br>date</th></tr>
+      ${cols.map(row).join("")}
+      <tr><td class="l" style="padding-right:14px"><b>${Wc} schools</b></td>${months.map(mo=>`<td class="tot">${tot(mo)||"·"}</td>`).join("")}<td class="oth">${cols.slice(1).reduce((a,sc)=>a+undated(sc).length,0)}</td></tr></table></div>
+    <div class="mkey"><span>Runs starting:</span>${["1","2","3–4","5+"].map((k,i)=>`<span><i class="q${i+1}" style="background:${["#e3eaff","#c2d2ff","#8fabff","var(--blue)"][i]}"></i>${k}</span>`).join("")}</div></section>
+    <section><header><h2>Runs: ${what}</h2><span class="meta">${plural(list.length,"run")}, soonest first${PT.sc||PT.mo?` · <button type="button" class="lnk" data-close="1">Show every school and month</button>`:""}</span></header>
+      ${list.length?`<div class="rows"><div class="r hd" style="${RC}"><span>Dates</span><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span></div>${list.slice(0,n).map(runRow).join("")}</div>`
+        :`<p class="meta">No run published for this.</p>`}
+      ${n<list.length?`<p style="margin-top:10px"><button type="button" class="lnk" data-all="1">Show all ${list.length}</button></p>`:""}</section>`;
+}
+const ptNote=()=>`<p class="meta" style="margin-top:22px">${TYDEF} Counts are programmes on each school's catalogue, not cohorts run: a programme run four times a year counts once. Platforms are left out of the grid. Every ISB programme's theme and topic was checked by hand against ISB's live pages. Since 24 Nov 2026 a programme is filed by the subject of its title, keywords match whole words only, and a programme whose subject is AI sits under AI, Data & Digital; AI applied to one function, such as AI in marketing, stays with that function. Dates are the runs a school publishes; where it publishes none, lists show when the programme last ran. ISB is outlined in coral only where it has no ${PTK[PT.k].one} with the theme as its main or second topic and the Indian schools run ${PT_GAP} or more. The view covers open programmes on public catalogues, not programmes built for one company.</p>`;
 
 /* ---------- test a programme ---------- */
 const EXAMPLE={t:"AI governance for board directors",d:"board oversight of AI, AI risk, regulation, governance frameworks",f:"Campus",w:"0.6",fee:"2.5",lv:"Board"};

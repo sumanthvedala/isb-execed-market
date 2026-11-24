@@ -98,8 +98,10 @@ programmes each week, so every programme is re-read every two weeks.
    calendar or fee table covering many programmes (IIM-K, IIM-L), read it once for all its rows.
 3. Where the page differs from the catalogue row, update the row: `fee_raw`, `fee_currency`,
    `fee_amount`; `duration_raw` with `duration_days` or `duration_weeks`; `total_modules`; `format`
-   by the format rules in `data/CATALOGUE_SPEC.md`; `key_topics`; `next_start`. Set `last_verified`
-   to today on every row you open.
+   by the format rules in `data/CATALOGUE_SPEC.md`; `key_topics`; `next_start` (every published run,
+   separated by ";", so the dashboard's calendar shows them all). Fill `schedule` with the class
+   pattern if the page states one (weekends, evenings, hours a week, session times), whether or not
+   anything else changed. Set `last_verified` to today on every row you open.
 4. Add one line per programme to `data/recheck_log.csv`, changed or not:
    `checked_on` (today), `school_slug`, `programme_name` (exactly as in the catalogue), `outcome`
    (`same`, `changed`, `page gone` or `unreachable`), `fields` (for `changed`: the fields that moved,

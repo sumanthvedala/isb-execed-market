@@ -52,7 +52,9 @@ CAT_FIELDS = ['school', 'school_slug', 'region', 'programme_name', 'url', 'schoo
               # where a programme name links to, best first: landing page, url, brochure
               'landing_url', 'brochure_url',
               # 'likely discontinued' and the evidence; the row stays, the dashboard marks it
-              'status', 'status_note']
+              'status', 'status_note',
+              # the class pattern as the page states it: weekends, evenings, hours a week
+              'schedule']
 FILLABLE = ['url', 'format', 'duration_raw', 'duration_days', 'duration_weeks', 'fee_raw', 'fee_currency',
             'fee_amount', 'level', 'target_audience', 'next_start', 'last_known_start', 'end_date',
             'capstone', 'campus_immersion', 'industry_visit', 'total_modules', 'alumni_status', 'eligibility']
