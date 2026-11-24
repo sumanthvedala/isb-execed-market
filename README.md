@@ -42,7 +42,7 @@ The team's competitor sheet (the Power BI source) is merged in with
 
 Every Monday at 02:00 UTC, and on any push that touches the data or scripts:
 
-`build_taxonomy.py` → `apply_renames.py` → `classify.py` → `analyse.py` → `demand_index.py` → `refresh_queue.py` → `link_audit.py`
+`build_taxonomy.py` → `apply_renames.py` → `classify.py` → `check_classification.py` → `analyse.py` → `demand_index.py` → `refresh_queue.py` → `link_audit.py`
 → `what_changed.py` → `rename_candidates.py` → `build_data.py` → `build_site.py` → `check_drift.py`
 
 `check_drift.py` fails the build if any school's product count moved more than 10% against
@@ -56,12 +56,23 @@ tile per school that opens its whole portfolio (CXO programmes first, then blend
 online, campus, self-paced) under the same filters as the search page; Programme types; new
 launches by other schools, by theme and level; a test for a programme idea; and What changed.
 
-Programme types has a switch for topic-focused programmes (TFP) and C-suite (CXO) programmes.
-Its default view is a grid: themes down the side, schools across, ISB pinned first, Indian and
+Programme types has a tab for every programme type: topic-focused (TFP), C-suite (CXO), blended,
+live online, long campus and self-paced. Its default view is a grid: themes down the side, schools across, ISB pinned first, Indian and
 global schools under separate buttons because their fees differ about ninefold. Cells show the
 number of programmes, the median fee or new launches; a search box narrows the grid; a theme or
-a cell opens in place with its sub-themes, most-sold topics and programmes. "By school" gives
-the same type as a table, one row a school. ISB's cell reads "none" only when no ISB programme
+a cell opens in place with its sub-themes, most-sold topics and programmes, each with its next
+run. "By school" gives the same type as a table, one row a school, with the school's next run.
+"By start date" is a calendar: schools down the side, the next 12 months across, each cell the
+runs that start that month, and the list of those runs below; programmes with no future date
+published count under "No date".
+
+Dates come from the catalogues' `next_start`, `last_known_start` and `end_date`, read by
+`runs()` in `scripts/build_data.py`, which takes every way schools write a date ("Apr 25-30,
+2027", "Nov 30-Dec 4, 2026", "10-02-2027" day first, "Jan 2027", several runs split by ";" or
+"&") and drops any date without a year. A programme with no future run shows when it last ran.
+The class pattern (weekends, evenings, hours a week) comes from the catalogue's `schedule`
+column, which the weekly re-check fills from each page, or failing that from what the
+duration or audience text says. ISB's cell reads "none" only when no ISB programme
 of that type has the theme as its main or second topic, and says how many ISB sells in other
 formats; it is outlined in coral when, on top of that, the Indian schools run 20 or more
 (`PT_GAP` in `site/dashboard.tpl.html`).
@@ -140,7 +151,23 @@ Check that ISB's Reckless licence covers that.
 | File | What it does |
 | --- | --- |
 | `data/overrides.csv` | Pins a product to the right topic. All ISB products are pinned here, hand-verified, as are the TFP and CXO programmes, Indian and global, that the keyword engine misread (reviewed 23 Nov 2026). Add a row and the fix is permanent. The optional `secondary_topic` records a second theme a programme really teaches, so it is not read as absent from that theme. |
+| `data/classification_checks.csv` | Programmes whose theme (and topic) was settled by hand. `scripts/check_classification.py` fails the build if any of them is filed elsewhere, so a fixed mistake cannot come back. Add a row whenever you fix one. |
 | `data/taxonomy.csv` | The 15 themes / 46 sub-themes / 230 topics and the keywords that match them. Edit via `scripts/build_taxonomy.py`. |
+
+How a programme is filed (`scripts/classifier.py`), first rule that applies wins: a hand
+override; a C-suite title, filed under the function it teaches; a sector qualifier ("... for
+Healthcare"); then the subject of the title, which is the main title before any colon or dash
+with the wrapper ("Executive Programme in ...") and the setting ("... in the Age of AI") taken
+off. Topics whose keywords match the subject compete; the one whose keywords cover most of it
+wins. If the subject names no topic, the whole title is tried, then the title's domain (finance,
+marketing, AI, leadership ...) with the programme's key topics. Keywords match whole words
+only. A programme whose subject is AI goes under AI, Data & Digital; AI applied to one function
+("AI in Marketing", "HRM in Times of AI") stays with that function and gets an AI second topic.
+AI-era strategy (AI strategy, AI-native business models and the like) sits under AI, Data &
+Digital from 24 Nov 2026; its topic ids did not change. Each programme's `match_why` in
+`programmes_tagged.csv` says which rule filed it, and `outputs/classification_review.csv` lists
+the ones filed on a broad keyword and the overrides the rules now disagree with, for a person
+to look at.
 
 Both are editable in the GitHub web UI. Every edit is a commit with your name on it, which
 is the audit trail.
