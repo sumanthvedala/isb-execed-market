@@ -61,9 +61,10 @@ def cxo(p):
 # Programme type: the grouping every school page, tile, filter and median uses.
 # Each programme has exactly one type, so a C-suite programme never appears again
 # under its format. Topic-focused programmes (TFP, ISB's own term) are short
-# programmes on one topic: up to two weeks of contact on campus, or under 12
-# weeks online. Longer online programmes, live or cohort-based, count as live online.
-TYPES = ['C-suite', 'Blended', 'Live online', 'TFP campus', 'TFP online', 'Long campus', 'Self-paced', 'Not published']
+# programmes on one topic: two weeks or less on campus, or under 12 weeks online.
+# Longer online programmes, live or cohort-based, count as live online; longer
+# campus programmes are On campus (called Long campus before 24 Nov 2026).
+TYPES = ['C-suite', 'Blended', 'Live online', 'TFP campus', 'TFP online', 'On campus', 'Self-paced', 'Not published']
 
 
 def ptype(p, fmt, w):
@@ -76,7 +77,12 @@ def ptype(p, fmt, w):
     if fmt == 'Live Online':
         return 'TFP online' if w is not None and w < 12 else 'Live online'
     if fmt == 'Campus':
-        return 'Long campus' if w is not None and w > 2 else 'TFP campus'
+        # two weeks or less is a TFP. Where the school gives the days on campus, they decide:
+        # "11 days" is under two weeks, "2 x 2 weeks" (20 days) is not, whatever the span in weeks
+        d = num(p['duration_days'])
+        if d is not None:
+            return 'TFP campus' if d <= 14 else 'On campus'
+        return 'On campus' if w is not None and w > 2 else 'TFP campus'
     if fmt == 'Self-paced Online':
         return 'Self-paced'
     return 'Not published'
@@ -253,7 +259,7 @@ for p in prog:
     progs.append({
         'sc': p['school_slug'], 'n': p['programme_name'], 't': p['topic_id'], 'sec': p['secondary_topic_id'],
         'f': p['format'].split(';')[0].strip() or 'Unknown', 'lv': p['level'] or 'Unknown',
-        'w': weeks(p), 'dr': clip(g(p, 'duration_raw'), 50),
+        'w': weeks(p), 'dd': num(p['duration_days']), 'dr': clip(g(p, 'duration_raw'), 50),
         'inr': inr(p), 'fr': clip(g(p, 'fee_raw'), 46),
         'pt': p['partner'], 'nw': 1 if (p['is_new'] or '').upper().startswith('Y') else 0,
         **timing(p),
