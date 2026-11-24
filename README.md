@@ -144,7 +144,9 @@ Reckless and Inter files are in that folder. It ignores macOS `._` stubs and any
 "trial" in its name: a foundry's trial font is for evaluation, not a public website.
 
 Logos are in `site/brand/`: the white ISB Executive Education lockup in the masthead, and
-the colour one for light backgrounds. The ISB 25 mark is not used here.
+the colour one for light backgrounds. The band that opens every page carries the "25" of ISB's
+silver-jubilee artwork (`site/brand/isb25.webp`, the blue 25 alone, cut out onto a transparent
+ground) on the right, hidden on screens narrower than 1,100 pixels.
 
 This repo and its Pages site are public. Anyone can download the font files from either.
 Check that ISB's Reckless licence covers that.
