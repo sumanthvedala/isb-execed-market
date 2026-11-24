@@ -226,7 +226,7 @@ label.pillck.on{border-color:var(--isb);background:var(--sky);color:var(--isb);f
 .mixkey span{white-space:nowrap}
 .mixkey i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px}
 .k-Csuite{background:#192890;fill:#192890}.k-Blended{background:#245bff;fill:#245bff}.k-Liveonline{background:#80edd9;fill:#80edd9}.k-TFPcampus{background:#ffb172;fill:#ffb172}
-.k-TFPonline{background:#ffd866;fill:#ffd866}.k-Longcampus{background:#8685e0;fill:#8685e0}.k-Selfpaced{background:#5d6f7a;fill:#5d6f7a}.k-Notpublished{background:#e6ebee;fill:#e6ebee;box-shadow:inset 0 0 0 1px #c9d2dc}
+.k-TFPonline{background:#ffd866;fill:#ffd866}.k-Oncampus{background:#8685e0;fill:#8685e0}.k-Selfpaced{background:#5d6f7a;fill:#5d6f7a}.k-Notpublished{background:#e6ebee;fill:#e6ebee;box-shadow:inset 0 0 0 1px #c9d2dc}
 /* school tiles: the same split as a pie, with counts and shares beside it */
 .pie{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding-bottom:14px;border-bottom:1px solid var(--rule)}
 .pie svg{flex:none;width:100px;height:100px;display:block}
@@ -375,6 +375,8 @@ D.progs.forEach((p,i)=>p.i=i);
 const LV=l=>l==="Senior"?"C-suite/Senior":l;
 const median=a=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;};
 const lakh=v=>v==null?"not published":v>=1e7?"₹"+(v/1e7).toFixed(2)+" Cr":"₹"+(v/1e5).toFixed(v<1e6?2:1)+" L";
+// a programme's length for a list: a campus programme of two weeks or less in days, the rest from weeks
+const len=p=>p.f==="Campus"&&p.dd&&p.dd<=14?`${+p.dd} day${p.dd===1?"":"s"}`:wk(p.w);
 const wk=w=>w==null?"not published":w<1?Math.round(w*5)+" days":w<9?(+w.toFixed(1))+" weeks":Math.round(w/4.33)+" months";
 const fmtD=s=>{if(!s)return"";const d=new Date((s.length===7?s+"-01":s)+"T00:00:00");return isNaN(d)?s:
   d.toLocaleDateString("en-GB",s.length===7?{month:"short",year:"numeric"}:{day:"numeric",month:"short",year:"numeric"});};
@@ -407,12 +409,12 @@ const GRP={India:"Indian schools",Global:"Global schools",Platform:"Platforms"};
 // never appears again under its format. Order is fixed everywhere.
 const TYL={"C-suite":["C-suite (CXO) programmes","C-suite","C-suite programmes"],"Blended":["Blended programmes","Blended","blended"],
   "Live online":["Live online, 12 weeks or more","Live online","live online"],"TFP campus":["Topic-focused programmes (TFP) on campus","TFP campus","topic-focused on campus"],
-  "TFP online":["Topic-focused programmes (TFP) online","TFP online","topic-focused online"],"Long campus":["Long campus programmes","Long campus","long campus"],
+  "TFP online":["Topic-focused programmes (TFP) online","TFP online","topic-focused online"],"On campus":["On campus, more than two weeks","On campus","on campus"],
   "Self-paced":["Self-paced online","Self-paced","self-paced"],"Not published":["Format not published","Not published","with no format published"]};
 const KINDS=D.types.map(k=>[k,TYL[k][0],TYL[k][1],TYL[k][2]]);
 const kindOf=p=>p.ty;
 const kcls=k=>"k-"+k.replace(/[^A-Za-z]/g,"");
-const TYDEF=`<b>C-suite (CXO)</b>: named for a C-suite role, or filed under C-suite by the school, whatever the format; counted only here. <b>Topic-focused programmes (TFP)</b>: short programmes on one topic, up to two weeks of contact on campus or under 12 weeks online. <b>Live online</b>: online programmes of 12 weeks or more, taught live or as a cohort. <b>Long campus</b>: campus programmes longer than two weeks. <b>Self-paced</b>: enrol any time, no cohort. Medians are of published fees, converted to rupees at fixed planning rates.`;
+const TYDEF=`<b>C-suite (CXO)</b>: named for a C-suite role, or filed under C-suite by the school, whatever the format; counted only here. <b>Topic-focused programmes (TFP)</b>: short programmes on one topic, two weeks or less on campus (14 days, where the school gives days) or under 12 weeks online. <b>Live online</b>: online programmes of 12 weeks or more, taught live or as a cohort. <b>On campus</b>: campus programmes of more than two weeks. <b>Self-paced</b>: enrol any time, no cohort. Medians are of published fees, converted to rupees at fixed planning rates.`;
 // where a programme's name takes you: its landing page, else its page in the
 // school's catalogue, else its brochure. Never a news article or a listing site.
 const LINKS={lu:"Landing page",u:"Programme page",bu:"Brochure"};
@@ -457,7 +459,7 @@ const isbSay=o=>o.sold.length?`ISB already sells ${plural(o.sold.length,"program
 
 // the type a proposed programme would get, by the same rules as build_data.py
 const typeOf=(f,w)=>f==="Blended"?"Blended":f==="Online"?(w!=null&&w>=12?"Live online":"TFP online")
-  :f==="Live Online"?(w!=null&&w<12?"TFP online":"Live online"):f==="Campus"?(w!=null&&w>2?"Long campus":"TFP campus"):f==="Self-paced Online"?"Self-paced":"Not published";
+  :f==="Live Online"?(w!=null&&w<12?"TFP online":"Live online"):f==="Campus"?(w!=null&&w>2?"On campus":"TFP campus"):f==="Self-paced Online"?"Self-paced":"Not published";
 // peers for a fee comparison: the closest programmes in one region, kept to the same
 // programme type when at least three exist, so a 3-day course is not priced against a 1-year one
 function feePeers(p,region,k=10){
@@ -494,7 +496,7 @@ function progRow(p,opt={}){
   return `<div class="r ${p.sc==="isb"&&!opt.noSchool?"isbrow":""}" data-go="#/p/${p.i}" tabindex="0" style="${opt.compact?(opt.dates?COMPACT_D:COMPACT):""}">
     <span><div class="n">${nameLink(p)}${newTag(p.launch)}${p.new?'<span class="mark">added this month</span>':""}${goneTag(p)}</div>
       <div class="s">${sub}</div></span>
-    <span class="c hm">${esc({"Self-paced Online":"Self-paced","Online":"Online cohort"}[p.f]||p.f)}</span><span class="c hm">${wk(p.w)}</span>
+    <span class="c hm">${esc({"Self-paced Online":"Self-paced","Online":"Online cohort"}[p.f]||p.f)}</span><span class="c hm">${len(p)}</span>
     <span class="c">${p.inr?lakh(p.inr):"—"}</span>${dates?`<span class="c hm">${whenCell(p)}</span>`:""}</div>`;
 }
 const progHead=(c,dates)=>c?`<div class="r hd" style="${dates?COMPACT_D:COMPACT}"><span>Programme</span><span>Format</span><span>Duration</span><span>Fee</span>${dates?"<span>Next run</span>":""}</div>`
@@ -912,9 +914,9 @@ const PTK={
   live:{tab:"Live online",one:"live online programme",many:"live online programmes",is:p=>p.ty==="Live online",bins:[1,3,6],
     def:"online programmes of 12 weeks or more, taught live or as a cohort",
     eg:"Search live online programmes: “analytics”, “marketing”, “AI”"},
-  long:{tab:"Long campus",one:"long campus programme",many:"long campus programmes",is:p=>p.ty==="Long campus",bins:[1,2,3],
-    def:"campus programmes of more than two weeks of contact",
-    eg:"Search long campus programmes: “general management”, “leadership”"},
+  campus:{tab:"On campus",one:"on-campus programme",many:"on-campus programmes",is:p=>p.ty==="On campus",bins:[1,2,3],
+    def:"campus programmes of more than two weeks",
+    eg:"Search on-campus programmes: “general management”, “leadership”"},
   self:{tab:"Self-paced",one:"self-paced course",many:"self-paced courses",is:p=>p.ty==="Self-paced",bins:[1,3,6],
     def:"online courses with no cohort, open to enrol at any time",
     eg:"Search self-paced courses: “AI”, “finance”, “strategy”"}};
@@ -940,7 +942,8 @@ function ptIsb(th,L){
     other:D.progs.filter(p=>p.sc==="isb"&&!K.is(p)&&T[p.t].th===th&&ptMatch(p))};
 }
 function ptypes(q){
-  PT.k=PTK[q.k]?q.k:"tfp"; PT.g=q.g==="global"?"Global":"India"; PT.v=q.v==="school"||q.v==="dates"?q.v:"theme";
+  // "long" was the On campus tab's key before 24 Nov 2026; old links still open it
+  PT.k=PTK[q.k]?q.k:q.k==="long"?"campus":"tfp"; PT.g=q.g==="global"?"Global":"India"; PT.v=q.v==="school"||q.v==="dates"?q.v:"theme";
   PT.m=q.m==="fee"||q.m==="new"?q.m:"n"; PT.q=q.q||""; PT.th=q.th||""; PT.sc=q.sc||""; PT.mo=/^\d{4}-\d\d$/.test(q.mo||"")?q.mo:""; PT.all=false;
   const tabs=(id,list,v)=>`<div class="tabs" id="${id}">${list.map(([k,l])=>`<button type="button" data-v="${k}" class="${v===k?"on":""}">${l}</button>`).join("")}</div>`;
   $("view").innerHTML=band(`<h1>Programme types</h1>
@@ -1096,7 +1099,7 @@ function ptDates(L,cols){
   const runRow=x=>{const p=x.p;
     return `<div class="r ${p.sc==="isb"?"isbrow":""}" data-go="#/p/${p.i}" tabindex="0" style="${RC}"><span class="c">${fmtRun(x.a,x.b)}</span>
       <span><div class="n">${nameLink(p)}${newTag(p.launch)}${goneTag(p)}</div><div class="s">${[esc(SC[p.sc].l),p.pt?`with ${esc(p.pt)}`:"",esc(T[p.t].th),p.sch?`class pattern: ${esc(p.sch)}`:""].filter(Boolean).join(" · ")}</div></span>
-      <span class="c hm">${esc({"Self-paced Online":"Self-paced","Online":"Online cohort"}[p.f]||p.f)}</span><span class="c hm">${wk(p.w)}</span><span class="c">${p.inr?lakh(p.inr):"—"}</span></div>`;};
+      <span class="c hm">${esc({"Self-paced Online":"Self-paced","Online":"Online cohort"}[p.f]||p.f)}</span><span class="c hm">${len(p)}</span><span class="c">${p.inr?lakh(p.inr):"—"}</span></div>`;};
   const what=`${PT.sc?esc(SC[PT.sc].n):`ISB and the ${W} schools`}${PT.mo?`, starting ${fmtD(PT.mo)}`:`, ${fmtD(months[0])} to ${fmtD(months[11])}`}`;
   return `<section style="margin-top:26px"><header><h2>When ${K.many} run, month by month</h2><span class="meta">${Wc} schools · runs starting each month, as schools publish them${PT.q?` · matching “${esc(PT.q)}”`:""} · click a cell or a school for its runs</span></header>
     <p class="meta" style="max-width:780px;margin:0 0 12px">${dated} of the ${inView.length} ${K.many} at ISB and the ${W} schools publish a date for a future run${now?`, and ${now} more are under way now`:""}. The rest count under “No date”; hover over the number for when each last ran.</p>

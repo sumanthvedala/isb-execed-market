@@ -57,7 +57,7 @@ online, campus, self-paced) under the same filters as the search page; Programme
 launches by other schools, by theme and level; a test for a programme idea; and What changed.
 
 Programme types has a tab for every programme type: topic-focused (TFP), C-suite (CXO), blended,
-live online, long campus and self-paced. Its default view is a grid: themes down the side, schools across, ISB pinned first, Indian and
+live online, on campus and self-paced. Its default view is a grid: themes down the side, schools across, ISB pinned first, Indian and
 global schools under separate buttons because their fees differ about ninefold. Cells show the
 number of programmes, the median fee or new launches; a search box narrows the grid; a theme or
 a cell opens in place with its sub-themes, most-sold topics and programmes, each with its next
@@ -112,7 +112,10 @@ date, when its count moves for a known reason.
 Every programme has one programme type, so nothing is counted twice: C-suite (named for a
 C-suite role, or filed under C-suite by the school, whatever its format), Blended, Live
 online (12 weeks or more online), TFP campus and TFP online (topic-focused programmes, ISB's
-term: up to two weeks on campus or under 12 weeks online), Long campus, Self-paced. Tiles and
+term: two weeks or less on campus, or under 12 weeks online), On campus (campus programmes of
+more than two weeks; called Long campus before 24 Nov 2026), Self-paced. A campus programme's
+type follows its days on campus where the school gives them (14 days or less is a TFP), else its
+length in weeks. Tiles and
 school pages give the median fee per type. ISB has one tile; its tile and page say how many programmes it delivers itself and how many with partners.
 Fee comparisons for a programme idea, and for ISB against its peers, use Indian programmes
 only. The rules are in `scripts/build_data.py`.
