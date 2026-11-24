@@ -91,16 +91,17 @@ section{margin-top:56px;scroll-margin-top:110px}
 section>header{border-top:2px solid var(--isb);padding-top:12px;margin-bottom:18px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
 .kicker{font-size:var(--t4);color:var(--ink-3);margin-bottom:22px}
 
-/* the band that opens every page: a full-width block of light blue with plain geometry on the right */
+/* the band that opens every page: a full-width block of light grey with ISB's 25 mark on the right */
 .band{position:relative;background:var(--sky);box-shadow:0 0 0 100vmax var(--sky);clip-path:inset(0 -100vmax);
   padding-block:44px 40px;margin-bottom:36px}
 .band>*{position:relative;z-index:1}
-.band .motif{position:absolute;z-index:0;right:0;top:50%;transform:translateY(-50%);height:100%;max-height:300px;width:auto;pointer-events:none}
+.band .motif{position:absolute;z-index:0;right:0;top:50%;transform:translateY(-50%);height:calc(100% - 56px);max-height:250px;width:auto;pointer-events:none}
 .band h1{max-width:760px}
 .band .lead{max-width:740px}
 .band .crumb{font-size:14px;color:var(--isb);margin-bottom:14px}
 .band .crumb a{text-decoration-color:var(--blue)}
 @media (max-width:1100px){.band .motif{display:none}}
+@media (min-width:1101px){.band{padding-right:290px}}   /* text and buttons wrap before the 25, never run under it */
 
 .lead{font:400 clamp(17px,1.9vw,19px)/1.45 var(--sans);margin:0 0 8px;text-wrap:pretty}
 .lead b{font-weight:600;color:var(--isb)}
@@ -431,15 +432,8 @@ const DEM_EXPLAIN=`<b>What “demand” means here.</b> How strongly published r
 
 /* the geometry that sits on the right of every page's opening band: flat
    squares, quarter circles, a diamond grid and a dot grid in the brand blues */
-const MOTIF=`<svg class="motif" viewBox="0 0 270 300" aria-hidden="true">
-  <rect x="0" y="0" width="150" height="150" fill="#95a9b4"/>
-  <path d="M150 150a150 150 0 0 1-150 150V150z" fill="#245bff"/>
-  <rect x="150" y="150" width="120" height="150" fill="#192890"/>
-  <path d="M150 0h120v120a120 120 0 0 1-120-120z" fill="#245bff"/>
-  <g fill="#f4f8fa">${[0,1,2].map(i=>[0,1].map(j=>`<path d="M${36+i*36} ${22+j*36}l16 16-16 16-16-16z"/>`).join("")).join("")}</g>
-  <g fill="#ffb172">${[0,1,2].map(i=>[0,1].map(j=>`<circle cx="${20+i*15}" cy="${118+j*15}" r="3.6"/>`).join("")).join("")}</g>
-  <g fill="#80edd9">${[0,1,2].map(i=>[0,1,2].map(j=>`<circle cx="${188+i*15}" cy="${196+j*15}" r="3.6"/>`).join("")).join("")}</g>
-</svg>`;
+// ISB's 25 mark (the "25" from the silver-jubilee artwork, cut out onto a transparent ground)
+const MOTIF=`<img class="motif" src="brand/isb25.webp" alt="" width="603" height="550" aria-hidden="true">`;
 const band=h=>`<div class="band">${MOTIF}${h}</div>`;
 
 /* closest peer programmes: same topic first, then secondary, then sub-theme;
@@ -903,7 +897,7 @@ function drawSchool(){
 // their typical fees differ about ninefold.
 const PTK={
   tfp:{tab:"Topic-focused (TFP)",one:"TFP",many:"TFPs",is:p=>p.ty==="TFP campus"||p.ty==="TFP online",bins:[3,7,12],
-    def:"short open programmes on one topic, up to two weeks of contact on campus or under 12 weeks online",
+    def:"short open programmes on one topic, two weeks or less on campus or under 12 weeks online",
     eg:"Search TFPs: “negotiation”, “AI”, “pricing”, “board”"},
   cxo:{tab:"C-suite (CXO)",one:"CXO programme",many:"CXO programmes",is:p=>p.ty==="C-suite",bins:[1,2,4],
     def:"programmes named for a C-suite role, or filed under C-suite by the school, whatever the format",
